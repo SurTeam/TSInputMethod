@@ -8,6 +8,7 @@ class TSInputController: IMKInputController {
     private var candidates: [String] = []
     private var comments: [String] = []
     private var selectedIndex: Int = 0
+    private var visibleCandidates: [String] = []
     private var candidatesPanel: IMKCandidates?
     private var leftShiftDown = false
     private var leftShiftUsedAsModifier = false
@@ -179,6 +180,7 @@ class TSInputController: IMKInputController {
             candidates = []
             comments = []
             selectedIndex = 0
+            visibleCandidates = []
         }
         markedText = outcome.preedit
         setMarked(text: outcome.preedit, client: client)
@@ -193,29 +195,51 @@ class TSInputController: IMKInputController {
             return
         }
         if candidates.isEmpty {
+            visibleCandidates = []
             panel.hide()
             return
         }
         let shown = displayCandidates()
-        panel.setCandidateData(shown)
-        panel.update()
-        panel.show(kIMKLocateCandidatesBelowHint)
-        syncCandidateHighlight(panel: panel, shown: shown)
+        let samePage = shown == visibleCandidates
+        if !samePage {
+            visibleCandidates = shown
+            panel.setCandidateData(shown)
+            panel.update()
+            panel.show(kIMKLocateCandidatesBelowHint)
+        }
+        syncCandidateHighlight(panel: panel, count: shown.count)
     }
 
-    private func syncCandidateHighlight(panel: IMKCandidates, shown: [String]) {
-        guard !shown.isEmpty else {
+    private func syncCandidateHighlight(panel: IMKCandidates, count: Int) {
+        guard count > 0 else {
             return
         }
         var index = selectedIndex
         if index < 0 {
             index = 0
         }
-        if index >= shown.count {
-            index = shown.count - 1
+        if index >= count {
+            index = count - 1
         }
-        let identifier = panel.candidateStringIdentifier(shown[index])
-        _ = panel.selectCandidate(withIdentifier: identifier)
+        let applySelection = { [weak self] in
+            guard let self else {
+                return
+            }
+            let identifier = panel.candidateIdentifier(atLineNumber: index)
+            if identifier != NSNotFound {
+                _ = panel.selectCandidate(withIdentifier: identifier)
+                return
+            }
+            guard index < self.visibleCandidates.count else {
+                return
+            }
+            let fallback = panel.candidateStringIdentifier(self.visibleCandidates[index] as NSString)
+            if fallback != NSNotFound {
+                _ = panel.selectCandidate(withIdentifier: fallback)
+            }
+        }
+        applySelection()
+        DispatchQueue.main.async(execute: applySelection)
     }
 
     private func wireModifiers(from flags: NSEvent.ModifierFlags) -> UInt32 {
@@ -259,6 +283,7 @@ class TSInputController: IMKInputController {
         candidates = []
         comments = []
         selectedIndex = 0
+        visibleCandidates = []
         candidatesPanel?.hide()
     }
 }
