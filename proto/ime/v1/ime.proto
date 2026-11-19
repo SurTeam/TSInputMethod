@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+package ime.v1;
+
+option go_package = "github.com/SurTeam/TSInputMethod/proto/ime/v1;imev1";
+
+enum InputMode {
+  INPUT_MODE_UNSPECIFIED = 0;
+  INPUT_MODE_CHINESE = 1;
+  INPUT_MODE_ENGLISH = 2;
+}
+
+message ProtocolVersion {
+  uint32 major = 1;
+  uint32 minor = 2;
+}
+
+message Hello {
+  ProtocolVersion client_version = 1;
+  string client_name = 2;
+}
+
+message HelloAck {
+  ProtocolVersion server_version = 1;
+  bool accepted = 2;
+  string message = 3;
+}
+
+message OpenSession {
+  string client_session_hint = 1;
+  InputMode initial_mode = 2;
+}
+
+message OpenSessionAck {
+  string session_id = 1;
+  InputMode mode = 2;
+}
+
+message CloseSession {
+  string session_id = 1;
+}
+
+message KeyEvent {
+  string session_id = 1;
+  uint32 key_code = 2;
+  uint32 modifiers = 3;
+  string characters = 4;
+  bool is_repeat = 5;
+  bool key_down = 6;
+}
+
+message SetInputMode {
+  string session_id = 1;
+  InputMode mode = 2;
+}
+
+message GetInputMode {
+  string session_id = 1;
+}
+
+message InputModeState {
+  string session_id = 1;
+  InputMode mode = 2;
+}
+
+message CompositionState {
+  string session_id = 1;
+  string preedit = 2;
+  uint32 cursor = 3;
+  uint64 generation = 4;
+}
+
+message Candidate {
+  string text = 1;
+  string comment = 2;
+  int32 score = 3;
+}
+
+message CandidateList {
+  string session_id = 1;
+  uint64 generation = 2;
+  uint32 page = 3;
+  uint32 page_size = 4;
+  repeated Candidate candidates = 5;
+}
+
+message SelectCandidate {
+  string session_id = 1;
+  uint64 generation = 2;
+  uint32 index = 3;
+}
+
+message CommitText {
+  string session_id = 1;
+  string text = 2;
+  uint64 generation = 3;
+}
+
+message Error {
+  int32 code = 1;
+  string message = 2;
+}
+
+message Status {
+  bool ok = 1;
+  string message = 2;
+}
+
+message KeyEventResult {
+  CompositionState composition = 1;
+  CandidateList candidates = 2;
+  CommitText commit = 3;
+  bool consumed = 4;
+}
+
+message Envelope {
+  uint64 request_id = 1;
+  uint64 sequence_number = 2;
+  uint64 generation = 3;
+  oneof payload {
+    Hello hello = 10;
+    HelloAck hello_ack = 11;
+    OpenSession open_session = 12;
+    OpenSessionAck open_session_ack = 13;
+    CloseSession close_session = 14;
+    KeyEvent key_event = 15;
+    KeyEventResult key_event_result = 16;
+    SetInputMode set_input_mode = 17;
+    GetInputMode get_input_mode = 18;
+    InputModeState input_mode_state = 19;
+    CompositionState composition_state = 20;
+    CandidateList candidate_list = 21;
+    SelectCandidate select_candidate = 22;
+    CommitText commit_text = 23;
+    Error error = 24;
+    Status status = 25;
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "source_project": "https://github.com/iDvel/rime-ice",
+  "license": "GPL-3.0",
+  "redistribution": "Compiled dictionary data derived from rime-ice remains under GPL-3.0. Distribute corresponding source YAML tables and this license record with the index.",
+  "license_excerpt": "",
+  "inputs": [
+    {
+      "file": "fixture.dict.yaml",
+      "name": "fixture",
+      "version": "0",
+      "entries": 13
+    }
+  ],
+  "runtime_dependency": "none (no Rime Runtime)"
+}

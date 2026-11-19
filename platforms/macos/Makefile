@@ -1,0 +1,40 @@
+ROOT := $(abspath ../..)
+COMMON := $(ROOT)/platforms/common
+BUILD_COMMON := $(COMMON)/build
+OUT := build/TSInputMethod.app/Contents
+SWIFTC ?= swiftc
+PROTO_LIBS := $(shell pkg-config --libs protobuf)
+
+.PHONY: all common app install uninstall clean
+
+all: app
+
+common:
+	cmake -S $(COMMON) -B $(BUILD_COMMON)
+	cmake --build $(BUILD_COMMON)
+
+app: common
+	mkdir -p $(OUT)/MacOS $(OUT)/Resources
+	cp Info.plist $(OUT)/
+	$(SWIFTC) \
+		-parse-as-library \
+		-module-name TSInputMethod \
+		-import-objc-header Sources/TSInputMethod/TSInputMethod-Bridging-Header.h \
+		-I $(COMMON)/native \
+		-Xlinker -lc++ \
+		-L $(BUILD_COMMON) -ltsime_ipc \
+		$(PROTO_LIBS) \
+		-framework Cocoa -framework InputMethodKit \
+		-o $(OUT)/MacOS/TSInputMethod \
+		Sources/TSInputMethod/main.swift \
+		Sources/TSInputMethod/DaemonClient.swift \
+		Sources/TSInputMethod/InputController.swift
+
+install: app
+	./scripts/install.sh
+
+uninstall:
+	./scripts/uninstall.sh
+
+clean:
+	rm -rf build

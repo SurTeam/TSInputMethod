@@ -1,0 +1,8 @@
+dist/
+platforms/macos/build/
+platforms/common/build/
+*.app/
+/tmp/
+.DS_Store
+*.o
+*.a
