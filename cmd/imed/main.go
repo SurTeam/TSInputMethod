@@ -76,6 +76,8 @@ func resolveDictPath() string {
 		candidates = append([]string{
 			filepath.Join(root, "data", "dicts", "rime-ice.tsdict"),
 			filepath.Join(root, "..", "data", "dicts", "rime-ice.tsdict"),
+			filepath.Join(root, "..", "Resources", "data", "dicts", "rime-ice.tsdict"),
+			filepath.Join(root, "..", "Resources", "dicts", "rime-ice.tsdict"),
 		}, candidates...)
 	}
 	for _, path := range candidates {

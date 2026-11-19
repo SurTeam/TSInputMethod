@@ -4,106 +4,251 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DIST="$ROOT/dist/macos"
 STAGE="$DIST/TSInputMethod-macos"
 APP_SRC="$ROOT/platforms/macos/build/TSInputMethod.app"
+APP_STAGE="$STAGE/TSInputMethod.app"
+INSTALLER_STAGE="$STAGE/Install TSInputMethod.app"
+DMG_STAGE="$DIST/dmg-root"
+DMG_PATH="$DIST/TSInputMethod-macos.dmg"
+SIGN_IDENTITY="${TSIME_SIGN_IDENTITY:-}"
 
 export GOSUMDB="${GOSUMDB:-off}"
 
-echo "==> build imed"
-mkdir -p "$STAGE/bin" "$STAGE/data/dicts" "$STAGE/scripts"
-(cd "$ROOT" && go build -o "$STAGE/bin/imed" ./cmd/imed)
+resolve_sign_identity() {
+  if [[ -n "$SIGN_IDENTITY" ]]; then
+    return 0
+  fi
+  local line
+  line="$(security find-identity -v -p codesigning | awk '/SurTeam/ {print; exit}')"
+  if [[ -z "$line" ]]; then
+    echo "error: no SurTeam codesigning identity found in keychain" >&2
+    exit 1
+  fi
+  SIGN_IDENTITY="$(printf '%s\n' "$line" | sed -E 's/.*"([^"]+)".*/\1/')"
+  if [[ -z "$SIGN_IDENTITY" ]]; then
+    echo "error: failed to parse SurTeam identity from: $line" >&2
+    exit 1
+  fi
+}
 
-echo "==> copy dictionary"
-cp "$ROOT/data/dicts/rime-ice.tsdict" "$STAGE/data/dicts/"
-cp "$ROOT/data/dicts/LICENSE.rime-ice.json" "$STAGE/data/dicts/"
-if [[ -f "$ROOT/data/dicts/rime-ice.tsdict.meta.json" ]]; then
-  cp "$ROOT/data/dicts/rime-ice.tsdict.meta.json" "$STAGE/data/dicts/"
-fi
+sign_path() {
+  local target="$1"
+  codesign --force --options runtime --timestamp=none --sign "$SIGN_IDENTITY" "$target"
+}
+
+sign_app_bundle() {
+  local app="$1"
+  if [[ -x "$app/Contents/MacOS/imed" ]]; then
+    sign_path "$app/Contents/MacOS/imed"
+  fi
+  if [[ -x "$app/Contents/MacOS/TSInputMethod" ]]; then
+    sign_path "$app/Contents/MacOS/TSInputMethod"
+  fi
+  if [[ -x "$app/Contents/MacOS/install" ]]; then
+    sign_path "$app/Contents/MacOS/install"
+  fi
+  codesign --force --deep --options runtime --timestamp=none --sign "$SIGN_IDENTITY" "$app"
+}
+
+rm -rf "$STAGE" "$DMG_STAGE"
+mkdir -p "$STAGE" "$DMG_STAGE"
+
+echo "==> build imed"
+mkdir -p "$STAGE/bin"
+(cd "$ROOT" && go build -o "$STAGE/bin/imed" ./cmd/imed)
 
 echo "==> build macOS IMKit app"
 (cd "$ROOT/platforms/macos" && make app)
-rm -rf "$STAGE/TSInputMethod.app"
-cp -R "$APP_SRC" "$STAGE/TSInputMethod.app"
+rm -rf "$APP_STAGE"
+cp -R "$APP_SRC" "$APP_STAGE"
 
-cat > "$STAGE/scripts/install.sh" <<'EOF'
+echo "==> embed imed + dictionary into app bundle"
+mkdir -p "$APP_STAGE/Contents/MacOS" \
+  "$APP_STAGE/Contents/Resources/data/dicts" \
+  "$APP_STAGE/Contents/Resources/LaunchAgents"
+cp "$STAGE/bin/imed" "$APP_STAGE/Contents/MacOS/imed"
+chmod +x "$APP_STAGE/Contents/MacOS/imed"
+cp "$ROOT/data/dicts/rime-ice.tsdict" "$APP_STAGE/Contents/Resources/data/dicts/"
+cp "$ROOT/data/dicts/LICENSE.rime-ice.json" "$APP_STAGE/Contents/Resources/data/dicts/"
+if [[ -f "$ROOT/data/dicts/rime-ice.tsdict.meta.json" ]]; then
+  cp "$ROOT/data/dicts/rime-ice.tsdict.meta.json" "$APP_STAGE/Contents/Resources/data/dicts/"
+fi
+
+cat > "$APP_STAGE/Contents/Resources/LaunchAgents/com.surteam.tsime.imed.plist" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.surteam.tsime.imed</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__IMED__</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>TSIME_SCHEME</key>
+    <string>xiaohe</string>
+    <key>TSIME_DICT</key>
+    <string>__DICT__</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>__STDOUT__</string>
+  <key>StandardErrorPath</key>
+  <string>__STDERR__</string>
+</dict>
+</plist>
+EOF
+
+echo "==> create Install TSInputMethod.app"
+rm -rf "$INSTALLER_STAGE"
+mkdir -p "$INSTALLER_STAGE/Contents/MacOS" "$INSTALLER_STAGE/Contents/Resources"
+cp -R "$APP_STAGE" "$INSTALLER_STAGE/Contents/Resources/TSInputMethod.app"
+
+cat > "$INSTALLER_STAGE/Contents/Info.plist" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleExecutable</key>
+  <string>install</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.surteam.TSInputMethod.Installer</string>
+  <key>CFBundleName</key>
+  <string>Install TSInputMethod</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleVersion</key>
+  <string>0.1.0</string>
+  <key>LSUIElement</key>
+  <false/>
+</dict>
+</plist>
+EOF
+
+cat > "$INSTALLER_STAGE/Contents/MacOS/install" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEST="$HOME/Library/Input Methods/TSInputMethod.app"
-mkdir -p "$HOME/Library/Input Methods"
-rm -rf "$DEST"
-cp -R "$ROOT/TSInputMethod.app" "$DEST"
-echo "installed $DEST"
-echo "Next:"
-echo "  1) Start daemon: $ROOT/scripts/run_imed.sh"
-echo "  2) System Settings → Keyboard → Input Sources → add TSInputMethod"
-echo "  3) If Gatekeeper blocks: xattr -dr com.apple.quarantine \"$DEST\""
-echo "Default scheme is Xiaohe (flypy). Override with TSIME_SCHEME=quanpin."
-EOF
-chmod +x "$STAGE/scripts/install.sh"
 
-cat > "$STAGE/scripts/uninstall.sh" <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-DEST="$HOME/Library/Input Methods/TSInputMethod.app"
-rm -rf "$DEST"
-echo "removed $DEST"
-EOF
-chmod +x "$STAGE/scripts/uninstall.sh"
+SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
+SRC_APP="$SELF_DIR/../Resources/TSInputMethod.app"
+DEST_DIR="$HOME/Library/Input Methods"
+DEST_APP="$DEST_DIR/TSInputMethod.app"
+AGENT_LABEL="com.surteam.tsime.imed"
+AGENT_DIR="$HOME/Library/LaunchAgents"
+AGENT_PLIST="$AGENT_DIR/$AGENT_LABEL.plist"
+LOG_DIR="$HOME/Library/Logs"
+TEMPLATE="$SRC_APP/Contents/Resources/LaunchAgents/$AGENT_LABEL.plist"
 
-cat > "$STAGE/scripts/run_imed.sh" <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-export TSIME_SCHEME="${TSIME_SCHEME:-xiaohe}"
-export TSIME_DICT="${TSIME_DICT:-$ROOT/data/dicts/rime-ice.tsdict}"
-export TSIME_SOCKET="${TSIME_SOCKET:-/tmp/tsime-$UID.sock}"
-exec "$ROOT/bin/imed"
+if [[ ! -d "$SRC_APP" ]]; then
+  osascript -e 'display alert "TSInputMethod installer" message "Embedded IME app is missing from the installer bundle." as critical' || true
+  exit 1
+fi
+
+mkdir -p "$DEST_DIR" "$AGENT_DIR" "$LOG_DIR"
+rm -rf "$DEST_APP"
+cp -R "$SRC_APP" "$DEST_APP"
+
+IMED="$DEST_APP/Contents/MacOS/imed"
+DICT="$DEST_APP/Contents/Resources/data/dicts/rime-ice.tsdict"
+STDOUT="$LOG_DIR/tsime-imed.log"
+STDERR="$LOG_DIR/tsime-imed.err.log"
+
+if [[ ! -x "$IMED" ]]; then
+  osascript -e 'display alert "TSInputMethod installer" message "Embedded imed binary is missing." as critical' || true
+  exit 1
+fi
+if [[ ! -f "$DICT" ]]; then
+  osascript -e 'display alert "TSInputMethod installer" message "Embedded dictionary is missing." as critical' || true
+  exit 1
+fi
+
+UID_NUM="$(id -u)"
+if launchctl print "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1; then
+  launchctl bootout "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
+fi
+
+sed \
+  -e "s|__IMED__|$IMED|g" \
+  -e "s|__DICT__|$DICT|g" \
+  -e "s|__STDOUT__|$STDOUT|g" \
+  -e "s|__STDERR__|$STDERR|g" \
+  "$TEMPLATE" > "$AGENT_PLIST"
+
+launchctl bootstrap "gui/$UID_NUM" "$AGENT_PLIST"
+launchctl enable "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
+launchctl kickstart -k "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
+
+osascript <<OSA
+display dialog "TSInputMethod installed to:\n$DEST_APP\n\nDaemon LaunchAgent loaded (Xiaohe default).\n\nNext: System Settings → Keyboard → Input Sources → add TSInputMethod." buttons {"OK"} default button 1 with title "TSInputMethod"
+OSA
 EOF
-chmod +x "$STAGE/scripts/run_imed.sh"
+chmod +x "$INSTALLER_STAGE/Contents/MacOS/install"
 
 cat > "$STAGE/README.md" <<'EOF'
-# TSInputMethod macOS trial package
+# TSInputMethod macOS trial
 
-Scheme default: **Xiaohe / flypy** (`TSIME_SCHEME=xiaohe`).
+Primary install: open the DMG and double-click **Install TSInputMethod**.
 
-## Install
+That installer:
 
-```bash
-bash scripts/install.sh
-```
+1. Copies `TSInputMethod.app` into `~/Library/Input Methods`
+2. Installs a LaunchAgent that auto-starts embedded `imed`
+3. Defaults `TSIME_SCHEME=xiaohe`
 
-## Run daemon (required while typing)
+Then enable the input source in System Settings → Keyboard → Input Sources.
 
-```bash
-bash scripts/run_imed.sh
-```
-
-Socket: `/tmp/tsime-$UID.sock` (override with `TSIME_SOCKET`).
-
-## Enable input source
-
-System Settings → Keyboard → Input Sources → add **TSInputMethod**.
-
-Unsigned local build: if blocked, run:
+Developer fallback (not required for trial):
 
 ```bash
-xattr -dr com.apple.quarantine "$HOME/Library/Input Methods/TSInputMethod.app"
+bash scripts/package_macos.sh
 ```
-
-## Uninstall
-
-```bash
-bash scripts/uninstall.sh
-```
-
-## Notes
-
-- Chinese mode uses daemon decode; English menu mode does not forward keys.
-- Candidate UI is minimal (marked text / commit); host polish is ongoing.
-- real-env host verification is performed by you after install.
 EOF
 
+echo "==> codesign with SurTeam identity"
+resolve_sign_identity
+echo "using identity: $SIGN_IDENTITY"
+sign_app_bundle "$APP_STAGE"
+rm -rf "$INSTALLER_STAGE/Contents/Resources/TSInputMethod.app"
+cp -R "$APP_STAGE" "$INSTALLER_STAGE/Contents/Resources/TSInputMethod.app"
+sign_app_bundle "$INSTALLER_STAGE"
+
+echo "==> create DMG"
+cp -R "$INSTALLER_STAGE" "$DMG_STAGE/Install TSInputMethod.app"
+cat > "$DMG_STAGE/README.txt" <<'EOF'
+Double-click "Install TSInputMethod" to install the IME and start the daemon.
+Then add TSInputMethod in System Settings → Keyboard → Input Sources.
+Default scheme: Xiaohe (flypy).
+Signed with SurTeam identity from the build machine keychain.
+EOF
+
+rm -f "$DMG_PATH"
+hdiutil create \
+  -volname "TSInputMethod" \
+  -srcfolder "$DMG_STAGE" \
+  -ov \
+  -format UDZO \
+  "$DMG_PATH" >/dev/null
+
+codesign --force --sign "$SIGN_IDENTITY" "$DMG_PATH" || true
+
+echo "==> verify signatures"
+codesign --verify --verbose=2 "$APP_STAGE"
+codesign --verify --verbose=2 "$APP_STAGE/Contents/MacOS/imed"
+codesign --verify --verbose=2 "$INSTALLER_STAGE"
+codesign --display --verbose=2 "$APP_STAGE" 2>&1 | sed -n '1,20p'
+codesign --display --verbose=2 "$APP_STAGE/Contents/MacOS/imed" 2>&1 | sed -n '1,20p'
+
+echo "==> optional zip fallback (secondary)"
 ARCHIVE="$DIST/TSInputMethod-macos.zip"
 rm -f "$ARCHIVE"
 (cd "$DIST" && zip -qr "TSInputMethod-macos.zip" "TSInputMethod-macos")
-echo "package ready: $ARCHIVE"
+
+echo "primary package: $DMG_PATH"
 echo "stage dir: $STAGE"
+echo "secondary zip: $ARCHIVE"
+echo "sign identity: $SIGN_IDENTITY"
+echo "note: SurTeamCode is a self-signed codesign identity (issuer=SurTeamCode), not Apple Developer ID Application; Gatekeeper may still warn for downloaded artifacts; notarization is not claimed."
+

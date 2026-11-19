@@ -23,14 +23,17 @@ See [../index.md](../index.md) for implemented / compiled / auto-tested / real-e
 | Linux Fcitx5 adapter | yes (source + scripts) | **no** (needs Fcitx5) | no | **no** |
 | Ranking / Inference | yes (API + FastRanker + stubs) | yes | yes (unit) | no |
 | Xiaohe / flypy shuangpin | yes | yes | yes (unit) | no |
-| macOS trial package (`scripts/package_macos.sh`) | yes | yes when packaged | N/A | user installs |
+| macOS trial package (`scripts/package_macos.sh`) | yes (DMG OOBE + SurTeam codesign) | yes when packaged | codesign verify | user installs; real-env typing **no** |
 
-## Observed this turn (s2)
+## Observed packaging / signing
 
-- `go test ./internal/ranking ./internal/inference ./internal/engine ./internal/pinyin ./internal/session ./internal/dictionary ./internal/ipc` → ok
-- Benches: `BenchmarkWriteReadFrame` ~65 ns/op; `BenchmarkDecodeNihao` ~2082 ns/op; `BenchmarkRankingFastPath` ~1557 ns/op (Apple M1 Pro samples)
-- No real neural backend weights; UnavailableBackend / nil backend degrade to frequency ranking
-- Platform adapters unchanged; real-env still **no**
+- Primary artifact: `dist/macos/TSInputMethod-macos.dmg` with double-click **Install TSInputMethod**
+- Installer embeds `imed` + `rime-ice.tsdict`, installs into `~/Library/Input Methods`, LaunchAgent auto-starts daemon with `TSIME_SCHEME=xiaohe`
+- Codesign identity resolved: `SurTeamCode` (self-signed; not Apple Developer ID Application)
+- `codesign --verify` passed for IME app, embedded `imed`, and Installer; `spctl --assess` rejected app/DMG
+- Notarization not claimed; Gatekeeper may still warn for downloaded artifacts
+- Zip remains secondary fallback only
+- Host Input Source enable / TextEdit typing still **real-env: no**
 
 ## Pages
 
