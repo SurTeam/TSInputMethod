@@ -145,16 +145,21 @@ void TsimeEngine::keyEvent(const InputMethodEntry &, KeyEvent &keyEvent) {
   }
   const auto &key = keyEvent.key();
   std::string characters;
-  uint32_t keyCode = key.sym();
+  uint32_t keyCode = 0;
   if (key.isSimple()) {
     characters = keyEvent.key().toString();
   }
   if (key.check(FcitxKey_BackSpace)) {
-    keyCode = 8;
+    keyCode = 51;
+    characters.clear();
+  } else if (key.check(FcitxKey_Delete)) {
+    keyCode = 117;
+    characters.clear();
   } else if (key.check(FcitxKey_Escape)) {
-    keyCode = 27;
+    keyCode = 53;
+    characters.clear();
   } else if (key.check(FcitxKey_space)) {
-    keyCode = 32;
+    keyCode = 49;
     characters = " ";
   }
   TsimeKeyResult result =

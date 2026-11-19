@@ -15,7 +15,7 @@
 
 - Bundle ID / `TISInputSourceID`: `com.surteam.inputmethod.TSInputMethod`
 - Visible Hans mode: `com.surteam.inputmethod.TSInputMethod.Hans` with `TISIntendedLanguage=zh-Hans`
-- `ComponentInputModeDict` + `tsInputMethodCharacterRepertoireKey` + menu/app icons
+- `ComponentInputModeDict` + `tsInputMethodCharacterRepertoireKey` + custom SurTeam/TS menu/app icons
 
 Installer copies the app into `/Library/Input Methods` (admin prompt) and runs `TSInputMethod --register-input-source` (`TISRegisterInputSource` + `TISEnableInputSource` for Hans + `AppleEnabledThirdPartyInputSources` record).
 
@@ -65,7 +65,10 @@ Override with `TSIME_SIGN_IDENTITY` if needed.
 
 - Packaged trial default scheme: Xiaohe (`TSIME_SCHEME=xiaohe`).
 - Socket: `TSIME_SOCKET`, else `$XDG_RUNTIME_DIR/tsime.sock`, else temporary `tsime-$UID.sock`.
-- Candidate UI is minimal (marked text / commit); host polish is ongoing.
+- Candidate UI uses horizontal `IMKCandidates` (`kIMKSingleRowSteppingCandidatePanel`, 9 numbered labels per page) plus marked text/commit; `-`/`=` page previous/next; Space commits the top candidate; Enter/Return commits raw preedit and clears the panel.
+- Left Shift alone (`flagsChanged`, keyCode 56) toggles in-IME Chinese/English; Shift used as a chord modifier does not toggle.
+- `KeyEvent.key_code` is the raw macOS CG virtual key from `NSEvent.keyCode` (Karabiner-Elements table: `delete_or_backspace=0x33`, `escape=0x35`, `spacebar=0x31`, `return_or_enter=0x24`, `keypad_enter=0x4c`, `delete_forward=0x75`, letters such as `c=0x08`). No ASCII 8/27/32 remap. Printable compose/paging still uses `characters` ([ADR 0002](../../decisions/0002-semantic-edit-keycodes.md)).
+- Menu/palette icon is a rounded blue PDF with white `TS`; app/installer bundles share `AppIcon.icns`.
 
 ## Verification
 

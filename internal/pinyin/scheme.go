@@ -12,6 +12,14 @@ const (
 	SchemeXiaohe  Scheme = "xiaohe"
 )
 
+type NormalizedInput struct {
+	Raw        string
+	Syllables  []string
+	Remainder  string
+	Joined     string
+	FixedSplit bool
+}
+
 func ParseScheme(name string) Scheme {
 	switch strings.ToLower(strings.TrimSpace(name)) {
 	case "xiaohe", "flypy", "double", "shuangpin":
@@ -25,14 +33,34 @@ func SchemeFromEnv() Scheme {
 	if v := os.Getenv("TSIME_SCHEME"); v != "" {
 		return ParseScheme(v)
 	}
-	return SchemeQuanpin
+	return SchemeXiaohe
 }
 
 func NormalizeInput(scheme Scheme, input string) string {
+	return AnalyzeInput(scheme, input).Joined
+}
+
+func AnalyzeInput(scheme Scheme, input string) NormalizedInput {
+	input = strings.ToLower(strings.TrimSpace(input))
+	out := NormalizedInput{Raw: input, Joined: input}
+	if input == "" {
+		return out
+	}
 	switch scheme {
 	case SchemeXiaohe:
-		return FlypyToFull(input)
+		syllables, rem, ok := ExpandXiaohe(input)
+		if !ok && len(syllables) == 0 {
+			return out
+		}
+		out.Syllables = syllables
+		out.Remainder = rem
+		out.FixedSplit = true
+		out.Joined = strings.Join(syllables, "")
+		if rem != "" {
+			out.Joined += rem
+		}
+		return out
 	default:
-		return input
+		return out
 	}
 }

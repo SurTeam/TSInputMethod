@@ -116,6 +116,8 @@ rm -rf "$INSTALLER_STAGE"
 mkdir -p "$INSTALLER_STAGE/Contents/MacOS" "$INSTALLER_STAGE/Contents/Resources"
 cp -R "$APP_STAGE" "$INSTALLER_STAGE/Contents/Resources/TSInputMethod.app"
 
+cp "$APP_STAGE/Contents/Resources/AppIcon.icns" "$INSTALLER_STAGE/Contents/Resources/AppIcon.icns"
+
 cat > "$INSTALLER_STAGE/Contents/Info.plist" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -123,14 +125,18 @@ cat > "$INSTALLER_STAGE/Contents/Info.plist" <<'EOF'
 <dict>
   <key>CFBundleExecutable</key>
   <string>install</string>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon.icns</string>
   <key>CFBundleIdentifier</key>
   <string>com.surteam.TSInputMethod.Installer</string>
   <key>CFBundleName</key>
   <string>Install TSInputMethod</string>
+  <key>CFBundleDisplayName</key>
+  <string>Install TSInputMethod</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleVersion</key>
-  <string>0.1.0</string>
+  <string>0.1.1</string>
   <key>LSUIElement</key>
   <false/>
 </dict>
@@ -162,7 +168,7 @@ mkdir -p "$AGENT_DIR" "$LOG_DIR" "$HOME/Library/Input Methods"
 INSTALL_TMP="$(mktemp -d)/TSInputMethod.app"
 cp -R "$SRC_APP" "$INSTALL_TMP"
 osascript <<COPY
-do shell script "mkdir -p '/Library/Input Methods' && rm -rf '/Library/Input Methods/TSInputMethod.app' && cp -R '$INSTALL_TMP' '/Library/Input Methods/TSInputMethod.app' && xattr -cr '/Library/Input Methods/TSInputMethod.app' && chown -R root:wheel '/Library/Input Methods/TSInputMethod.app' && rm -rf '$USER_DEST'" with administrator privileges
+do shell script "mkdir -p '/Library/Input Methods' && rm -rf '/Library/Input Methods/TSInputMethod.app' && cp -R '$INSTALL_TMP' '/Library/Input Methods/TSInputMethod.app' && xattr -cr '/Library/Input Methods/TSInputMethod.app' && chown -R root:wheel '/Library/Input Methods/TSInputMethod.app' && rm -rf '$USER_DEST'" with administrator privileges with prompt "TSInputMethod needs administrator access to install into /Library/Input Methods. Touch ID or password is OK."
 COPY
 
 IMED="$DEST_APP/Contents/MacOS/imed"
@@ -185,6 +191,11 @@ if [[ -x "$IME_BIN" ]]; then
 fi
 
 UID_NUM="$(id -u)"
+OLD_AGENT_LABEL="com.surteam.tsime.imed"
+if launchctl print "gui/$UID_NUM/$OLD_AGENT_LABEL" >/dev/null 2>&1; then
+  launchctl bootout "gui/$UID_NUM/$OLD_AGENT_LABEL" >/dev/null 2>&1 || true
+fi
+rm -f "$AGENT_DIR/$OLD_AGENT_LABEL.plist"
 if launchctl print "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1; then
   launchctl bootout "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
 fi

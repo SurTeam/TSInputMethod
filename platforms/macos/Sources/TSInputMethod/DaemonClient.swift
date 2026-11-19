@@ -49,30 +49,21 @@ final class DaemonClient {
     }
 
     func handleKey(keyCode: UInt32, characters: String, keyDown: Bool) -> KeyOutcome? {
-        guard chineseMode else {
-            return nil
-        }
         guard ensureConnected(), let client else {
             return nil
         }
         var result = tsime_client_handle_key(client, sessionId, keyCode, 0, characters, keyDown ? 1 : 0, 0, 0)
         defer { tsime_key_result_free(&result) }
-        var outcome = KeyOutcome(consumed: result.consumed != 0, preedit: "", commitText: "", candidates: [])
-        if let preedit = result.preedit {
-            outcome.preedit = String(cString: preedit)
+        return Self.outcome(from: result)
+    }
+
+    func selectCandidate(index: UInt32) -> KeyOutcome? {
+        guard ensureConnected(), let client else {
+            return nil
         }
-        if let commit = result.commit_text {
-            outcome.commitText = String(cString: commit)
-        }
-        if result.candidate_count > 0, let base = result.candidates {
-            for i in 0..<Int(result.candidate_count) {
-                let item = base.advanced(by: i).pointee
-                if let text = item.text {
-                    outcome.candidates.append(String(cString: text))
-                }
-            }
-        }
-        return outcome
+        var result = tsime_client_select_candidate(client, sessionId, 0, index)
+        defer { tsime_key_result_free(&result) }
+        return Self.outcome(from: result)
     }
 
     func teardown() {
@@ -99,5 +90,27 @@ final class DaemonClient {
             return (runtime as NSString).appendingPathComponent("tsime.sock")
         }
         return NSTemporaryDirectory() + "tsime-\(getuid()).sock"
+    }
+
+    private static func outcome(from result: TsimeKeyResult) -> KeyOutcome? {
+        guard result.ok != 0 else {
+            return nil
+        }
+        var outcome = KeyOutcome(consumed: result.consumed != 0, preedit: "", commitText: "", candidates: [])
+        if let preedit = result.preedit {
+            outcome.preedit = String(cString: preedit)
+        }
+        if let commit = result.commit_text {
+            outcome.commitText = String(cString: commit)
+        }
+        if result.candidate_count > 0, let base = result.candidates {
+            for i in 0..<Int(result.candidate_count) {
+                let item = base.advanced(by: i).pointee
+                if let text = item.text {
+                    outcome.candidates.append(String(cString: text))
+                }
+            }
+        }
+        return outcome
     }
 }

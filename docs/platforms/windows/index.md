@@ -8,6 +8,7 @@
 - Named Pipe IPC via shared `tsime_c_api` (`TSIME_PIPE` or `\\.\pipe\tsime-<user>`).
 - English mode: keys not eaten (native passthrough).
 - Chinese mode: editable keys forwarded to daemon; commit text inserted through TSF.
+- Host virtual keys translate into macOS CG codes on the wire (VK_BACK→51, VK_ESCAPE→53, VK_SPACE→49, VK_DELETE→117); letters/digits use `characters` ([ADR 0002](../../decisions/0002-semantic-edit-keycodes.md)).
 
 ## Build / install (on Windows)
 

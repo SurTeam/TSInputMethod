@@ -8,9 +8,12 @@ import (
 )
 
 type Candidate struct {
-	Text    string
-	Comment string
-	Score   int32
+	Text         string
+	Comment      string
+	Score        int32
+	Syllables    []string
+	Incomplete   bool
+	ConsumedKeys int
 }
 
 type Engine interface {
@@ -49,7 +52,7 @@ func NewPinyinEngineWithRanking(dict *dictionary.Dictionary, coordinator *rankin
 		coordinator = ranking.NewCoordinator(ranking.NewFastRanker(), nil)
 	}
 	return &PinyinEngine{
-		decoder:     pinyin.NewDecoder(dict, 32),
+		decoder:     pinyin.NewDecoder(dict, 96),
 		coordinator: coordinator,
 		scheme:      pinyin.SchemeFromEnv(),
 	}
@@ -87,27 +90,83 @@ func (e *PinyinEngine) Decode(pinyinInput string) ([]Candidate, error) {
 	if e == nil || e.decoder == nil {
 		return nil, nil
 	}
-	normalized := pinyin.NormalizeInput(e.scheme, pinyinInput)
-	raw := e.decoder.Decode(normalized)
+	analyzed := pinyin.AnalyzeInput(e.scheme, pinyinInput)
+	var raw []pinyin.Candidate
+	if analyzed.FixedSplit {
+		raw = e.decoder.DecodeSyllables(analyzed.Syllables, analyzed.Remainder)
+	} else {
+		raw = e.decoder.Decode(analyzed.Joined)
+	}
 	req := ranking.Request{
-		Pinyin:     normalized,
+		Pinyin:     analyzed.Joined,
 		Candidates: make([]ranking.Candidate, 0, len(raw)),
 	}
+	meta := make([]pinyin.Candidate, len(raw))
+	copy(meta, raw)
 	for _, item := range raw {
 		req.Candidates = append(req.Candidates, ranking.Candidate{
-			Text:    item.Text,
-			Comment: item.Comment,
-			Score:   item.Score,
+			Text:       item.Text,
+			Comment:    item.Comment,
+			Score:      item.Score,
+			Coverage:   len(item.Syllables),
+			Incomplete: item.Incomplete,
+			Composed:   item.Composed,
 		})
 	}
 	ranked := e.coordinator.RankSync(req)
 	out := make([]Candidate, 0, len(ranked))
 	for _, item := range ranked {
-		out = append(out, Candidate{
+		cand := Candidate{
 			Text:    item.Text,
 			Comment: item.Comment,
 			Score:   item.Score,
-		})
+		}
+		for _, src := range meta {
+			if src.Text == item.Text {
+				cand.Syllables = append([]string(nil), src.Syllables...)
+				cand.Incomplete = src.Incomplete
+				break
+			}
+		}
+		cand.ConsumedKeys = consumedKeysForCandidate(analyzed, cand)
+		out = append(out, cand)
 	}
 	return out, nil
+}
+
+func consumedKeysForCandidate(analyzed pinyin.NormalizedInput, cand Candidate) int {
+	preedit := analyzed.Raw
+	if preedit == "" {
+		return 0
+	}
+	if len(cand.Syllables) == 0 {
+		if cand.Incomplete {
+			return 0
+		}
+		return len(preedit)
+	}
+	if analyzed.FixedSplit {
+		if cand.Incomplete && len(cand.Syllables) > len(analyzed.Syllables) {
+			return len(preedit)
+		}
+		n := len(cand.Syllables) * 2
+		if n > len(preedit) {
+			return len(preedit)
+		}
+		if n == 0 && cand.Incomplete {
+			return 0
+		}
+		return n
+	}
+	covered := ""
+	for _, syl := range cand.Syllables {
+		covered += syl
+	}
+	if len(covered) <= len(preedit) && preedit[:len(covered)] == covered {
+		return len(covered)
+	}
+	if cand.Incomplete {
+		return 0
+	}
+	return len(preedit)
 }

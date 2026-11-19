@@ -1,6 +1,6 @@
 # Platform compatibility notes
 
-**Status:** designed / documented — adapters **not yet implemented**; no real-env verification yet.
+**Status:** adapters implemented in-tree; macOS packaged/compiled on this host; Windows/Linux source present; real-env typing still pending.
 
 ## Shared contract
 
@@ -9,11 +9,13 @@ All platforms speak the same protobuf + framed IPC dialect. Compatibility means:
 - Same message semantics for keys, preedit, candidates, and commit.
 - Transport differs (UDS vs Named Pipe) but framing does not.
 - Engine behavior is OS-agnostic; only adapters interpret host key codes / modifier maps.
+- Edit `key_code` values are macOS CG virtual keys (Delete=51, Escape=53, Space=49, ForwardDelete=117). Printable input uses `characters` ([ADR 0002](../decisions/0002-semantic-edit-keycodes.md)).
 
 ## macOS (InputMethodKit)
 
-- Planned adapter under `platforms/macos`.
+- Adapter under `platforms/macos`.
 - Must respect IMKit server lifecycle and text input client callbacks.
+- Host CG virtual keys follow Karabiner-Elements `pqrs::osx::cg_event::key_code` and are forwarded unchanged.
 - Sandbox / TCC constraints may affect socket path placement; prefer per-user runtime directories.
 
 ## Windows (TSF)

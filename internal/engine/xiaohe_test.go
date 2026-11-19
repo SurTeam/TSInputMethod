@@ -19,12 +19,21 @@ func TestPinyinEngineXiaoheScheme(t *testing.T) {
 	}
 }
 
-func TestPinyinEngineDefaultRemainsQuanpin(t *testing.T) {
+func TestPinyinEngineDefaultIsXiaohe(t *testing.T) {
 	_ = os.Unsetenv("TSIME_SCHEME")
 	eng := NewPinyinEngine(testDict())
-	if eng.Scheme() != pinyin.SchemeQuanpin {
+	if eng.Scheme() != pinyin.SchemeXiaohe {
 		t.Fatalf("default scheme = %s", eng.Scheme())
 	}
+	cands, err := eng.Decode("nihc")
+	if err != nil || len(cands) == 0 || cands[0].Text != "你好" {
+		t.Fatalf("default xiaohe path broken: %#v err=%v", cands, err)
+	}
+}
+
+func TestPinyinEngineQuanpinOverride(t *testing.T) {
+	eng := NewPinyinEngine(testDict())
+	eng.SetScheme(pinyin.SchemeQuanpin)
 	cands, err := eng.Decode("nihao")
 	if err != nil || len(cands) == 0 || cands[0].Text != "你好" {
 		t.Fatalf("quanpin path broken: %#v err=%v", cands, err)

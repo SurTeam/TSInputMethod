@@ -26,7 +26,7 @@
 
 ## Design notes
 
-1. Decode always produces base candidates via FastRanker (`Rank` / `RankSync`) without waiting on models.
+1. Decode always produces base candidates via FastRanker (`Rank` / `RankSync`) without waiting on models. FastRanker keeps coverage (syllable-prefix length) ahead of raw score so progressive shorter prefixes stay visible.
 2. When a backend and update handler are set, `Rank` may start async inference; callers apply updates only through `ApplyUpdate(currentGeneration, update)`.
 3. `RankWithContext` is the synchronous injection path used by tests and future blocking backends; failures fall back to the base list.
 

@@ -189,15 +189,23 @@ STDMETHODIMP TsimeTextService::OnKeyDown(ITfContext *pic, WPARAM wParam, LPARAM,
     return S_OK;
   }
   char chars[8] = {};
+  uint32_t keyCode = 0;
   if (wParam >= 'A' && wParam <= 'Z') {
     chars[0] = static_cast<char>(wParam - 'A' + 'a');
   } else if (wParam >= '0' && wParam <= '9') {
     chars[0] = static_cast<char>(wParam);
   } else if (wParam == VK_SPACE) {
     chars[0] = ' ';
+    keyCode = 49;
+  } else if (wParam == VK_BACK) {
+    keyCode = 51;
+  } else if (wParam == VK_ESCAPE) {
+    keyCode = 53;
+  } else if (wParam == VK_DELETE) {
+    keyCode = 117;
   }
   TsimeKeyResult result =
-      tsime_client_handle_key(client_, sessionId_, static_cast<uint32_t>(wParam), 0, chars, 1, 0, 0);
+      tsime_client_handle_key(client_, sessionId_, keyCode, 0, chars, 1, 0, 0);
   if (result.ok && result.consumed) {
     *pfEaten = TRUE;
     applyResult(pic, result);

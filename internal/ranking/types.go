@@ -1,9 +1,12 @@
 package ranking
 
 type Candidate struct {
-	Text    string
-	Comment string
-	Score   int32
+	Text       string
+	Comment    string
+	Score      int32
+	Coverage   int
+	Incomplete bool
+	Composed   bool
 }
 
 type Request struct {

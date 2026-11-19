@@ -6,13 +6,46 @@ class TSInputController: IMKInputController {
     private let daemon = DaemonClient()
     private var markedText: String = ""
     private var candidates: [String] = []
+    private var candidatesPanel: IMKCandidates?
+    private var leftShiftDown = false
+    private var leftShiftUsedAsModifier = false
+
+    private let keyLeftShift: UInt16 = 56
+
+    override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
+        super.init(server: server, delegate: delegate, client: inputClient)
+        let panel = IMKCandidates(server: server, panelType: kIMKSingleRowSteppingCandidatePanel)
+        panel?.setSelectionKeys([
+            NSNumber(value: 18),
+            NSNumber(value: 19),
+            NSNumber(value: 20),
+            NSNumber(value: 21),
+            NSNumber(value: 23),
+            NSNumber(value: 22),
+            NSNumber(value: 26),
+            NSNumber(value: 28),
+            NSNumber(value: 25),
+        ])
+        let attrs = NSMutableDictionary()
+        attrs[IMKCandidatesSendServerKeyEventFirst] = NSNumber(value: true)
+        attrs[IMKCandidatesOpacityAttributeName] = NSNumber(value: Float(1.0))
+        attrs[NSAttributedString.Key.font] = NSFont.systemFont(ofSize: 14)
+        panel?.setAttributes(attrs as? [AnyHashable: Any])
+        candidatesPanel = panel
+    }
 
     override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
         guard let event else {
             return false
         }
+        if event.type == .flagsChanged {
+            return handleFlagsChanged(event)
+        }
         if event.type != .keyDown {
             return false
+        }
+        if leftShiftDown {
+            leftShiftUsedAsModifier = true
         }
         if !daemon.chineseMode {
             return false
@@ -24,6 +57,19 @@ class TSInputController: IMKInputController {
         }
         apply(outcome: outcome, client: sender)
         return outcome.consumed
+    }
+
+    override func candidates(_ sender: Any!) -> [Any]! {
+        return candidates
+    }
+
+    override func candidateSelected(_ candidateString: NSAttributedString!) {
+        guard let text = candidateString?.string,
+              let index = candidates.firstIndex(of: text),
+              let outcome = daemon.selectCandidate(index: UInt32(index)) else {
+            return
+        }
+        apply(outcome: outcome, client: client())
     }
 
     override func menu() -> NSMenu! {
@@ -48,6 +94,37 @@ class TSInputController: IMKInputController {
         clearMarked(client: client())
     }
 
+    private func handleFlagsChanged(_ event: NSEvent) -> Bool {
+        let shiftDown = event.modifierFlags.contains(.shift)
+        if event.keyCode != keyLeftShift {
+            if leftShiftDown && shiftDown {
+                leftShiftUsedAsModifier = true
+            }
+            return false
+        }
+        if shiftDown && !leftShiftDown {
+            leftShiftDown = true
+            leftShiftUsedAsModifier = false
+            return false
+        }
+        if !shiftDown && leftShiftDown {
+            leftShiftDown = false
+            if !leftShiftUsedAsModifier {
+                toggleChineseEnglish()
+                return true
+            }
+        }
+        return false
+    }
+
+    private func toggleChineseEnglish() {
+        if daemon.chineseMode {
+            enableEnglish()
+        } else {
+            enableChinese()
+        }
+    }
+
     private func apply(outcome: KeyOutcome, client: Any?) {
         if !outcome.commitText.isEmpty {
             insert(text: outcome.commitText, client: client)
@@ -57,6 +134,19 @@ class TSInputController: IMKInputController {
         markedText = outcome.preedit
         setMarked(text: outcome.preedit, client: client)
         candidates = outcome.candidates
+        updateCandidatesPanel()
+    }
+
+    private func updateCandidatesPanel() {
+        guard let panel = candidatesPanel else {
+            return
+        }
+        if candidates.isEmpty {
+            panel.hide()
+            return
+        }
+        panel.update()
+        panel.show(kIMKLocateCandidatesBelowHint)
     }
 
     private func insert(text: String, client: Any?) {
@@ -81,5 +171,6 @@ class TSInputController: IMKInputController {
         setMarked(text: "", client: client)
         markedText = ""
         candidates = []
+        candidatesPanel?.hide()
     }
 }

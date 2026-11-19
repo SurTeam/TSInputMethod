@@ -7,6 +7,7 @@
 - Fcitx5 `InputMethodEngineV2` under `platforms/linux`.
 - UDS IPC via `tsime_c_api`.
 - English mode does not consume keys; Chinese mode updates preedit + CandidateList from daemon results.
+- Edit keys translate into macOS CG codes on the wire (BackSpace→51, Delete→117, Escape→53, space→49); printable input uses `characters` ([ADR 0002](../../decisions/0002-semantic-edit-keycodes.md)).
 
 ## Build / install (on Linux)
 

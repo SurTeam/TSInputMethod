@@ -6,6 +6,7 @@ import (
 
 	"github.com/SurTeam/TSInputMethod/internal/dictionary"
 	"github.com/SurTeam/TSInputMethod/internal/inference"
+	"github.com/SurTeam/TSInputMethod/internal/pinyin"
 	"github.com/SurTeam/TSInputMethod/internal/ranking"
 )
 
@@ -20,6 +21,7 @@ func testDict() *dictionary.Dictionary {
 
 func TestPinyinEngineUsesFastRanking(t *testing.T) {
 	eng := NewPinyinEngine(testDict())
+	eng.SetScheme(pinyin.SchemeQuanpin)
 	cands, err := eng.Decode("nihao")
 	if err != nil {
 		t.Fatalf("Decode: %v", err)
@@ -32,6 +34,7 @@ func TestPinyinEngineUsesFastRanking(t *testing.T) {
 func TestPinyinEngineDegradesWhenBackendUnavailable(t *testing.T) {
 	coord := ranking.NewCoordinator(ranking.NewFastRanker(), inference.UnavailableBackend{})
 	eng := NewPinyinEngineWithRanking(testDict(), coord)
+	eng.SetScheme(pinyin.SchemeQuanpin)
 	eng.SetInferenceBackend(inference.UnavailableBackend{})
 	cands, err := eng.Decode("nihao")
 	if err != nil {

@@ -59,6 +59,7 @@ Do not promote a status without evidence. This foundation turn marks documentati
 
 - [decisions/index.md](decisions/index.md)
 - [0001-ipc-protobuf-framed.md](decisions/0001-ipc-protobuf-framed.md)
+- [0002-semantic-edit-keycodes.md](decisions/0002-semantic-edit-keycodes.md)
 
 ## Validation
 

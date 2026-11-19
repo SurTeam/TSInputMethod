@@ -3,7 +3,7 @@ import InputMethodKit
 
 @main
 struct TSInputMethodMain {
-    static let bundleID = "com.surteam.inputmethod.TSInputMethod"
+static let bundleID = "com.surteam.inputmethod.TSInputMethod"
     static let hansModeID = "com.surteam.inputmethod.TSInputMethod.Hans"
 
     static func main() {

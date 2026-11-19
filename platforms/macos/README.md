@@ -37,7 +37,7 @@ These install `build/TSInputMethod.app` into `/Library/Input Methods` and regist
 ## Runtime
 
 - English mode: menu toggle; ordinary keys are not forwarded to the daemon.
-- Chinese mode: keys go through framed Protobuf IPC; preedit/candidates/commit follow Go session results.
+- Chinese mode: keys go through framed Protobuf IPC; preedit/candidates/commit follow Go session results; horizontal `IMKCandidates` shows 9 candidates per row; `-`/`=` page; Delete/Escape/Space are remapped to daemon keycodes.
 - Socket: `TSIME_SOCKET`, else `$XDG_RUNTIME_DIR/tsime.sock`, else temporary `tsime-$UID.sock`.
 
 ## Verification

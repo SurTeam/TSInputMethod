@@ -38,7 +38,7 @@ func TestModeSwitchAndCancel(t *testing.T) {
 	}
 	s.SetMode(imev1.InputMode_INPUT_MODE_CHINESE)
 	_ = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "wo"})
-	cancel := s.HandleKey(&imev1.KeyEvent{KeyDown: true, KeyCode: 27})
+	cancel := s.HandleKey(&imev1.KeyEvent{KeyDown: true, KeyCode: keyEscape})
 	if cancel.Composition == nil || cancel.Composition.Preedit != "" {
 		t.Fatalf("cancel left preedit %#v", cancel.Composition)
 	}
@@ -48,7 +48,7 @@ func TestBackspace(t *testing.T) {
 	m := NewManager(engine.NewStubEngine())
 	s := m.Open(imev1.InputMode_INPUT_MODE_CHINESE)
 	_ = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "ab"})
-	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, KeyCode: 8})
+	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, KeyCode: keyDelete})
 	if res.Composition == nil || res.Composition.Preedit != "a" {
 		t.Fatalf("backspace preedit = %#v", res.Composition)
 	}
