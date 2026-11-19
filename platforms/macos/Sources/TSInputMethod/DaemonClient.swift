@@ -10,9 +10,14 @@ struct KeyOutcome {
 }
 
 final class DaemonClient {
+    private static var sharedChineseMode: Bool = true
+
     private var client: OpaquePointer?
     private(set) var sessionId: String = ""
-    private(set) var chineseMode: Bool = true
+
+    var chineseMode: Bool {
+        Self.sharedChineseMode
+    }
 
     func ensureConnected() -> Bool {
         if client != nil, !sessionId.isEmpty {
@@ -42,7 +47,7 @@ final class DaemonClient {
     }
 
     func setChineseMode(_ enabled: Bool) {
-        chineseMode = enabled
+        Self.sharedChineseMode = enabled
         guard let client, !sessionId.isEmpty else {
             return
         }

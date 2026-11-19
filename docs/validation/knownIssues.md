@@ -13,6 +13,7 @@
 | KI-008 | macos-install | Installer now targets `/Library/Input Methods` and prompts for admin; user-level `~/Library/Input Methods` alone was insufficient for stable TIS visibility in this environment. Install/update now kills/refreshes the IMKit process and the menu exposes Restart; logout remains only a last-resort UI fallback | mitigated (source) |
 | KI-010 | daemon-rename | Daemon binary/LaunchAgent renamed `imed` → `tsimed` / `com.surteam.tsimed`; installer boots out legacy `com.surteam.tsime.imed` labels, but previously installed leftover agents may still need a reinstall/kickstart | mitigated (source) |
 | KI-011 | macos-daemon | After DMG install/Restart, Chinese mode can look like passthrough (no preedit/candidates) when `com.surteam.tsimed` is enabled but not running / socket missing. Menu Restart and install scripts now bootstrap+kickstart the agent; logout is not required | mitigated (source) |
+| KI-012 | macos-mode | English mode could silently revert to Chinese after 1–2 keystrokes: each IMK controller held its own `chineseMode` (new clients defaulted Chinese). Fixed with process-wide shared mode + alone-modifier release detection and duplicate-`flagsChanged` ignore; real-env TextEdit recheck still pending after reinstall | mitigated (source) |
 
 Notes:
 

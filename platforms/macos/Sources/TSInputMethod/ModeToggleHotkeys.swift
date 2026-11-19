@@ -29,9 +29,13 @@ struct ModeToggleBinding: Equatable {
 }
 
 final class ModeToggleHotkeys {
+    private static let trackedFlags: NSEvent.ModifierFlags = [.shift, .control, .option, .command]
+    private static let modifierKeyCodes: Set<UInt16> = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+
     private var bindings: [ModeToggleBinding]
     private var aloneDown: [UInt16: Bool] = [:]
     private var aloneUsedAsModifier: [UInt16: Bool] = [:]
+    private var lastModifiers: NSEvent.ModifierFlags = []
 
     init(bindings: [ModeToggleBinding] = ModeToggleBinding.defaults) {
         self.bindings = bindings
@@ -45,6 +49,7 @@ final class ModeToggleHotkeys {
         self.bindings = bindings
         aloneDown.removeAll(keepingCapacity: true)
         aloneUsedAsModifier.removeAll(keepingCapacity: true)
+        lastModifiers = []
     }
 
     func handleKeyDown(_ event: NSEvent, toggle: () -> Void) -> Bool {
@@ -58,7 +63,7 @@ final class ModeToggleHotkeys {
             guard event.keyCode == binding.keyCode else {
                 continue
             }
-            let chord = event.modifierFlags.intersection([.shift, .control, .option, .command])
+            let chord = event.modifierFlags.intersection(Self.trackedFlags)
             guard chord.isEmpty else {
                 return false
             }
@@ -69,16 +74,25 @@ final class ModeToggleHotkeys {
     }
 
     func handleFlagsChanged(_ event: NSEvent, toggle: () -> Void) -> Bool {
+        let modifiers = event.modifierFlags.intersection(Self.trackedFlags.union(.capsLock))
+        if modifiers == lastModifiers {
+            return false
+        }
+        lastModifiers = modifiers
+
         var didToggle = false
         for binding in bindings where binding.enabled {
             guard case .modifierAlone(let flag) = binding.trigger else {
                 continue
             }
-            let flagDown = event.modifierFlags.contains(flag)
+            let flagDown = modifiers.contains(flag)
             if event.keyCode != binding.keyCode {
                 if aloneDown[binding.keyCode] == true && flagDown {
                     aloneUsedAsModifier[binding.keyCode] = true
                 }
+                continue
+            }
+            if !Self.modifierKeyCodes.contains(event.keyCode) {
                 continue
             }
             let wasDown = aloneDown[binding.keyCode] == true
