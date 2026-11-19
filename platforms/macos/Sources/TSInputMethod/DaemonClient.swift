@@ -41,7 +41,7 @@ final class DaemonClient {
 
     func setChineseMode(_ enabled: Bool) {
         chineseMode = enabled
-        guard ensureConnected(), let client else {
+        guard let client, !sessionId.isEmpty else {
             return
         }
         let mode = Int32(enabled ? TSIME_MODE_CHINESE : TSIME_MODE_ENGLISH)

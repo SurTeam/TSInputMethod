@@ -6,7 +6,7 @@
 
 - InputMethodKit server under `platforms/macos`.
 - Links `libtsime_ipc` (framed Protobuf over UDS).
-- English menu mode: keys are not forwarded to the daemon (native passthrough).
+- English menu/Left-Shift mode: keys are not forwarded to the daemon (native passthrough). Entering or staying in English does not require a live daemon socket, so password/login fields still accept typing when ABC is unavailable and `tsimed` is down.
 - Chinese mode: `handle(_:client:)` → `tsime_client_handle_key` → preedit/commit from `KeyEventResult`.
 
 ## Input-source registration
@@ -65,8 +65,8 @@ Override with `TSIME_SIGN_IDENTITY` if needed.
 
 - Packaged trial default scheme: Xiaohe (`TSIME_SCHEME=xiaohe`).
 - Socket: `TSIME_SOCKET`, else `$XDG_RUNTIME_DIR/tsime.sock`, else temporary `tsime-$UID.sock`.
-- Candidate UI uses horizontal `IMKCandidates` (`kIMKSingleRowSteppingCandidatePanel`, 9 numbered labels per page) plus marked text/commit; `-`/`=` page previous/next; Space commits the top candidate; Enter/Return commits raw preedit and clears the panel.
-- Left Shift alone (`flagsChanged`, keyCode 56) toggles in-IME Chinese/English after committing any current preedit as raw text and clearing candidates; Shift used as a chord modifier does not toggle.
+- Candidate UI uses horizontal `IMKCandidates` (`kIMKSingleRowSteppingCandidatePanel`, native `setSelectionKeys` digits 1–9 for labels, one page of up to 9 candidates) plus marked text/commit; the adapter strips session-side `N.` text prefixes so IMK draws the native selection numbers without double-labeling; `-`/`=` page previous/next; Space commits the top candidate; Enter/Return commits raw preedit and clears the panel.
+- `recognizedEvents` includes `flagsChanged` as well as `keyDown`. Left Shift alone (`flagsChanged`, keyCode 56) toggles in-IME Chinese/English after committing any current preedit as raw text and clearing candidates; Shift used as a chord modifier does not toggle.
 - `KeyEvent.key_code` is the raw macOS CG virtual key from `NSEvent.keyCode` (Karabiner-Elements table: `delete_or_backspace=0x33`, `escape=0x35`, `spacebar=0x31`, `return_or_enter=0x24`, `keypad_enter=0x4c`, `delete_forward=0x75`, letters such as `c=0x08`). No ASCII 8/27/32 remap. Printable compose/paging still uses `characters` ([ADR 0002](../../decisions/0002-semantic-edit-keycodes.md)).
 - Menu/palette icon is a rounded blue PDF with white `TS` at **21.75×15.75 pt** (same MediaBox as Fcitx5’s macOS menu icon; landscape, not the 128 pt app mark). Source SVG: `platforms/macos/Resources/menu_icon.svg`. App/installer bundles share `AppIcon.icns`.
 

@@ -29,9 +29,14 @@ class TSInputController: IMKInputController {
         let attrs = NSMutableDictionary()
         attrs[IMKCandidatesSendServerKeyEventFirst] = NSNumber(value: true)
         attrs[IMKCandidatesOpacityAttributeName] = NSNumber(value: Float(1.0))
-        attrs[NSAttributedString.Key.font] = NSFont.systemFont(ofSize: 14)
+        attrs[NSAttributedString.Key.font] = NSFont.systemFont(ofSize: 12)
         panel?.setAttributes(attrs as? [AnyHashable: Any])
         candidatesPanel = panel
+    }
+
+    override func recognizedEvents(_ sender: Any!) -> Int {
+        let events: NSEvent.EventTypeMask = [.keyDown, .flagsChanged]
+        return Int(events.rawValue)
     }
 
     override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
@@ -60,16 +65,32 @@ class TSInputController: IMKInputController {
     }
 
     override func candidates(_ sender: Any!) -> [Any]! {
-        return candidates
+        return displayCandidates()
     }
 
     override func candidateSelected(_ candidateString: NSAttributedString!) {
         guard let text = candidateString?.string,
-              let index = candidates.firstIndex(of: text),
+              let index = displayCandidates().firstIndex(of: text),
               let outcome = daemon.selectCandidate(index: UInt32(index)) else {
             return
         }
         apply(outcome: outcome, client: client())
+    }
+
+    private func displayCandidates() -> [String] {
+        candidates.map(Self.bareCandidateText)
+    }
+
+    private static func bareCandidateText(_ text: String) -> String {
+        guard text.utf8.count >= 2 else {
+            return text
+        }
+        let first = text.utf8[text.utf8.startIndex]
+        let second = text.utf8[text.utf8.index(after: text.utf8.startIndex)]
+        if first >= 0x31, first <= 0x39, second == 0x2e {
+            return String(text.dropFirst(2))
+        }
+        return text
     }
 
     override func menu() -> NSMenu! {
@@ -86,14 +107,12 @@ class TSInputController: IMKInputController {
     }
 
     @objc private func enableChinese() {
-        commitCompositionBeforeModeSwitch(client: client())
         daemon.setChineseMode(true)
     }
 
     @objc private func enableEnglish() {
-        commitCompositionBeforeModeSwitch(client: client())
+        commitCompositionLocally(client: client())
         daemon.setChineseMode(false)
-        clearMarked(client: client())
     }
 
     private func handleFlagsChanged(_ event: NSEvent) -> Bool {
@@ -127,18 +146,11 @@ class TSInputController: IMKInputController {
         }
     }
 
-    private func commitCompositionBeforeModeSwitch(client: Any?) {
-        if markedText.isEmpty && candidates.isEmpty {
-            return
+    private func commitCompositionLocally(client: Any?) {
+        if !markedText.isEmpty {
+            insert(text: markedText, client: client)
         }
-        guard let outcome = daemon.handleKey(keyCode: 36, characters: "\r", keyDown: true) else {
-            if !markedText.isEmpty {
-                insert(text: markedText, client: client)
-            }
-            clearMarked(client: client)
-            return
-        }
-        apply(outcome: outcome, client: client)
+        clearMarked(client: client)
     }
 
     private func apply(outcome: KeyOutcome, client: Any?) {
@@ -161,6 +173,8 @@ class TSInputController: IMKInputController {
             panel.hide()
             return
         }
+        let shown = displayCandidates()
+        panel.setCandidateData(shown)
         panel.update()
         panel.show(kIMKLocateCandidatesBelowHint)
     }
