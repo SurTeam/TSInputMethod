@@ -91,12 +91,28 @@ func (e *PinyinEngine) Decode(pinyinInput string) ([]Candidate, error) {
 		return nil, nil
 	}
 	analyzed := pinyin.AnalyzeInput(e.scheme, pinyinInput)
+	if analyzed.FixedSplit && len(analyzed.SyllableAlts) > 1 {
+		lists := make([][]Candidate, 0, len(analyzed.SyllableAlts))
+		for _, path := range analyzed.SyllableAlts {
+			raw := e.decoder.DecodeSyllables(path, analyzed.Remainder)
+			lists = append(lists, e.rankRaw(analyzed, raw))
+		}
+		return interleaveEngineCandidates(lists, 96), nil
+	}
 	var raw []pinyin.Candidate
 	if analyzed.FixedSplit {
-		raw = e.decoder.DecodeSyllables(analyzed.Syllables, analyzed.Remainder)
+		if len(analyzed.SyllableAlts) > 0 {
+			raw = e.decoder.DecodeSyllablePaths(analyzed.SyllableAlts, analyzed.Remainder)
+		} else {
+			raw = e.decoder.DecodeSyllables(analyzed.Syllables, analyzed.Remainder)
+		}
 	} else {
 		raw = e.decoder.Decode(analyzed.Joined)
 	}
+	return e.rankRaw(analyzed, raw), nil
+}
+
+func (e *PinyinEngine) rankRaw(analyzed pinyin.NormalizedInput, raw []pinyin.Candidate) []Candidate {
 	req := ranking.Request{
 		Pinyin:     analyzed.Joined,
 		Candidates: make([]ranking.Candidate, 0, len(raw)),
@@ -129,9 +145,63 @@ func (e *PinyinEngine) Decode(pinyinInput string) ([]Candidate, error) {
 			}
 		}
 		cand.ConsumedKeys = consumedKeysForCandidate(analyzed, cand)
+		cand.Comment = rawCommentForCandidate(analyzed, cand)
 		out = append(out, cand)
 	}
-	return out, nil
+	return out
+}
+
+func interleaveEngineCandidates(lists [][]Candidate, limit int) []Candidate {
+	if limit <= 0 {
+		limit = 96
+	}
+	indexes := make([]int, len(lists))
+	seen := map[string]struct{}{}
+	out := make([]Candidate, 0, limit)
+	for len(out) < limit {
+		progressed := false
+		for i, list := range lists {
+			for indexes[i] < len(list) {
+				cand := list[indexes[i]]
+				indexes[i]++
+				if _, ok := seen[cand.Text]; ok {
+					continue
+				}
+				seen[cand.Text] = struct{}{}
+				out = append(out, cand)
+				progressed = true
+				break
+			}
+			if len(out) >= limit {
+				break
+			}
+		}
+		if !progressed {
+			break
+		}
+	}
+	return out
+}
+
+func rawCommentForCandidate(analyzed pinyin.NormalizedInput, cand Candidate) string {
+	preedit := analyzed.Raw
+	if preedit == "" {
+		return cand.Comment
+	}
+	n := cand.ConsumedKeys
+	if n <= 0 {
+		if analyzed.FixedSplit && analyzed.Remainder != "" && len(cand.Syllables) == 0 {
+			return analyzed.Remainder
+		}
+		return cand.Comment
+	}
+	if n > len(preedit) {
+		n = len(preedit)
+	}
+	if n <= 0 {
+		return cand.Comment
+	}
+	return preedit[:n]
 }
 
 func consumedKeysForCandidate(analyzed pinyin.NormalizedInput, cand Candidate) int {

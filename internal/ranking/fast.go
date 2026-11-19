@@ -23,9 +23,24 @@ func (r *FastRanker) Rank(req Request) []Candidate {
 
 func better(a, b Candidate) bool {
 	if a.Incomplete != b.Incomplete {
+		if a.Incomplete && a.Coverage > b.Coverage {
+			return true
+		}
+		if b.Incomplete && b.Coverage > a.Coverage {
+			return false
+		}
 		return !a.Incomplete && b.Incomplete
 	}
-	if a.Coverage != b.Coverage {
+	if a.Incomplete {
+		if a.Coverage != b.Coverage {
+			return a.Coverage < b.Coverage
+		}
+		ri := len([]rune(a.Text))
+		rj := len([]rune(b.Text))
+		if ri != rj {
+			return ri < rj
+		}
+	} else if a.Coverage != b.Coverage {
 		return a.Coverage > b.Coverage
 	}
 	if a.Composed != b.Composed {
@@ -34,10 +49,12 @@ func better(a, b Candidate) bool {
 	if a.Score != b.Score {
 		return a.Score > b.Score
 	}
-	ri := len([]rune(a.Text))
-	rj := len([]rune(b.Text))
-	if ri != rj {
-		return ri > rj
+	if !a.Incomplete {
+		ri := len([]rune(a.Text))
+		rj := len([]rune(b.Text))
+		if ri != rj {
+			return ri > rj
+		}
 	}
 	return a.Text < b.Text
 }

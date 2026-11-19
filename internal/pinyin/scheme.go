@@ -13,11 +13,12 @@ const (
 )
 
 type NormalizedInput struct {
-	Raw        string
-	Syllables  []string
-	Remainder  string
-	Joined     string
-	FixedSplit bool
+	Raw          string
+	Syllables    []string
+	SyllableAlts [][]string
+	Remainder    string
+	Joined       string
+	FixedSplit   bool
 }
 
 func ParseScheme(name string) Scheme {
@@ -48,14 +49,17 @@ func AnalyzeInput(scheme Scheme, input string) NormalizedInput {
 	}
 	switch scheme {
 	case SchemeXiaohe:
-		syllables, rem, ok := ExpandXiaohe(input)
-		if !ok && len(syllables) == 0 {
+		paths, rem, ok := ExpandXiaohePaths(input)
+		if !ok && (len(paths) == 0 || (len(paths) == 1 && len(paths[0]) == 0)) {
 			return out
 		}
-		out.Syllables = syllables
+		out.SyllableAlts = paths
+		if len(paths) > 0 {
+			out.Syllables = append([]string(nil), paths[0]...)
+		}
 		out.Remainder = rem
 		out.FixedSplit = true
-		out.Joined = strings.Join(syllables, "")
+		out.Joined = strings.Join(out.Syllables, "")
 		if rem != "" {
 			out.Joined += rem
 		}

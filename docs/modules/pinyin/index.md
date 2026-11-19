@@ -23,9 +23,9 @@
 
 Flypy mapping follows rime-ice `double_pinyin_flypy.schema.yaml` algebra / preedit rules (and the common Xiaohe table: `c`=ao, `h`=ang, `v/i/u`=zh/ch/sh). Joining syllables into `shijie` and re-running quanpin segmentation is wrong for flypy because `jie` can also be read as `ji'+'e`.
 
-Examples: `nihc` → `[ni, hao]` → first page `你好` then single-char `你/尼/泥…` (weak same-length phrases like `拟好` stay off the first page); `uijp` → `[shi, jie]` → 世界; `vsgorfmb` → `[zhong, guo, ren, min]` → 中国人民 plus progressive prefix words 中国人/中国/中.
+Examples: `nihc` → `[ni, hao]` → first page `你好` then single-char `你/尼/泥…` (weak same-length phrases like `拟好` stay off the first page); `nih` → incomplete trailing `h` surfaces short matches like `你好` ahead of long phrase spam; single-key `h` prefers short `h*` syllables (e.g. `哈`) over encyclopedia-length phrases; `wo`/`yo` stay `wo`/`yo` (not `wuo`/`yuo`); ambiguous flypy keys expand every valid reading and interleave them into candidates (`lo`→`luo`/`lo` → 落…/咯, `lt`→`lve`/`lue` → 略, `dv`→`dui`/`du` → 对/度); `uijp` → `[shi, jie]` → 世界 with raw comment `uijp` (covered keys, not quanpin `shi'jie`); `vsgorfmb` → `[zhong, guo, ren, min]` → 中国人民 plus progressive prefix words 中国人/中国/中.
 
-Flypy decode lists dictionary words by decreasing complete-syllable coverage (N…1), including odd trailing keys. Lattice concatenations such as 尼好/你好是接 are not used on the flypy path; choosing a prefix commits that word and leaves the remaining keys in preedit. Session paging keeps a fixed `page_size=9`.
+Flypy decode lists dictionary words by decreasing complete-syllable coverage (N…1), including odd trailing keys. Incomplete/prefix hits prefer shorter syllable coverage and shorter text so single/half keys feel like common shuangpin IMEs. Lattice concatenations such as 尼好/你好是接 are not used on the flypy path. Session paging keeps a fixed `page_size=9`. Engine comments remain the covered raw preedit keys for adapters that need them; macOS candidate panel shows bare Chinese while composition carries soft-confirmed Chinese + remaining keys.
 
 ## Source locations
 

@@ -20,12 +20,18 @@ const (
 	keypadEnter     = 76
 )
 
+type confirmedSegment struct {
+	Text string
+	Keys string
+}
+
 type Session struct {
 	mu         sync.Mutex
 	id         string
 	mode       imev1.InputMode
 	preedit    []rune
 	cursor     int
+	confirmed  []confirmedSegment
 	generation uint64
 	page       uint32
 	pageSize   uint32
@@ -68,8 +74,8 @@ func (s *Session) SetMode(mode imev1.InputMode) *KeyResult {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	var commit *KeyResult
-	if len(s.preedit) > 0 {
-		commit = s.commitRawPreeditLocked()
+	if len(s.confirmed) > 0 || len(s.preedit) > 0 {
+		commit = s.commitCompositionLocked()
 	}
 	s.mode = mode
 	s.clearCompositionLocked()
@@ -178,20 +184,28 @@ func hasLetterOrDigit(characters string) bool {
 }
 
 func (s *Session) backspaceLocked() *KeyResult {
-	if len(s.preedit) == 0 || s.cursor == 0 {
-		if len(s.preedit) == 0 {
-			return &KeyResult{Consumed: false}
-		}
+	if len(s.confirmed) > 0 {
+		last := s.confirmed[len(s.confirmed)-1]
+		s.confirmed = s.confirmed[:len(s.confirmed)-1]
+		s.preedit = append([]rune(last.Keys), s.preedit...)
+		s.cursor = len(s.preedit)
+		s.page = 0
 		return s.refreshLocked()
 	}
-	s.preedit = append(s.preedit[:s.cursor-1], s.preedit[s.cursor:]...)
-	s.cursor--
-	s.page = 0
+	if len(s.preedit) > 0 && s.cursor > 0 {
+		s.preedit = append(s.preedit[:s.cursor-1], s.preedit[s.cursor:]...)
+		s.cursor--
+		s.page = 0
+		return s.refreshLocked()
+	}
+	if len(s.preedit) == 0 {
+		return &KeyResult{Consumed: false}
+	}
 	return s.refreshLocked()
 }
 
 func (s *Session) cancelLocked() *KeyResult {
-	if len(s.preedit) == 0 {
+	if len(s.preedit) == 0 && len(s.confirmed) == 0 {
 		return &KeyResult{Consumed: false}
 	}
 	s.clearCompositionLocked()
@@ -200,20 +214,27 @@ func (s *Session) cancelLocked() *KeyResult {
 
 func (s *Session) commitTopCandidateLocked() *KeyResult {
 	if len(s.preedit) == 0 {
-		return &KeyResult{Consumed: false}
+		if len(s.confirmed) == 0 {
+			return &KeyResult{Consumed: false}
+		}
+		return s.flushConfirmedLocked()
 	}
 	candidates := s.decodeLocked()
 	if len(candidates) == 0 {
-		return s.commitRawPreeditLocked()
+		return s.commitCompositionLocked()
 	}
 	return s.commitCandidateLocked(candidates[0])
 }
 
 func (s *Session) commitRawPreeditLocked() *KeyResult {
-	if len(s.preedit) == 0 {
+	return s.commitCompositionLocked()
+}
+
+func (s *Session) commitCompositionLocked() *KeyResult {
+	text := s.confirmedTextLocked() + string(s.preedit)
+	if text == "" {
 		return &KeyResult{Consumed: false}
 	}
-	text := string(s.preedit)
 	s.clearCompositionLocked()
 	s.generation++
 	return &KeyResult{
@@ -226,6 +247,36 @@ func (s *Session) commitRawPreeditLocked() *KeyResult {
 		},
 		Consumed: true,
 	}
+}
+
+func (s *Session) flushConfirmedLocked() *KeyResult {
+	text := s.confirmedTextLocked()
+	if text == "" {
+		return &KeyResult{Consumed: false}
+	}
+	s.confirmed = nil
+	s.generation++
+	return &KeyResult{
+		Composition: s.compositionLocked(),
+		Candidates:  s.candidateListLocked(nil),
+		Commit: &imev1.CommitText{
+			SessionId:  s.id,
+			Text:       text,
+			Generation: s.generation,
+		},
+		Consumed: true,
+	}
+}
+
+func (s *Session) confirmedTextLocked() string {
+	if len(s.confirmed) == 0 {
+		return ""
+	}
+	var b strings.Builder
+	for _, seg := range s.confirmed {
+		b.WriteString(seg.Text)
+	}
+	return b.String()
 }
 
 func (s *Session) selectByDigitLocked(digit rune) *KeyResult {
@@ -291,10 +342,13 @@ func (s *Session) decodeLocked() []engine.Candidate {
 }
 
 func (s *Session) compositionLocked() *imev1.CompositionState {
+	confirmed := s.confirmedTextLocked()
+	preedit := confirmed + string(s.preedit)
+	cursor := len([]rune(confirmed)) + s.cursor
 	return &imev1.CompositionState{
 		SessionId:  s.id,
-		Preedit:    string(s.preedit),
-		Cursor:     uint32(s.cursor),
+		Preedit:    preedit,
+		Cursor:     uint32(cursor),
 		Generation: s.generation,
 	}
 }
@@ -341,6 +395,7 @@ func (s *Session) clearCompositionLocked() {
 	s.preedit = nil
 	s.cursor = 0
 	s.page = 0
+	s.confirmed = nil
 }
 
 func (s *Session) SelectCandidate(generation uint64, index uint32) (*KeyResult, bool) {
@@ -366,31 +421,39 @@ func (s *Session) commitCandidateLocked(cand engine.Candidate) *KeyResult {
 			consumedKeys = len(s.preedit)
 		}
 	}
+	if consumedKeys <= 0 {
+		return s.refreshLocked()
+	}
+	covered := string(s.preedit[:consumedKeys])
 	remainder := ""
-	if consumedKeys > 0 && consumedKeys < len(s.preedit) {
+	if consumedKeys < len(s.preedit) {
 		remainder = string(s.preedit[consumedKeys:])
 	}
-	s.clearCompositionLocked()
+	s.confirmed = append(s.confirmed, confirmedSegment{Text: cand.Text, Keys: covered})
+	s.preedit = []rune(remainder)
+	s.cursor = len(s.preedit)
+	s.page = 0
 	s.generation++
-	result := &KeyResult{
+	if remainder != "" {
+		list := s.decodeLocked()
+		return &KeyResult{
+			Composition: s.compositionLocked(),
+			Candidates:  s.candidateListLocked(list),
+			Consumed:    true,
+		}
+	}
+	text := s.confirmedTextLocked()
+	s.confirmed = nil
+	return &KeyResult{
+		Composition: s.compositionLocked(),
+		Candidates:  s.candidateListLocked(nil),
 		Commit: &imev1.CommitText{
 			SessionId:  s.id,
-			Text:       cand.Text,
+			Text:       text,
 			Generation: s.generation,
 		},
 		Consumed: true,
 	}
-	if remainder != "" {
-		s.preedit = []rune(remainder)
-		s.cursor = len(s.preedit)
-		list := s.decodeLocked()
-		result.Composition = s.compositionLocked()
-		result.Candidates = s.candidateListLocked(list)
-		return result
-	}
-	result.Composition = s.compositionLocked()
-	result.Candidates = s.candidateListLocked(nil)
-	return result
 }
 
 func IsLetterInput(characters string) bool {

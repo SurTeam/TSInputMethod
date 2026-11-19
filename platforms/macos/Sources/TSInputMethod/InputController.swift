@@ -6,6 +6,7 @@ class TSInputController: IMKInputController {
     private let daemon = DaemonClient()
     private var markedText: String = ""
     private var candidates: [String] = []
+    private var comments: [String] = []
     private var candidatesPanel: IMKCandidates?
     private var leftShiftDown = false
     private var leftShiftUsedAsModifier = false
@@ -158,10 +159,12 @@ class TSInputController: IMKInputController {
             insert(text: outcome.commitText, client: client)
             markedText = ""
             candidates = []
+            comments = []
         }
         markedText = outcome.preedit
         setMarked(text: outcome.preedit, client: client)
         candidates = outcome.candidates
+        comments = outcome.comments
         updateCandidatesPanel()
     }
 
@@ -190,7 +193,7 @@ class TSInputController: IMKInputController {
         guard let client = client as? IMKTextInput else {
             return
         }
-        let attrs = mark(forStyle: kTSMHiliteSelectedConvertedText, at: NSRange(location: 0, length: text.utf16.count))
+        let attrs = mark(forStyle: kTSMHiliteRawText, at: NSRange(location: 0, length: text.utf16.count))
         let attributed = NSAttributedString(string: text, attributes: attrs as? [NSAttributedString.Key: Any])
         client.setMarkedText(attributed,
                              selectionRange: NSRange(location: text.utf16.count, length: 0),
@@ -201,6 +204,7 @@ class TSInputController: IMKInputController {
         setMarked(text: "", client: client)
         markedText = ""
         candidates = []
+        comments = []
         candidatesPanel?.hide()
     }
 }

@@ -5,6 +5,7 @@ struct KeyOutcome {
     var preedit: String
     var commitText: String
     var candidates: [String]
+    var comments: [String]
 }
 
 final class DaemonClient {
@@ -96,7 +97,7 @@ final class DaemonClient {
         guard result.ok != 0 else {
             return nil
         }
-        var outcome = KeyOutcome(consumed: result.consumed != 0, preedit: "", commitText: "", candidates: [])
+        var outcome = KeyOutcome(consumed: result.consumed != 0, preedit: "", commitText: "", candidates: [], comments: [])
         if let preedit = result.preedit {
             outcome.preedit = String(cString: preedit)
         }
@@ -108,6 +109,13 @@ final class DaemonClient {
                 let item = base.advanced(by: i).pointee
                 if let text = item.text {
                     outcome.candidates.append(String(cString: text))
+                } else {
+                    outcome.candidates.append("")
+                }
+                if let comment = item.comment {
+                    outcome.comments.append(String(cString: comment))
+                } else {
+                    outcome.comments.append("")
                 }
             }
         }

@@ -29,97 +29,186 @@ var xiaoheZeroSyllables = map[string]string{
 }
 
 func ExpandXiaohe(input string) (syllables []string, remainder string, ok bool) {
+	paths, rem, ok := ExpandXiaohePaths(input)
+	if !ok || len(paths) == 0 {
+		return nil, rem, ok
+	}
+	return append([]string(nil), paths[0]...), rem, true
+}
+
+func ExpandXiaohePaths(input string) (paths [][]string, remainder string, ok bool) {
 	input = strings.ToLower(strings.TrimSpace(input))
 	if input == "" {
-		return nil, "", true
+		return [][]string{nil}, "", true
 	}
 	for _, r := range input {
 		if r < 'a' || r > 'z' {
 			return nil, input, false
 		}
 	}
+	paths = [][]string{nil}
 	i := 0
 	for i+1 < len(input) {
 		pair := input[i : i+2]
-		syl, mapped := mapXiaohePair(pair[0], pair[1])
-		if !mapped {
-			return syllables, input[i:], false
+		alts, mapped := mapXiaohePairAll(pair[0], pair[1])
+		if !mapped || len(alts) == 0 {
+			if len(paths) == 1 && len(paths[0]) == 0 {
+				return nil, input[i:], false
+			}
+			return paths, input[i:], false
 		}
-		syllables = append(syllables, syl)
+		next := make([][]string, 0, len(paths)*len(alts))
+		for _, prefix := range paths {
+			for _, syl := range alts {
+				item := append(append([]string(nil), prefix...), syl)
+				next = append(next, item)
+				if len(next) >= 32 {
+					break
+				}
+			}
+			if len(next) >= 32 {
+				break
+			}
+		}
+		paths = next
 		i += 2
 	}
 	if i < len(input) {
-		return syllables, input[i:], true
+		return paths, input[i:], true
 	}
-	return syllables, "", true
+	return paths, "", true
 }
 
 func mapXiaohePair(first, second byte) (string, bool) {
+	alts, ok := mapXiaohePairAll(first, second)
+	if !ok || len(alts) == 0 {
+		return "", false
+	}
+	return alts[0], true
+}
+
+func mapXiaohePairAll(first, second byte) ([]string, bool) {
 	if syl, ok := xiaoheZeroSyllables[string([]byte{first, second})]; ok {
-		return syl, true
+		return []string{syl}, true
 	}
 	init, okInit := xiaoheInitials[first]
 	if !okInit {
-		return "", false
+		return nil, false
 	}
-	fin, okFin := resolveXiaoheFinal(init, second)
-	if !okFin {
-		return "", false
+	fins, okFin := resolveXiaoheFinals(init, second)
+	if !okFin || len(fins) == 0 {
+		return nil, false
 	}
-	if init == "" {
-		return fin, true
+	out := make([]string, 0, len(fins))
+	seen := map[string]struct{}{}
+	for _, fin := range fins {
+		syl := fin
+		if init != "" {
+			syl = init + fin
+		}
+		if !IsValidSyllable(syl) {
+			continue
+		}
+		if _, dup := seen[syl]; dup {
+			continue
+		}
+		seen[syl] = struct{}{}
+		out = append(out, syl)
 	}
-	return init + fin, true
+	if len(out) == 0 {
+		return nil, false
+	}
+	return out, true
 }
 
 func resolveXiaoheFinal(initial string, key byte) (string, bool) {
+	fins, ok := resolveXiaoheFinals(initial, key)
+	if !ok || len(fins) == 0 {
+		return "", false
+	}
+	return fins[0], true
+}
+
+func resolveXiaoheFinals(initial string, key byte) ([]string, bool) {
 	switch key {
 	case 'o':
-		if initial == "" || initial == "b" || initial == "p" || initial == "m" || initial == "f" {
-			return "o", true
+		if initial == "" || initial == "b" || initial == "p" || initial == "m" || initial == "f" || initial == "w" || initial == "y" {
+			return preferredFinals(initial, "o", "uo"), true
 		}
-		return "uo", true
+		return preferredFinals(initial, "uo", "o"), true
 	case 's':
 		if initial == "j" || initial == "q" || initial == "x" {
-			return "iong", true
+			return preferredFinals(initial, "iong", "ong"), true
 		}
-		return "ong", true
+		return preferredFinals(initial, "ong", "iong"), true
 	case 'k':
 		if initial == "g" || initial == "k" || initial == "h" || initial == "zh" || initial == "ch" || initial == "sh" || initial == "r" || initial == "z" || initial == "c" || initial == "s" {
-			return "uai", true
+			return preferredFinals(initial, "uai", "ing"), true
 		}
-		return "ing", true
+		return preferredFinals(initial, "ing", "uai"), true
 	case 'l':
 		if initial == "j" || initial == "q" || initial == "x" || initial == "n" || initial == "l" {
-			return "iang", true
+			return preferredFinals(initial, "iang", "uang"), true
 		}
-		return "uang", true
+		return preferredFinals(initial, "uang", "iang"), true
 	case 'x':
 		if initial == "g" || initial == "k" || initial == "h" || initial == "zh" || initial == "ch" || initial == "sh" || initial == "r" || initial == "z" || initial == "c" || initial == "s" {
-			return "ua", true
+			return preferredFinals(initial, "ua", "ia"), true
 		}
-		return "ia", true
+		return preferredFinals(initial, "ia", "ua"), true
 	case 'v':
 		if initial == "j" || initial == "q" || initial == "x" || initial == "y" {
-			return "u", true
+			return preferredFinals(initial, "u", "v", "ui"), true
 		}
 		if initial == "n" || initial == "l" {
-			return "v", true
+			return preferredFinals(initial, "v", "u", "ui"), true
 		}
-		return "ui", true
+		return preferredFinals(initial, "ui", "u", "v"), true
 	case 't':
-		if initial == "j" || initial == "q" || initial == "x" || initial == "n" || initial == "l" {
-			return "ue", true
+		if initial == "n" || initial == "l" {
+			return preferredFinals(initial, "ve", "ue"), true
 		}
-		return "ve", true
+		if initial == "j" || initial == "q" || initial == "x" {
+			return preferredFinals(initial, "ue", "ve"), true
+		}
+		return preferredFinals(initial, "ve", "ue"), true
 	case 'r':
 		if initial == "" {
-			return "er", true
+			return []string{"er"}, true
 		}
-		return "uan", true
+		return preferredFinals(initial, "uan"), true
 	}
 	fin, ok := xiaoheFinals[key]
-	return fin, ok
+	if !ok {
+		return nil, false
+	}
+	return preferredFinals(initial, fin), true
+}
+
+func preferredFinals(initial string, fins ...string) []string {
+	out := make([]string, 0, len(fins))
+	seen := map[string]struct{}{}
+	for _, fin := range fins {
+		syl := fin
+		if initial != "" {
+			syl = initial + fin
+		}
+		if initial != "" && !IsValidSyllable(syl) {
+			continue
+		}
+		if initial == "" && fin != "" && !IsValidSyllable(fin) {
+			continue
+		}
+		if _, dup := seen[fin]; dup {
+			continue
+		}
+		seen[fin] = struct{}{}
+		out = append(out, fin)
+	}
+	if len(out) == 0 && len(fins) > 0 {
+		return []string{fins[0]}
+	}
+	return out
 }
 
 func FlypyToFull(input string) string {

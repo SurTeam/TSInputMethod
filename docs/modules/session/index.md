@@ -8,7 +8,7 @@
 - Route key events to the engine and return composition / candidates / commit.
 - Support Chinese editing keys: letter compose, backspace, Esc cancel, space commit top candidate, Enter/Return commit raw preedit and clear candidates, digit select, `-`/`=` candidate paging with a fixed `page_size=9` regardless of input length or total candidate count.
 - Candidate list display labels are numbered per page as `1.`…`9.` while commit/select still use the underlying candidate text.
-- Selecting a candidate that only covers a prefix of the preedit commits that text and leaves the remaining code in composition for continued phrase input (including after odd-length flypy keys).
+- Selecting a candidate that only covers a prefix of the preedit soft-confirms that text into the composition display (`已选中文` + remaining raw keys) without hard-committing yet; candidates stay bare Chinese words. Backspace first undoes the latest soft confirmation (restoring its keys with the composition cursor at the end of the full preedit), then deletes raw preedit characters from that end. Completing the remaining keys hard-commits the whole confirmed phrase.
 - Classify printable `characters` first. Edit `key_code` values follow macOS CG codes from Karabiner-Elements: Delete=51, Escape=53, Space=49, ForwardDelete=117, Return=36, keypad Enter=76 ([ADR 0002](../../decisions/0002-semantic-edit-keycodes.md)). Legacy ASCII 8/27/32 are not edit keys.
 
 ## Boundaries

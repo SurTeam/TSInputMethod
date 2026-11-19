@@ -28,11 +28,11 @@ func TestXiaoheUijpTopCandidateIsShijie(t *testing.T) {
 	if bareCandidateText(res.Candidates.Candidates[0].Text) != "世界" {
 		t.Fatalf("top=%#v", res.Candidates.Candidates[0])
 	}
-	if res.Candidates.Candidates[0].Comment != "shi'jie" {
+	if res.Candidates.Candidates[0].Comment != "uijp" {
 		t.Fatalf("comment=%q", res.Candidates.Candidates[0].Comment)
 	}
 	for _, cand := range res.Candidates.Candidates {
-		if cand.Comment == "shi'ji'e" || bareCandidateText(cand.Text) == "世机恶" {
+		if cand.Comment == "shi'ji'e" || cand.Comment == "shi'jie" || bareCandidateText(cand.Text) == "世机恶" {
 			t.Fatalf("quanpin re-split leaked: %#v", res.Candidates.Candidates)
 		}
 	}
@@ -63,10 +63,10 @@ func TestPartialWordCommitLeavesRemainder(t *testing.T) {
 		t.Fatalf("missing partial candidate 世 in %#v", first.Candidates.Candidates)
 	}
 	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: string(rune('1' + idx))})
-	if res.Commit == nil || res.Commit.Text != "世" {
-		t.Fatalf("partial commit = %#v", res.Commit)
+	if res.Commit != nil && res.Commit.Text != "" {
+		t.Fatalf("soft confirm should not hard-commit yet: %#v", res.Commit)
 	}
-	if res.Composition == nil || res.Composition.Preedit != "jp" {
+	if res.Composition == nil || res.Composition.Preedit != "世jp" {
 		t.Fatalf("remainder preedit = %#v", res.Composition)
 	}
 	if res.Candidates == nil || len(res.Candidates.Candidates) == 0 || bareCandidateText(res.Candidates.Candidates[0].Text) != "界" {

@@ -75,6 +75,55 @@ func (d *Decoder) DecodeSyllables(syllables []string, remainder string) []Candid
 	return d.finish(seen)
 }
 
+func (d *Decoder) DecodeSyllablePaths(paths [][]string, remainder string) []Candidate {
+	if d == nil || d.dict == nil {
+		return nil
+	}
+	if len(paths) == 0 {
+		return d.DecodeSyllables(nil, remainder)
+	}
+	if len(paths) == 1 {
+		return d.DecodeSyllables(paths[0], remainder)
+	}
+	lists := make([][]Candidate, 0, len(paths))
+	for _, path := range paths {
+		lists = append(lists, d.DecodeSyllables(path, remainder))
+	}
+	return interleaveCandidateLists(lists, d.limit)
+}
+
+func interleaveCandidateLists(lists [][]Candidate, limit int) []Candidate {
+	if limit <= 0 {
+		limit = 96
+	}
+	indexes := make([]int, len(lists))
+	seen := map[string]struct{}{}
+	out := make([]Candidate, 0, limit)
+	for len(out) < limit {
+		progressed := false
+		for i, list := range lists {
+			for indexes[i] < len(list) {
+				cand := list[indexes[i]]
+				indexes[i]++
+				if _, ok := seen[cand.Text]; ok {
+					continue
+				}
+				seen[cand.Text] = struct{}{}
+				out = append(out, cand)
+				progressed = true
+				break
+			}
+			if len(out) >= limit {
+				break
+			}
+		}
+		if !progressed {
+			break
+		}
+	}
+	return out
+}
+
 func (d *Decoder) finish(seen map[string]Candidate) []Candidate {
 	if len(seen) == 0 {
 		return nil
@@ -111,32 +160,54 @@ func (d *Decoder) finish(seen map[string]Candidate) []Candidate {
 		}
 	}
 	filtered := map[int][]Candidate{}
+	incompleteByLen := map[int][]Candidate{}
+	hasIncomplete := false
 	for n := maxLen; n >= 1; n-- {
 		group := byLen[n]
 		exact := make([]Candidate, 0, len(group))
-		composed := make([]Candidate, 0, len(group))
+		incomplete := make([]Candidate, 0, len(group))
 		for _, cand := range group {
-			if cand.Composed {
-				composed = append(composed, cand)
-			} else {
-				exact = append(exact, cand)
+			if cand.Incomplete {
+				incomplete = append(incomplete, cand)
+				hasIncomplete = true
+				continue
 			}
+			if cand.Composed {
+				continue
+			}
+			exact = append(exact, cand)
 		}
 		if n > 1 {
 			exact = keepCompetitive(exact)
 		}
 		filtered[n] = exact
-		appendUnique(exact, exactQuota(n, maxLen))
-		if len(exact) == 0 {
-			appendUnique(composed, composedQuota(n, maxLen))
+		incompleteByLen[n] = incomplete
+	}
+	if hasIncomplete {
+		for n := 1; n <= maxLen; n++ {
+			appendUnique(shortIncomplete(incompleteByLen[n]), shortIncompleteQuota(n))
+		}
+	}
+	for n := maxLen; n >= 1; n-- {
+		appendUnique(filtered[n], exactQuota(n, maxLen))
+	}
+	if hasIncomplete {
+		for n := 1; n <= maxLen; n++ {
+			appendUnique(incompleteByLen[n], shortIncompleteQuota(n))
 		}
 	}
 	if remainder := byLen[0]; len(remainder) > 0 {
-		appendUnique(remainder, 4)
+		appendUnique(shortIncomplete(remainder), 4)
 	}
 	if len(out) < d.limit {
 		for n := 1; n <= maxLen && len(out) < d.limit; n++ {
+			appendUnique(shortIncomplete(incompleteByLen[n]), d.limit-len(out))
+		}
+		for n := 1; n <= maxLen && len(out) < d.limit; n++ {
 			appendUnique(filtered[n], d.limit-len(out))
+		}
+		for n := 1; n <= maxLen && len(out) < d.limit; n++ {
+			appendUnique(incompleteByLen[n], d.limit-len(out))
 		}
 		if remainder := byLen[0]; len(remainder) > 0 && len(out) < d.limit {
 			appendUnique(remainder, d.limit-len(out))
@@ -146,6 +217,26 @@ func (d *Decoder) finish(seen map[string]Candidate) []Candidate {
 		out = out[:d.limit]
 	}
 	return out
+}
+
+func shortIncomplete(cands []Candidate) []Candidate {
+	out := make([]Candidate, 0, len(cands))
+	for _, cand := range cands {
+		if len([]rune(cand.Text)) <= 2 {
+			out = append(out, cand)
+		}
+	}
+	return out
+}
+
+func shortIncompleteQuota(n int) int {
+	if n <= 1 {
+		return 8
+	}
+	if n == 2 {
+		return 6
+	}
+	return 2
 }
 
 func keepCompetitive(cands []Candidate) []Candidate {
@@ -189,12 +280,27 @@ func composedQuota(n, maxLen int) int {
 }
 
 func betterCandidate(a, b Candidate) bool {
-	if a.Incomplete != b.Incomplete {
-		return !a.Incomplete && b.Incomplete
-	}
 	si := len(a.Syllables)
 	sj := len(b.Syllables)
-	if si != sj {
+	if a.Incomplete != b.Incomplete {
+		if a.Incomplete && si > sj {
+			return true
+		}
+		if b.Incomplete && sj > si {
+			return false
+		}
+		return !a.Incomplete && b.Incomplete
+	}
+	if a.Incomplete {
+		if si != sj {
+			return si < sj
+		}
+		ri := len([]rune(a.Text))
+		rj := len([]rune(b.Text))
+		if ri != rj {
+			return ri < rj
+		}
+	} else if si != sj {
 		return si > sj
 	}
 	if a.Composed != b.Composed {
@@ -203,10 +309,12 @@ func betterCandidate(a, b Candidate) bool {
 	if a.Score != b.Score {
 		return a.Score > b.Score
 	}
-	ri := len([]rune(a.Text))
-	rj := len([]rune(b.Text))
-	if ri != rj {
-		return ri > rj
+	if !a.Incomplete {
+		ri := len([]rune(a.Text))
+		rj := len([]rune(b.Text))
+		if ri != rj {
+			return ri > rj
+		}
 	}
 	return a.Text < b.Text
 }

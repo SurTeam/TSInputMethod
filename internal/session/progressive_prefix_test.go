@@ -70,10 +70,10 @@ func TestFlypyOddLengthPrefixThenRemainder(t *testing.T) {
 		}
 	}
 	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: string(rune('1' + idx))})
-	if res.Commit == nil || res.Commit.Text != "中国" {
-		t.Fatalf("commit=%#v", res.Commit)
+	if res.Commit != nil && res.Commit.Text != "" {
+		t.Fatalf("soft confirm should not hard-commit yet: %#v", res.Commit)
 	}
-	if res.Composition == nil || res.Composition.Preedit != "rfm" {
+	if res.Composition == nil || res.Composition.Preedit != "中国rfm" {
 		t.Fatalf("remainder preedit=%#v", res.Composition)
 	}
 }
@@ -92,10 +92,10 @@ func TestFlypyPartialCommitContinuesMatching(t *testing.T) {
 		t.Fatalf("missing 中国: %#v", candidateTexts(first))
 	}
 	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: string(rune('1' + idx))})
-	if res.Commit == nil || res.Commit.Text != "中国" {
-		t.Fatalf("commit=%#v", res.Commit)
+	if res.Commit != nil && res.Commit.Text != "" {
+		t.Fatalf("soft confirm should not hard-commit yet: %#v", res.Commit)
 	}
-	if res.Composition == nil || res.Composition.Preedit != "rfmb" {
+	if res.Composition == nil || res.Composition.Preedit != "中国rfmb" {
 		t.Fatalf("remainder=%#v", res.Composition)
 	}
 	if !containsText(candidateTexts(res), "人民") && !containsText(candidateTexts(res), "人") {

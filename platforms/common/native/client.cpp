@@ -258,6 +258,15 @@ KeyOutcome Client::selectCandidate(const std::string &sessionId, std::uint64_t g
       out.preedit = result.composition().preedit();
       out.cursor = result.composition().cursor();
       out.generation = result.composition().generation();
+      out.sessionId = result.composition().session_id();
+    }
+    if (result.has_candidates()) {
+      out.generation = result.candidates().generation();
+      for (const auto &cand : result.candidates().candidates()) {
+        out.candidates.push_back(cand.text());
+        out.comments.push_back(cand.comment());
+        out.scores.push_back(cand.score());
+      }
     }
   } else if (resp.has_commit_text()) {
     out.ok = true;
