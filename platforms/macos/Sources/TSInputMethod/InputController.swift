@@ -9,6 +9,7 @@ class TSInputController: IMKInputController {
     private var comments: [String] = []
     private var selectedIndex: Int = 0
     private var visibleCandidates: [String] = []
+    private var syncingCandidateHighlight = false
     private var candidatesPanel: IMKCandidates?
     private var leftShiftDown = false
     private var leftShiftUsedAsModifier = false
@@ -77,12 +78,12 @@ class TSInputController: IMKInputController {
     }
 
     override func candidates(_ sender: Any!) -> [Any]! {
-        return displayCandidates()
+        return attributedCandidates()
     }
 
     override func candidateSelected(_ candidateString: NSAttributedString!) {
         guard let text = candidateString?.string,
-              let index = displayCandidates().firstIndex(of: text),
+              let index = indexOfDisplayedCandidate(text),
               let outcome = daemon.selectCandidate(index: UInt32(index)) else {
             return
         }
@@ -90,15 +91,59 @@ class TSInputController: IMKInputController {
     }
 
     override func candidateSelectionChanged(_ candidateString: NSAttributedString!) {
+        if syncingCandidateHighlight {
+            return
+        }
         guard let text = candidateString?.string,
-              let index = displayCandidates().firstIndex(of: text) else {
+              let index = indexOfDisplayedCandidate(text) else {
             return
         }
         selectedIndex = index
     }
 
-    private func displayCandidates() -> [String] {
+    private func indexOfDisplayedCandidate(_ text: String) -> Int? {
+        let bare: String
+        if text.hasPrefix("• ") {
+            bare = String(text.dropFirst(2))
+        } else if text.hasPrefix("  ") {
+            bare = String(text.dropFirst(2))
+        } else {
+            bare = text
+        }
+        return bareCandidates().firstIndex(of: bare)
+    }
+
+    private func bareCandidates() -> [String] {
         candidates.map(Self.bareCandidateText)
+    }
+
+    private func attributedCandidates() -> [NSAttributedString] {
+        let texts = bareCandidates()
+        guard !texts.isEmpty else {
+            return []
+        }
+        var index = selectedIndex
+        if index < 0 {
+            index = 0
+        }
+        if index >= texts.count {
+            index = texts.count - 1
+        }
+        let normalFont = NSFont.systemFont(ofSize: 12)
+        let selectedFont = NSFont.boldSystemFont(ofSize: 12)
+        let normalAttrs: [NSAttributedString.Key: Any] = [
+            .font: normalFont,
+            .foregroundColor: NSColor.labelColor,
+        ]
+        let selectedAttrs: [NSAttributedString.Key: Any] = [
+            .font: selectedFont,
+            .foregroundColor: NSColor.controlAccentColor,
+            .underlineStyle: NSUnderlineStyle.single.rawValue,
+        ]
+        return texts.enumerated().map { offset, text in
+            let display = offset == index ? "• \(text)" : "  \(text)"
+            return NSAttributedString(string: display, attributes: offset == index ? selectedAttrs : normalAttrs)
+        }
     }
 
     private static func bareCandidateText(_ text: String) -> String {
@@ -199,47 +244,16 @@ class TSInputController: IMKInputController {
             panel.hide()
             return
         }
-        let shown = displayCandidates()
-        let samePage = shown == visibleCandidates
-        if !samePage {
-            visibleCandidates = shown
-            panel.setCandidateData(shown)
-            panel.update()
-            panel.show(kIMKLocateCandidatesBelowHint)
+        let shown = bareCandidates()
+        let attributed = attributedCandidates()
+        visibleCandidates = shown
+        syncingCandidateHighlight = true
+        panel.setCandidateData(attributed)
+        panel.update()
+        panel.show(kIMKLocateCandidatesBelowHint)
+        DispatchQueue.main.async { [weak self] in
+            self?.syncingCandidateHighlight = false
         }
-        syncCandidateHighlight(panel: panel, count: shown.count)
-    }
-
-    private func syncCandidateHighlight(panel: IMKCandidates, count: Int) {
-        guard count > 0 else {
-            return
-        }
-        var index = selectedIndex
-        if index < 0 {
-            index = 0
-        }
-        if index >= count {
-            index = count - 1
-        }
-        let applySelection = { [weak self] in
-            guard let self else {
-                return
-            }
-            let identifier = panel.candidateIdentifier(atLineNumber: index)
-            if identifier != NSNotFound {
-                _ = panel.selectCandidate(withIdentifier: identifier)
-                return
-            }
-            guard index < self.visibleCandidates.count else {
-                return
-            }
-            let fallback = panel.candidateStringIdentifier(self.visibleCandidates[index] as NSString)
-            if fallback != NSNotFound {
-                _ = panel.selectCandidate(withIdentifier: fallback)
-            }
-        }
-        applySelection()
-        DispatchQueue.main.async(execute: applySelection)
     }
 
     private func wireModifiers(from flags: NSEvent.ModifierFlags) -> UInt32 {
