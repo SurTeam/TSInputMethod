@@ -12,9 +12,9 @@ Horizontal `IMKCandidates` (`kIMKSingleRowSteppingCandidatePanel`) could show ca
 
 Own the macOS candidate UI in the adapter:
 
-- Draw a borderless floating `NSPanel` with a custom horizontal row of up to 9 equal-width columns.
+- Draw a borderless floating `NSPanel` with a custom horizontal row of up to 9 content-sized columns.
 - Render darker numeric labels `1`–`9` beside bare Chinese candidate text; highlight follows session `selected_index`.
-- Keep column count and locked equal column widths stable across paging/expansion; mouse wheel pages via session Up/Down.
+- Size each column from its own label+text metrics and shrink the panel to the visible candidate count; mouse wheel pages via session Up/Down.
 - Keep composition/preedit in the client through `setMarkedText` attributes owned by `TSInputController`, not through `IMKCandidates`.
 
 Session still owns paging, `selected_index`, digit select, and soft-confirm semantics over IPC.

@@ -6,13 +6,15 @@ final class CandidatePanel {
 
     private let panel: NSPanel
     private let content: CandidatePanelView
-    private var lockedColumnWidth: CGFloat = 0
     private let pageSize = 9
-private let minColumnWidth: CGFloat = 44
-    private let horizontalPadding: CGFloat = 12
-    private let verticalPadding: CGFloat = 8
-    private let columnSpacing: CGFloat = 10
-    private let rowHeight: CGFloat = 36
+    private let minColumnWidth: CGFloat = 28
+    private let horizontalPadding: CGFloat = 6
+    private let verticalPadding: CGFloat = 4
+    private let columnSpacing: CGFloat = 4
+    private let cellHorizontalPadding: CGFloat = 4
+    private let labelBodyGap: CGFloat = 3
+    private let rowHeight: CGFloat = 28
+    private let bodyPointSize: CGFloat = 16
 
     init() {
         content = CandidatePanelView(frame: .zero)
@@ -41,8 +43,17 @@ private let minColumnWidth: CGFloat = 44
 
     func hide() {
         panel.orderOut(nil)
-        content.update(candidates: [], selectedIndex: 0, columnWidth: minColumnWidth)
-        lockedColumnWidth = 0
+        content.update(
+            candidates: [],
+            selectedIndex: 0,
+            columnWidths: [],
+            horizontalPadding: horizontalPadding,
+            verticalPadding: verticalPadding,
+            columnSpacing: columnSpacing,
+            cellHorizontalPadding: cellHorizontalPadding,
+            labelBodyGap: labelBodyGap,
+            bodyPointSize: bodyPointSize
+        )
     }
 
     func update(candidates: [String], selectedIndex: Int, anchor: NSRect) {
@@ -51,23 +62,24 @@ private let minColumnWidth: CGFloat = 44
             hide()
             return
         }
-        let count = min(texts.count, pageSize)
-        let measured = measureColumnWidth(texts: Array(texts.prefix(count)))
-        if lockedColumnWidth <= 0 {
-            lockedColumnWidth = measured
-        } else {
-            lockedColumnWidth = max(lockedColumnWidth, measured)
-        }
-        let width = horizontalPadding * 2
-            + CGFloat(pageSize) * lockedColumnWidth
-            + CGFloat(pageSize - 1) * columnSpacing
+        let visible = Array(texts.prefix(pageSize))
+        let columnWidths = visible.map(measureColumnWidth)
+        let columnsWidth = columnWidths.reduce(CGFloat(0), +)
+        let spacingWidth = CGFloat(max(visible.count - 1, 0)) * columnSpacing
+        let width = horizontalPadding * 2 + columnsWidth + spacingWidth
         let height = verticalPadding * 2 + rowHeight
         content.frame = NSRect(x: 0, y: 0, width: width, height: height)
-        content.pageSize = pageSize
-        content.columnSpacing = columnSpacing
-        content.horizontalPadding = horizontalPadding
-        content.verticalPadding = verticalPadding
-        content.update(candidates: Array(texts.prefix(count)), selectedIndex: selectedIndex, columnWidth: lockedColumnWidth)
+        content.update(
+            candidates: visible,
+            selectedIndex: selectedIndex,
+            columnWidths: columnWidths,
+            horizontalPadding: horizontalPadding,
+            verticalPadding: verticalPadding,
+            columnSpacing: columnSpacing,
+            cellHorizontalPadding: cellHorizontalPadding,
+            labelBodyGap: labelBodyGap,
+            bodyPointSize: bodyPointSize
+        )
         panel.setContentSize(NSSize(width: width, height: height))
         position(anchor: anchor, size: NSSize(width: width, height: height))
         panel.orderFront(nil)
@@ -94,23 +106,17 @@ private let minColumnWidth: CGFloat = 44
         panel.setFrameOrigin(origin)
     }
 
-    private func measureColumnWidth(texts: [String]) -> CGFloat {
-let bodyPointSize: CGFloat = 16
+    private func measureColumnWidth(_ text: String) -> CGFloat {
         let labelFont = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
         let textFont = NSFont.systemFont(ofSize: bodyPointSize)
         let selectedTextFont = NSFont.systemFont(ofSize: bodyPointSize, weight: .semibold)
-        var maxWidth: CGFloat = minColumnWidth
-        for (index, text) in texts.enumerated() {
-            let label = "\(index + 1)" as NSString
-            let body = text as NSString
-            let labelWidth = label.size(withAttributes: [.font: labelFont]).width
-            let bodyWidth = max(
-                body.size(withAttributes: [.font: textFont]).width,
-                body.size(withAttributes: [.font: selectedTextFont]).width
-            )
-            maxWidth = max(maxWidth, ceil(labelWidth + 4 + bodyWidth + 12))
-        }
-        return maxWidth
+        let labelWidth = ("1" as NSString).size(withAttributes: [.font: labelFont]).width
+        let body = text as NSString
+        let bodyWidth = max(
+            body.size(withAttributes: [.font: textFont]).width,
+            body.size(withAttributes: [.font: selectedTextFont]).width
+        )
+        return max(minColumnWidth, ceil(cellHorizontalPadding * 2 + labelWidth + labelBodyGap + bodyWidth))
     }
 
     private static func bareText(_ text: String) -> String {
@@ -129,14 +135,16 @@ let bodyPointSize: CGFloat = 16
 private final class CandidatePanelView: NSView {
     var onPage: ((Int) -> Void)?
     var onSelect: ((Int) -> Void)?
-    var pageSize = 9
-    var columnSpacing: CGFloat = 8
-    var horizontalPadding: CGFloat = 10
-    var verticalPadding: CGFloat = 6
 
     private var candidates: [String] = []
     private var selectedIndex = 0
-    private var columnWidth: CGFloat = 36
+    private var columnWidths: [CGFloat] = []
+    private var horizontalPadding: CGFloat = 6
+    private var verticalPadding: CGFloat = 4
+    private var columnSpacing: CGFloat = 4
+    private var cellHorizontalPadding: CGFloat = 4
+    private var labelBodyGap: CGFloat = 3
+    private var bodyPointSize: CGFloat = 16
 
     override var isFlipped: Bool { true }
     override var acceptsFirstResponder: Bool { true }
@@ -152,16 +160,49 @@ private final class CandidatePanelView: NSView {
         nil
     }
 
-    func update(candidates: [String], selectedIndex: Int, columnWidth: CGFloat) {
+    func update(
+        candidates: [String],
+        selectedIndex: Int,
+        columnWidths: [CGFloat],
+        horizontalPadding: CGFloat,
+        verticalPadding: CGFloat,
+        columnSpacing: CGFloat,
+        cellHorizontalPadding: CGFloat,
+        labelBodyGap: CGFloat,
+        bodyPointSize: CGFloat
+    ) {
         self.candidates = candidates
         self.selectedIndex = selectedIndex
-        self.columnWidth = columnWidth
+        self.columnWidths = columnWidths
+        self.horizontalPadding = horizontalPadding
+        self.verticalPadding = verticalPadding
+        self.columnSpacing = columnSpacing
+        self.cellHorizontalPadding = cellHorizontalPadding
+        self.labelBodyGap = labelBodyGap
+        self.bodyPointSize = bodyPointSize
         needsDisplay = true
+    }
+
+    private func cellFrame(at slot: Int) -> NSRect? {
+        guard slot >= 0, slot < columnWidths.count else {
+            return nil
+        }
+        var x = horizontalPadding
+        if slot > 0 {
+            x += columnWidths.prefix(slot).reduce(CGFloat(0), +)
+            x += CGFloat(slot) * columnSpacing
+        }
+        return NSRect(
+            x: x,
+            y: verticalPadding,
+            width: columnWidths[slot],
+            height: bounds.height - verticalPadding * 2
+        )
     }
 
     override func draw(_ dirtyRect: NSRect) {
         let bounds = self.bounds
-let bg = NSColor.controlBackgroundColor.withAlphaComponent(0.96)
+        let bg = NSColor.controlBackgroundColor.withAlphaComponent(0.96)
         bg.setFill()
         NSBezierPath(roundedRect: bounds, xRadius: 8, yRadius: 8).fill()
         let edge = bg.blended(withFraction: 0.14, of: NSColor.labelColor) ?? NSColor.labelColor.withAlphaComponent(0.12)
@@ -170,7 +211,6 @@ let bg = NSColor.controlBackgroundColor.withAlphaComponent(0.96)
         border.lineWidth = 1
         border.stroke()
 
-let bodyPointSize: CGFloat = 16
         let labelFont = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
         let textFont = NSFont.systemFont(ofSize: bodyPointSize)
         let selectedTextFont = NSFont.systemFont(ofSize: bodyPointSize, weight: .semibold)
@@ -179,15 +219,8 @@ let bodyPointSize: CGFloat = 16
         let selectedLabelColor = NSColor.white.withAlphaComponent(0.85)
         let selectedTextColor = NSColor.white
 
-        for slot in 0..<pageSize {
-            let x = horizontalPadding + CGFloat(slot) * (columnWidth + columnSpacing)
-            let cell = NSRect(
-                x: x,
-                y: verticalPadding,
-                width: columnWidth,
-                height: bounds.height - verticalPadding * 2
-            )
-            guard slot < candidates.count else {
+        for slot in 0..<candidates.count {
+            guard let cell = cellFrame(at: slot) else {
                 continue
             }
             let selected = slot == selectedIndex
@@ -207,12 +240,11 @@ let bodyPointSize: CGFloat = 16
             ]
             let labelSize = label.size(withAttributes: labelAttrs)
             let bodySize = body.size(withAttributes: bodyAttrs)
-            let total = labelSize.width + 4 + bodySize.width
-            let startX = cell.minX + max(6, (cell.width - total) / 2)
             let labelY = cell.minY + (cell.height - labelSize.height) / 2
             let bodyY = cell.minY + (cell.height - bodySize.height) / 2
+            let startX = cell.minX + cellHorizontalPadding
             label.draw(at: NSPoint(x: startX, y: labelY), withAttributes: labelAttrs)
-            body.draw(at: NSPoint(x: startX + labelSize.width + 4, y: bodyY), withAttributes: bodyAttrs)
+            body.draw(at: NSPoint(x: startX + labelSize.width + labelBodyGap, y: bodyY), withAttributes: bodyAttrs)
         }
     }
 
@@ -226,15 +258,8 @@ let bodyPointSize: CGFloat = 16
 
     override func mouseDown(with event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
-        for slot in 0..<min(candidates.count, pageSize) {
-            let x = horizontalPadding + CGFloat(slot) * (columnWidth + columnSpacing)
-            let cell = NSRect(
-                x: x,
-                y: verticalPadding,
-                width: columnWidth,
-                height: bounds.height - verticalPadding * 2
-            )
-            if cell.contains(point) {
+        for slot in 0..<candidates.count {
+            if let cell = cellFrame(at: slot), cell.contains(point) {
                 onSelect?(slot)
                 return
             }
