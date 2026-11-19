@@ -191,7 +191,7 @@ if [[ -x "$IME_BIN" ]]; then
 fi
 
 UID_NUM="$(id -u)"
-OLD_AGENT_LABELS=("com.surteam.tsime.imed" "com.surteam.tsime.imed")
+OLD_AGENT_LABELS=("com.surteam.tsime.imed")
 for OLD_AGENT_LABEL in "${OLD_AGENT_LABELS[@]}"; do
   if launchctl print "gui/$UID_NUM/$OLD_AGENT_LABEL" >/dev/null 2>&1; then
     launchctl bootout "gui/$UID_NUM/$OLD_AGENT_LABEL" >/dev/null 2>&1 || true

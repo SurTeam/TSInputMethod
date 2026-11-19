@@ -11,7 +11,7 @@
 | KI-007 | macos-signing | SurTeamCode is self-signed (not Developer ID); `spctl` rejects; Gatekeeper may warn; notarization not claimed; hardened-runtime build needs library-validation entitlement for Homebrew protobuf | open |
 | KI-006 | shuangpin | Xiaohe/flypy keeps fixed 2-key boundaries (uijp→shi'jie) and progressive N…1 prefix candidates (incl. odd-length remainder); real-env phrase flow still needs user trial | open (trial) |
 | KI-008 | macos-install | Installer now targets `/Library/Input Methods` and prompts for admin; user-level `~/Library/Input Methods` alone was insufficient for stable TIS visibility in this environment | open (document) |
-| KI-010 | daemon-rename | Daemon binary/LaunchAgent renamed `imed` → `tsimed` / `com.surteam.tsimed`; installer boots out legacy `com.surteam.tsime.imed` and `com.surteam.tsime.imed` labels, but previously installed leftover agents may still need a reinstall/kickstart | mitigated (source) |
+| KI-010 | daemon-rename | Daemon binary/LaunchAgent renamed `imed` → `tsimed` / `com.surteam.tsimed`; installer boots out legacy `com.surteam.tsime.imed` labels, but previously installed leftover agents may still need a reinstall/kickstart | mitigated (source) |
 
 Notes:
 

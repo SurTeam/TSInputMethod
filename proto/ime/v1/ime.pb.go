@@ -1567,7 +1567,7 @@ const file_proto_ime_v1_ime_proto_rawDesc = "" +
 	"\tInputMode\x12\x1a\n" +
 	"\x16INPUT_MODE_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12INPUT_MODE_CHINESE\x10\x01\x12\x16\n" +
-	"\x12INPUT_MODE_ENGLISH\x10\x02B6Z4github.com/SurTeam/TSInputMethod/proto/ime/v1;imev1b\x06proto3"
+	"\x12INPUT_MODE_ENGLISH\x10\x02B5Z3github.com/SurTeam/TSInputMethod/proto/ime/v1;imev1b\x06proto3"
 
 var (
 	file_proto_ime_v1_ime_proto_rawDescOnce sync.Once

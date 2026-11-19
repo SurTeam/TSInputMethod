@@ -3534,15 +3534,15 @@ const char descriptor_table_protodef_ime_2fv1_2fime_2eproto[] ABSL_ATTRIBUTE_SEC
     "me.v1.ErrorH\000\022 \n\006status\030\031 \001(\0132\016.ime.v1.S"
     "tatusH\000B\t\n\007payload*W\n\tInputMode\022\032\n\026INPUT"
     "_MODE_UNSPECIFIED\020\000\022\026\n\022INPUT_MODE_CHINES"
-    "E\020\001\022\026\n\022INPUT_MODE_ENGLISH\020\002B6Z4github.co"
-    "m/SurTeam/TSInputMethod/proto/ime/v1;im"
-    "ev1b\006proto3"
+    "E\020\001\022\026\n\022INPUT_MODE_ENGLISH\020\002B5Z3github.co"
+    "m/SurTeam/TSInputMethod/proto/ime/v1;ime"
+    "v1b\006proto3"
 };
 static ::absl::once_flag descriptor_table_ime_2fv1_2fime_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_ime_2fv1_2fime_2eproto = {
     false,
     false,
-    2371,
+    2370,
     descriptor_table_protodef_ime_2fv1_2fime_2eproto,
     "ime/v1/ime.proto",
     &descriptor_table_ime_2fv1_2fime_2eproto_once,
