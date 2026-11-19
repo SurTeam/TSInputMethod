@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/SurTeam/TSInputMethod/internal/dictionary"
+	"github.com/SurTeam/TSInputMethod/internal/emoji"
 	"github.com/SurTeam/TSInputMethod/internal/inference"
 	"github.com/SurTeam/TSInputMethod/internal/pinyin"
 	"github.com/SurTeam/TSInputMethod/internal/ranking"
@@ -41,6 +42,7 @@ type PinyinEngine struct {
 	decoder     *pinyin.Decoder
 	coordinator *ranking.Coordinator
 	scheme      pinyin.Scheme
+	emoji       *emoji.Table
 }
 
 func NewPinyinEngine(dict *dictionary.Dictionary) *PinyinEngine {
@@ -56,6 +58,13 @@ func NewPinyinEngineWithRanking(dict *dictionary.Dictionary, coordinator *rankin
 		coordinator: coordinator,
 		scheme:      pinyin.SchemeFromEnv(),
 	}
+}
+
+func (e *PinyinEngine) SetEmojiTable(table *emoji.Table) {
+	if e == nil {
+		return
+	}
+	e.emoji = table
 }
 
 func (e *PinyinEngine) SetScheme(scheme pinyin.Scheme) {
@@ -95,7 +104,7 @@ func (e *PinyinEngine) Decode(pinyinInput string) ([]Candidate, error) {
 		lists := make([][]Candidate, 0, len(analyzed.SyllableAlts))
 		for _, path := range analyzed.SyllableAlts {
 			raw := e.decoder.DecodeSyllables(path, analyzed.Remainder)
-			lists = append(lists, e.rankRaw(analyzed, raw))
+			lists = append(lists, e.expandEmoji(e.rankRaw(analyzed, raw)))
 		}
 		return interleaveEngineCandidates(lists, 96), nil
 	}
@@ -109,7 +118,37 @@ func (e *PinyinEngine) Decode(pinyinInput string) ([]Candidate, error) {
 	} else {
 		raw = e.decoder.Decode(analyzed.Joined)
 	}
-	return e.rankRaw(analyzed, raw), nil
+	return e.expandEmoji(e.rankRaw(analyzed, raw)), nil
+}
+
+func (e *PinyinEngine) expandEmoji(cands []Candidate) []Candidate {
+	if e == nil || e.emoji == nil || len(cands) == 0 {
+		return cands
+	}
+	out := make([]Candidate, 0, len(cands)+8)
+	seen := make(map[string]struct{}, len(cands)+8)
+	for _, cand := range cands {
+		if _, ok := seen[cand.Text]; ok {
+			continue
+		}
+		seen[cand.Text] = struct{}{}
+		out = append(out, cand)
+		for _, emojiText := range e.emoji.Lookup(cand.Text) {
+			if _, ok := seen[emojiText]; ok {
+				continue
+			}
+			seen[emojiText] = struct{}{}
+			out = append(out, Candidate{
+				Text:         emojiText,
+				Comment:      cand.Comment,
+				Score:        cand.Score,
+				Syllables:    append([]string(nil), cand.Syllables...),
+				Incomplete:   cand.Incomplete,
+				ConsumedKeys: cand.ConsumedKeys,
+			})
+		}
+	}
+	return out
 }
 
 func (e *PinyinEngine) rankRaw(analyzed pinyin.NormalizedInput, raw []pinyin.Candidate) []Candidate {

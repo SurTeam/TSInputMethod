@@ -11,10 +11,34 @@
       "entries": 8757
     },
     {
+      "file": "41448.dict.yaml",
+      "name": "41448",
+      "version": "2026-07-01",
+      "entries": 46019
+    },
+    {
       "file": "base.dict.yaml",
       "name": "base",
       "version": "2026-11-01",
       "entries": 543423
+    },
+    {
+      "file": "ext.dict.yaml",
+      "name": "ext",
+      "version": "2026-11-01",
+      "entries": 339214
+    },
+    {
+      "file": "tencent.dict.yaml",
+      "name": "tencent",
+      "version": "2026-11-01",
+      "entries": 981543
+    },
+    {
+      "file": "others.dict.yaml",
+      "name": "others",
+      "version": "2026-08-08",
+      "entries": 633
     }
   ],
   "runtime_dependency": "none (no Rime Runtime)"

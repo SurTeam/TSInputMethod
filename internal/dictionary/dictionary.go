@@ -188,7 +188,7 @@ func (d *Dictionary) LookupPrefix(syllables []string, incomplete string) []Entry
 	if prefix == "" {
 		return nil
 	}
-	var out []Entry
+	buckets := make([][]Entry, prefixMaxLens+1)
 	i := sort.SearchStrings(d.sortedKeys, prefix)
 	for ; i < len(d.sortedKeys); i++ {
 		key := d.sortedKeys[i]
@@ -202,22 +202,58 @@ func (d *Dictionary) LookupPrefix(syllables []string, incomplete string) []Entry
 			continue
 		}
 		for _, idx := range d.byKey[key] {
-			out = append(out, d.entries[idx])
-		}
-		if len(out) >= maxCandDef {
-			break
+			entry := d.entries[idx]
+			n := len(entry.Syllables)
+			if n == 0 || n > prefixMaxLens {
+				continue
+			}
+			buckets[n] = insertPrefixEntry(buckets[n], entry, prefixPerLen)
 		}
 	}
-	sort.SliceStable(out, func(i, j int) bool {
-		if len(out[i].Syllables) == len(out[j].Syllables) {
-			if out[i].Weight == out[j].Weight {
-				return out[i].Text < out[j].Text
+	out := make([]Entry, 0, maxCandDef)
+	for n := 1; n <= prefixMaxLens && len(out) < maxCandDef; n++ {
+		for _, entry := range buckets[n] {
+			out = append(out, entry)
+			if len(out) >= maxCandDef {
+				break
 			}
-			return out[i].Weight > out[j].Weight
 		}
-		return len(out[i].Syllables) < len(out[j].Syllables)
-	})
+	}
 	return out
+}
+
+func insertPrefixEntry(bucket []Entry, entry Entry, limit int) []Entry {
+	if limit <= 0 {
+		return bucket
+	}
+	if len(bucket) < limit {
+		bucket = append(bucket, entry)
+		for i := len(bucket) - 1; i > 0; i-- {
+			if !betterPrefixEntry(bucket[i], bucket[i-1]) {
+				break
+			}
+			bucket[i], bucket[i-1] = bucket[i-1], bucket[i]
+		}
+		return bucket
+	}
+	if !betterPrefixEntry(entry, bucket[limit-1]) {
+		return bucket
+	}
+	bucket[limit-1] = entry
+	for i := limit - 1; i > 0; i-- {
+		if !betterPrefixEntry(bucket[i], bucket[i-1]) {
+			break
+		}
+		bucket[i], bucket[i-1] = bucket[i-1], bucket[i]
+	}
+	return bucket
+}
+
+func betterPrefixEntry(a, b Entry) bool {
+	if a.Weight != b.Weight {
+		return a.Weight > b.Weight
+	}
+	return a.Text < b.Text
 }
 
 func (d *Dictionary) EntryCount() int {

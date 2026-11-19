@@ -11,7 +11,7 @@
 ## Boundaries
 
 - **In scope:** binary index load, syllable set, entry lookup by pinyin key, weight-ordered results.
-- **Out of scope:** YAML parsing at runtime, ranking models, platform UI.
+- **Out of scope:** YAML parsing at runtime, ranking models, platform UI, OpenCC emoji expansion (see `internal/emoji` / engine).
 
 ## Source locations
 
@@ -19,9 +19,10 @@
 | --- | --- |
 | `internal/dictionary` | Runtime loader and lookup |
 | `tools/dictBuilder/build_dict.py` | Offline YAML → `.tsdict` |
-| `data/dicts/rime-ice.tsdict` | Built 8105+base index |
+| `data/dicts/rime-ice.tsdict` | Built 8105+41448+base+ext+tencent+others index |
+| `data/dicts/emoji.txt` | Shipped rime-ice OpenCC emoji map |
 | `data/dicts/LICENSE.rime-ice.json` | License / provenance record |
-| `third_party/rime-ice/` | Cached upstream YAML + LICENSE |
+| `third_party/rime-ice/` | Cached upstream YAML + LICENSE + opencc |
 
 ## Related
 

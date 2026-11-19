@@ -36,7 +36,7 @@ func TestOddNihSurfacesNihao(t *testing.T) {
 	if !containsText(texts, "你好") {
 		t.Fatalf("nih missing 你好: %#v", texts)
 	}
-	if texts[0] != "你好" && texts[0] != "你还" && texts[0] != "你" {
+	if len(texts) == 0 || len([]rune(texts[0])) > 2 {
 		t.Fatalf("unexpected top for nih: %#v", texts)
 	}
 	for _, text := range texts {

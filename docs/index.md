@@ -81,8 +81,8 @@ Do not promote a status without evidence. This foundation turn marks documentati
 | `internal/pinyin` | Continuous pinyin decoder |
 | `internal/ranking` | FastRanker + Ranking Coordinator |
 | `internal/inference` | Inference Backend interface / stubs |
-| `data/dicts` | Built `.tsdict` + license records |
-| `third_party/rime-ice` | Cached upstream YAML sources |
+| `data/dicts` | Built `.tsdict`, emoji map, license records |
+| `third_party/rime-ice` | Cached upstream YAML + OpenCC emoji sources |
 | `platforms/macos` | macOS IMKit adapter |
 | `platforms/windows` | Windows TSF adapter |
 | `platforms/linux` | Linux Fcitx5 adapter |

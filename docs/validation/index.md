@@ -17,7 +17,7 @@ See [../index.md](../index.md) for implemented / compiled / auto-tested / real-e
 | `internal/ipc` Named Pipe | yes (windows tags) | not on this host | no | no |
 | `platforms/common` libtsime_ipc | yes | yes (`cmake --build`) | frame smoke ok | no |
 | `internal/session` / dictionary / pinyin | yes | yes | yes | no |
-| Fogong / rime-ice dictBuilder | yes | N/A | build ran | no |
+| Fogong / rime-ice dictBuilder | yes | N/A | build ran (8105+41448+base+ext+tencent+others + emoji.txt) | no |
 | macOS IMKit adapter | yes | yes (`make app`) | TIS list/enable after register | listing+enable yes; Settings Add browser / typing **no** |
 | Windows TSF adapter | yes (source + scripts) | **no** (needs MSVC) | no | **no** |
 | Linux Fcitx5 adapter | yes (source + scripts) | **no** (needs Fcitx5) | no | **no** |

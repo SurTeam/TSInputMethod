@@ -38,3 +38,28 @@ func TestLoadRoundTripFile(t *testing.T) {
 		t.Fatal("missing syllable ni")
 	}
 }
+
+func TestLookupPrefixPrefersShortWeightAcrossLexOrder(t *testing.T) {
+	dict := FromEntries([]Entry{
+		{Text: "你还", Syllables: []string{"ni", "hai"}, Weight: 10},
+		{Text: "你还不", Syllables: []string{"ni", "hai", "bu"}, Weight: 1000},
+		{Text: "你好", Syllables: []string{"ni", "hao"}, Weight: 500},
+	})
+	got := dict.LookupPrefix([]string{"ni"}, "h")
+	if len(got) < 2 {
+		t.Fatalf("prefix hits = %#v", got)
+	}
+	found := false
+	for _, entry := range got {
+		if entry.Text == "你好" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("你好 missing from %#v", got)
+	}
+	if got[0].Text != "你还" && got[0].Text != "你好" {
+		t.Fatalf("unexpected shortest-first top %#v", got)
+	}
+}

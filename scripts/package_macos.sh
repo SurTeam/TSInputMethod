@@ -75,11 +75,14 @@ mkdir -p "$APP_STAGE/Contents/MacOS" \
   "$APP_STAGE/Contents/Resources/LaunchAgents"
 cp "$STAGE/bin/tsimed" "$APP_STAGE/Contents/MacOS/tsimed"
 chmod +x "$APP_STAGE/Contents/MacOS/tsimed"
-cp "$ROOT/data/dicts/rime-ice.tsdict" "$APP_STAGE/Contents/Resources/data/dicts/"
-cp "$ROOT/data/dicts/LICENSE.rime-ice.json" "$APP_STAGE/Contents/Resources/data/dicts/"
-if [[ -f "$ROOT/data/dicts/rime-ice.tsdict.meta.json" ]]; then
-  cp "$ROOT/data/dicts/rime-ice.tsdict.meta.json" "$APP_STAGE/Contents/Resources/data/dicts/"
-fi
+	cp "$ROOT/data/dicts/rime-ice.tsdict" "$APP_STAGE/Contents/Resources/data/dicts/"
+	cp "$ROOT/data/dicts/LICENSE.rime-ice.json" "$APP_STAGE/Contents/Resources/data/dicts/"
+	if [[ -f "$ROOT/data/dicts/rime-ice.tsdict.meta.json" ]]; then
+	  cp "$ROOT/data/dicts/rime-ice.tsdict.meta.json" "$APP_STAGE/Contents/Resources/data/dicts/"
+	fi
+	if [[ -f "$ROOT/data/dicts/emoji.txt" ]]; then
+	  cp "$ROOT/data/dicts/emoji.txt" "$APP_STAGE/Contents/Resources/data/dicts/"
+	fi
 
 cat > "$APP_STAGE/Contents/Resources/LaunchAgents/com.surteam.tsimed.plist" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>

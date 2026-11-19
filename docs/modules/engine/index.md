@@ -22,8 +22,9 @@
 | `internal/ranking` | FastRanker wired by `PinyinEngine` |
 | `internal/inference` | Optional Backend injection point |
 | `internal/dictionary` | Compiled index load/lookup |
+| `internal/emoji` | OpenCC-style Chinese→emoji map |
 | `tools/dictBuilder` | Offline dictionary build |
-| `cmd/tsimed` | Loads `.tsdict` (or stub) at daemon start |
+| `cmd/tsimed` | Loads `.tsdict` + optional `emoji.txt` (or stub) at daemon start |
 
 ## Related
 

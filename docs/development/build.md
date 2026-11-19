@@ -20,10 +20,15 @@ Environment:
 ```bash
 python3 tools/dictBuilder/build_dict.py \
   --source-dir third_party/rime-ice \
-  --inputs 8105.dict.yaml base.dict.yaml \
+  --inputs 8105.dict.yaml 41448.dict.yaml base.dict.yaml ext.dict.yaml tencent.dict.yaml others.dict.yaml \
   --output data/dicts/rime-ice.tsdict \
   --license-out data/dicts/LICENSE.rime-ice.json
+cp third_party/rime-ice/opencc/emoji.txt data/dicts/emoji.txt
 ```
+
+Environment:
+
+- `TSIME_EMOJI` — optional path to OpenCC-style `emoji.txt` (defaults next to the `.tsdict`)
 
 See `tools/dictBuilder/README.md`.
 

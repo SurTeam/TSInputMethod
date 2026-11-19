@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/SurTeam/TSInputMethod/internal/dictionary"
+	"github.com/SurTeam/TSInputMethod/internal/emoji"
 	"github.com/SurTeam/TSInputMethod/internal/engine"
 	"github.com/SurTeam/TSInputMethod/internal/session"
 )
@@ -59,6 +60,14 @@ func loadEngine() (engine.Engine, error) {
 		return nil, fmt.Errorf("load dictionary %s: %w", path, err)
 	}
 	eng := engine.NewPinyinEngine(dict)
+	if emojiPath := resolveEmojiPath(path); emojiPath != "" {
+		if table, err := emoji.LoadFile(emojiPath); err == nil {
+			eng.SetEmojiTable(table)
+			fmt.Printf("tsimed loaded emoji table %s keys=%d\n", emojiPath, table.Size())
+		} else {
+			fmt.Fprintf(os.Stderr, "tsimed: emoji table %s: %v\n", emojiPath, err)
+		}
+	}
 	fmt.Printf("tsimed loaded dictionary %s entries=%d scheme=%s\n", path, dict.EntryCount(), eng.Scheme())
 	return eng, nil
 }
@@ -78,6 +87,38 @@ func resolveDictPath() string {
 			filepath.Join(root, "..", "data", "dicts", "rime-ice.tsdict"),
 			filepath.Join(root, "..", "Resources", "data", "dicts", "rime-ice.tsdict"),
 			filepath.Join(root, "..", "Resources", "dicts", "rime-ice.tsdict"),
+		}, candidates...)
+	}
+	for _, path := range candidates {
+		if st, err := os.Stat(path); err == nil && !st.IsDir() {
+			return path
+		}
+	}
+	return ""
+}
+
+func resolveEmojiPath(dictPath string) string {
+	if override := os.Getenv("TSIME_EMOJI"); override != "" {
+		return override
+	}
+	candidates := []string{
+		filepath.Join("data", "dicts", "emoji.txt"),
+		filepath.Join("third_party", "rime-ice", "opencc", "emoji.txt"),
+	}
+	if dictPath != "" {
+		dir := filepath.Dir(dictPath)
+		candidates = append([]string{
+			filepath.Join(dir, "emoji.txt"),
+			filepath.Join(dir, "opencc", "emoji.txt"),
+		}, candidates...)
+	}
+	if exe, err := os.Executable(); err == nil {
+		root := filepath.Dir(exe)
+		candidates = append([]string{
+			filepath.Join(root, "data", "dicts", "emoji.txt"),
+			filepath.Join(root, "..", "data", "dicts", "emoji.txt"),
+			filepath.Join(root, "..", "Resources", "data", "dicts", "emoji.txt"),
+			filepath.Join(root, "..", "Resources", "dicts", "emoji.txt"),
 		}, candidates...)
 	}
 	for _, path := range candidates {

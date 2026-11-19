@@ -2,7 +2,7 @@
 
 | ID | Area | Summary | Status |
 | --- | --- | --- | --- |
-| KI-001 | dictionary | Optional `ext` rime-ice table not built by default (size/time); 8105+base is the default index | open |
+| KI-001 | dictionary | Default index now includes 8105+41448+base+ext+tencent+others; package size/memory higher than the old 8105+base build | closed |
 | KI-002 | platforms | Host IME real-env validation pending for all three adapters; Windows/Linux not compiled on this Mac | open |
 | KI-003 | ranking | Real neural backends / weights not shipped; FastRanker + injectable Backend + no-model degrade landed | open (models) |
 | KI-004 | windows-ipc | Named Pipe source landed (windows tags) but not executed on a Windows host | open |
