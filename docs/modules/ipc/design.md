@@ -3,7 +3,7 @@
 ## Transport
 
 - macOS / Linux: Unix domain socket (`internal/ipc.ListenUnix`, native client `connectPath`)
-- Windows: Named Pipe (`internal/ipc.ListenNamedPipe` / `DialNamedPipe`, windows build tags; daemon `cmd/imed/main_windows.go`)
+- Windows: Named Pipe (`internal/ipc.ListenNamedPipe` / `DialNamedPipe`, windows build tags; daemon `cmd/tsimed/main_windows.go`)
 - Hot path: Protocol Buffers payload only; no HTTP/JSON
 
 ## Frame layout
@@ -41,4 +41,4 @@
 - Protocol: `proto/ime/v1/ime.proto`
 - Framing/server: `internal/ipc/`
 - Native client: `platforms/common/`
-- Daemon entry: `cmd/imed/`
+- Daemon entry: `cmd/tsimed/`

@@ -21,7 +21,7 @@ Primary artifact: `dist/macos/TSInputMethod-macos.dmg`.
 
 Open the DMG → double-click **Install TSInputMethod** → enable TSInputMethod under System Settings → Keyboard → Input Sources → 简体中文.
 
-The installer places the app under `/Library/Input Methods` (admin prompt), registers/enables the Hans mode with Text Input Source Services, and loads a LaunchAgent that auto-starts embedded `imed` with `TSIME_SCHEME=xiaohe`.
+The installer places the app under `/Library/Input Methods` (admin prompt), registers/enables the Hans mode with Text Input Source Services, and loads a LaunchAgent that auto-starts embedded `tsimed` with `TSIME_SCHEME=xiaohe`.
 
 Signed with the SurTeam keychain identity (`SurTeamCode` on this machine). Self-signed / non-Developer-ID limits apply; notarization is not claimed.
 

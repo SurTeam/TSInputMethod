@@ -23,7 +23,7 @@
 | `internal/inference` | Optional Backend injection point |
 | `internal/dictionary` | Compiled index load/lookup |
 | `tools/dictBuilder` | Offline dictionary build |
-| `cmd/imed` | Loads `.tsdict` (or stub) at daemon start |
+| `cmd/tsimed` | Loads `.tsdict` (or stub) at daemon start |
 
 ## Related
 

@@ -22,4 +22,4 @@ if command -v fcitx5-remote >/dev/null 2>&1; then
   fcitx5-remote -r || true
 fi
 echo "installed Fcitx5 addon tsime; enable TSInputMethod in Fcitx5 config"
-echo "ensure imed listens on TSIME_SOCKET or \$XDG_RUNTIME_DIR/tsime.sock"
+echo "ensure tsimed listens on TSIME_SOCKET or \$XDG_RUNTIME_DIR/tsime.sock"

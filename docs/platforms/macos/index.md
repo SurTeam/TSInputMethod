@@ -42,7 +42,7 @@ That installer:
 
 1. Copies embedded `TSInputMethod.app` into `/Library/Input Methods` (admin privileges).
 2. Registers and enables the Hans input mode with Text Input Source Services.
-3. Installs LaunchAgent `com.surteam.tsime.imed` to auto-start embedded `imed`.
+3. Installs LaunchAgent `com.surteam.tsimed` to auto-start embedded `tsimed`.
 4. Defaults `TSIME_SCHEME=xiaohe` and points `TSIME_DICT` at the embedded rime-ice dictionary.
 
 If System Settings → Keyboard → Input Sources → 简体中文 does not list it yet, reopen the pane or log out/in; agent has verified TIS listing/enable, not the Settings UI itself.
@@ -53,7 +53,7 @@ Developer-only local build helpers under `platforms/macos/scripts/` remain avail
 
 `scripts/package_macos.sh` resolves a SurTeam codesign identity from the keychain (default match `SurTeam*`, observed `SurTeamCode`) and signs:
 
-- `TSInputMethod.app` and embedded `imed` (with `platforms/macos/TSInputMethod.entitlements` disabling library validation so Homebrew protobuf can load under hardened runtime)
+- `TSInputMethod.app` and embedded `tsimed` (with `platforms/macos/TSInputMethod.entitlements` disabling library validation so Homebrew protobuf can load under hardened runtime)
 - `Install TSInputMethod.app`
 - the DMG
 

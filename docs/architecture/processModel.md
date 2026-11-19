@@ -4,7 +4,7 @@
 
 ## Processes
 
-1. **Daemon (`imed`)** — long-lived user-session service. Owns engine state, dictionaries, and session table.
+1. **Daemon (`tsimed`)** — long-lived user-session service. Owns engine state, dictionaries, and session table.
 2. **Adapter process(es)** — one per platform integration surface (IMKit server, TSF text service, Fcitx5 addon). Translate host callbacks into IPC messages.
 
 Multiple adapter clients may attach to one daemon. Each attachment maps to one or more **sessions** (see [lifecycle.md](lifecycle.md)).

@@ -37,8 +37,8 @@ sign_path() {
 sign_app_bundle() {
   local app="$1"
   local entitlements="$ROOT/platforms/macos/TSInputMethod.entitlements"
-  if [[ -x "$app/Contents/MacOS/imed" ]]; then
-    sign_path "$app/Contents/MacOS/imed"
+  if [[ -x "$app/Contents/MacOS/tsimed" ]]; then
+    sign_path "$app/Contents/MacOS/tsimed"
   fi
   if [[ -x "$app/Contents/MacOS/TSInputMethod" ]]; then
     if [[ -f "$entitlements" ]]; then
@@ -60,37 +60,37 @@ sign_app_bundle() {
 rm -rf "$STAGE" "$DMG_STAGE"
 mkdir -p "$STAGE" "$DMG_STAGE"
 
-echo "==> build imed"
+echo "==> build tsimed"
 mkdir -p "$STAGE/bin"
-(cd "$ROOT" && go build -o "$STAGE/bin/imed" ./cmd/imed)
+(cd "$ROOT" && go build -o "$STAGE/bin/tsimed" ./cmd/tsimed)
 
 echo "==> build macOS IMKit app"
 (cd "$ROOT/platforms/macos" && make app)
 rm -rf "$APP_STAGE"
 cp -R "$APP_SRC" "$APP_STAGE"
 
-echo "==> embed imed + dictionary into app bundle"
+echo "==> embed tsimed + dictionary into app bundle"
 mkdir -p "$APP_STAGE/Contents/MacOS" \
   "$APP_STAGE/Contents/Resources/data/dicts" \
   "$APP_STAGE/Contents/Resources/LaunchAgents"
-cp "$STAGE/bin/imed" "$APP_STAGE/Contents/MacOS/imed"
-chmod +x "$APP_STAGE/Contents/MacOS/imed"
+cp "$STAGE/bin/tsimed" "$APP_STAGE/Contents/MacOS/tsimed"
+chmod +x "$APP_STAGE/Contents/MacOS/tsimed"
 cp "$ROOT/data/dicts/rime-ice.tsdict" "$APP_STAGE/Contents/Resources/data/dicts/"
 cp "$ROOT/data/dicts/LICENSE.rime-ice.json" "$APP_STAGE/Contents/Resources/data/dicts/"
 if [[ -f "$ROOT/data/dicts/rime-ice.tsdict.meta.json" ]]; then
   cp "$ROOT/data/dicts/rime-ice.tsdict.meta.json" "$APP_STAGE/Contents/Resources/data/dicts/"
 fi
 
-cat > "$APP_STAGE/Contents/Resources/LaunchAgents/com.surteam.tsime.imed.plist" <<'EOF'
+cat > "$APP_STAGE/Contents/Resources/LaunchAgents/com.surteam.tsimed.plist" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.surteam.tsime.imed</string>
+  <string>com.surteam.tsimed</string>
   <key>ProgramArguments</key>
   <array>
-    <string>__IMED__</string>
+    <string>__TSIMED__</string>
   </array>
   <key>EnvironmentVariables</key>
   <dict>
@@ -152,7 +152,7 @@ SRC_APP="$SELF_DIR/../Resources/TSInputMethod.app"
 DEST_DIR="/Library/Input Methods"
 DEST_APP="$DEST_DIR/TSInputMethod.app"
 USER_DEST="$HOME/Library/Input Methods/TSInputMethod.app"
-AGENT_LABEL="com.surteam.tsime.imed"
+AGENT_LABEL="com.surteam.tsimed"
 AGENT_DIR="$HOME/Library/LaunchAgents"
 AGENT_PLIST="$AGENT_DIR/$AGENT_LABEL.plist"
 LOG_DIR="$HOME/Library/Logs"
@@ -171,14 +171,14 @@ osascript <<COPY
 do shell script "mkdir -p '/Library/Input Methods' && rm -rf '/Library/Input Methods/TSInputMethod.app' && cp -R '$INSTALL_TMP' '/Library/Input Methods/TSInputMethod.app' && xattr -cr '/Library/Input Methods/TSInputMethod.app' && chown -R root:wheel '/Library/Input Methods/TSInputMethod.app' && rm -rf '$USER_DEST'" with administrator privileges with prompt "TSInputMethod needs administrator access to install into /Library/Input Methods. Touch ID or password is OK."
 COPY
 
-IMED="$DEST_APP/Contents/MacOS/imed"
+TSIMED="$DEST_APP/Contents/MacOS/tsimed"
 IME_BIN="$DEST_APP/Contents/MacOS/TSInputMethod"
 DICT="$DEST_APP/Contents/Resources/data/dicts/rime-ice.tsdict"
-STDOUT="$LOG_DIR/tsime-imed.log"
-STDERR="$LOG_DIR/tsime-imed.err.log"
+STDOUT="$LOG_DIR/tsimed.log"
+STDERR="$LOG_DIR/tsimed.err.log"
 
-if [[ ! -x "$IMED" ]]; then
-  osascript -e 'display alert "TSInputMethod installer" message "Embedded imed binary is missing." as critical' || true
+if [[ ! -x "$TSIMED" ]]; then
+  osascript -e 'display alert "TSInputMethod installer" message "Embedded tsimed binary is missing." as critical' || true
   exit 1
 fi
 if [[ ! -f "$DICT" ]]; then
@@ -191,17 +191,19 @@ if [[ -x "$IME_BIN" ]]; then
 fi
 
 UID_NUM="$(id -u)"
-OLD_AGENT_LABEL="com.surteam.tsime.imed"
-if launchctl print "gui/$UID_NUM/$OLD_AGENT_LABEL" >/dev/null 2>&1; then
-  launchctl bootout "gui/$UID_NUM/$OLD_AGENT_LABEL" >/dev/null 2>&1 || true
-fi
-rm -f "$AGENT_DIR/$OLD_AGENT_LABEL.plist"
+OLD_AGENT_LABELS=("com.surteam.tsime.imed" "com.surteam.tsime.imed")
+for OLD_AGENT_LABEL in "${OLD_AGENT_LABELS[@]}"; do
+  if launchctl print "gui/$UID_NUM/$OLD_AGENT_LABEL" >/dev/null 2>&1; then
+    launchctl bootout "gui/$UID_NUM/$OLD_AGENT_LABEL" >/dev/null 2>&1 || true
+  fi
+  rm -f "$AGENT_DIR/$OLD_AGENT_LABEL.plist"
+done
 if launchctl print "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1; then
   launchctl bootout "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
 fi
 
 sed \
-  -e "s|__IMED__|$IMED|g" \
+  -e "s|__TSIMED__|$TSIMED|g" \
   -e "s|__DICT__|$DICT|g" \
   -e "s|__STDOUT__|$STDOUT|g" \
   -e "s|__STDERR__|$STDERR|g" \
@@ -226,7 +228,7 @@ That installer:
 
 1. Copies `TSInputMethod.app` into `/Library/Input Methods` (admin prompt)
 2. Registers and enables the Hans input mode (`TISRegisterInputSource` + enable parent/Hans)
-3. Installs a LaunchAgent that auto-starts embedded `imed` from `/Library`
+3. Installs a LaunchAgent that auto-starts embedded `tsimed` from `/Library`
 4. Defaults `TSIME_SCHEME=xiaohe`
 
 Then enable the input source in System Settings → Keyboard → Input Sources → 简体中文.
@@ -267,10 +269,10 @@ codesign --force --sign "$SIGN_IDENTITY" "$DMG_PATH" || true
 
 echo "==> verify signatures"
 codesign --verify --verbose=2 "$APP_STAGE"
-codesign --verify --verbose=2 "$APP_STAGE/Contents/MacOS/imed"
+codesign --verify --verbose=2 "$APP_STAGE/Contents/MacOS/tsimed"
 codesign --verify --verbose=2 "$INSTALLER_STAGE"
 codesign --display --verbose=2 "$APP_STAGE" 2>&1 | sed -n '1,20p'
-codesign --display --verbose=2 "$APP_STAGE/Contents/MacOS/imed" 2>&1 | sed -n '1,20p'
+codesign --display --verbose=2 "$APP_STAGE/Contents/MacOS/tsimed" 2>&1 | sed -n '1,20p'
 
 echo "==> optional zip fallback (secondary)"
 ARCHIVE="$DIST/TSInputMethod-macos.zip"

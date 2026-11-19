@@ -72,7 +72,7 @@ Do not promote a status without evidence. This foundation turn marks documentati
 
 | Path | Role |
 | --- | --- |
-| `cmd/imed` | Daemon entrypoint |
+| `cmd/tsimed` | Daemon entrypoint |
 | `internal/ipc` | IPC server/client, framing |
 | `internal/session` | Session manager |
 | `internal/engine` | Input engine core |
@@ -92,6 +92,6 @@ Do not promote a status without evidence. This foundation turn marks documentati
 
 ## Build and test entry
 
-- Build: see [development/build.md](development/build.md) (Go toolchain once `cmd/imed` exists).
+- Build: see [development/build.md](development/build.md) (Go toolchain once `cmd/tsimed` exists).
 - Test: see [development/test.md](development/test.md).
 - Agent protocol: [../Agent.md](../Agent.md).

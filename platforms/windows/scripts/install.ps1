@@ -15,4 +15,4 @@ if ($reg.ExitCode -ne 0) {
 
 Write-Host "Registered $DllPath"
 Write-Host "Add the TSInputMethod language profile in Windows Settings → Time & language → Language & region."
-Write-Host "Run imed.exe with Named Pipe TSIME_PIPE or default \\.\pipe\tsime-<user>."
+Write-Host "Run tsimed.exe with Named Pipe TSIME_PIPE or default \\.\pipe\tsime-<user>."

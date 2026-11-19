@@ -20,7 +20,7 @@ Requires Fcitx5 development packages (`Fcitx5Core`, `Fcitx5Module`) and protobuf
 
 ## Runtime
 
-- Start `imed`.
+- Start `tsimed`.
 - Socket: `TSIME_SOCKET` / `$XDG_RUNTIME_DIR/tsime.sock` / `/tmp/tsime-$UID.sock`.
 - English mode does not consume keys; Chinese mode uses daemon composition/candidates via InputPanel.
 

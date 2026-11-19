@@ -22,7 +22,7 @@ Registers the COM InprocServer under HKCU. Add/remove the language profile in Wi
 
 ## Runtime
 
-- Run `imed.exe` (Named Pipe listener).
+- Run `tsimed.exe` (Named Pipe listener).
 - Pipe: `TSIME_PIPE` or `\\.\pipe\tsime-<username>`.
 - English mode leaves keys uneaten (native passthrough). Chinese mode forwards editable keys to the daemon and commits returned text.
 

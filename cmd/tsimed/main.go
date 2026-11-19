@@ -14,7 +14,7 @@ import (
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "imed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "tsimed: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -29,7 +29,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("imed listening on %s\n", addr)
+	fmt.Printf("tsimed listening on %s\n", addr)
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
@@ -40,7 +40,7 @@ func run() error {
 
 	select {
 	case sig := <-sigCh:
-		fmt.Printf("imed shutting down on %s\n", sig)
+		fmt.Printf("tsimed shutting down on %s\n", sig)
 		_ = server.Close()
 		return nil
 	case err := <-errCh:
@@ -51,7 +51,7 @@ func run() error {
 func loadEngine() (engine.Engine, error) {
 	path := resolveDictPath()
 	if path == "" {
-		fmt.Fprintln(os.Stderr, "imed: no dictionary configured; using stub engine")
+		fmt.Fprintln(os.Stderr, "tsimed: no dictionary configured; using stub engine")
 		return engine.NewStubEngine(), nil
 	}
 	dict, err := dictionary.LoadFile(path)
@@ -59,7 +59,7 @@ func loadEngine() (engine.Engine, error) {
 		return nil, fmt.Errorf("load dictionary %s: %w", path, err)
 	}
 	eng := engine.NewPinyinEngine(dict)
-	fmt.Printf("imed loaded dictionary %s entries=%d scheme=%s\n", path, dict.EntryCount(), eng.Scheme())
+	fmt.Printf("tsimed loaded dictionary %s entries=%d scheme=%s\n", path, dict.EntryCount(), eng.Scheme())
 	return eng, nil
 }
 

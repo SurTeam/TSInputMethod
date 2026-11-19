@@ -20,7 +20,7 @@
 
 | Path | Role |
 | --- | --- |
-| `cmd/imed` | Wires session manager into the daemon |
+| `cmd/tsimed` | Wires session manager into the daemon |
 | `internal/session` | Session manager and session objects |
 | `internal/engine` | Called by session for conversion |
 

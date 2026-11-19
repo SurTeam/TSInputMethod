@@ -10,7 +10,7 @@ TSInputMethod separates a shared **Go daemon** from thin **platform adapters**:
 | --- | --- |
 | Platform adapter | Host IME API only: macOS InputMethodKit, Windows Text Services Framework (TSF), Linux Fcitx5 |
 | Unified binary IPC | Length-prefixed Protocol Buffers frames over UDS (macOS/Linux) or Named Pipe (Windows) |
-| Go daemon (`imed`) | Sessions, engine, dictionaries, configuration, logging |
+| Go daemon (`tsimed`) | Sessions, engine, dictionaries, configuration, logging |
 
 Adapters never own conversion logic. The daemon never calls OS IME frameworks directly.
 

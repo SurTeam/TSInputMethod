@@ -17,7 +17,7 @@
 
 | Path | Role |
 | --- | --- |
-| `cmd/imed` | Opens IPC listener via this module |
+| `cmd/tsimed` | Opens IPC listener via this module |
 | `internal/ipc` | Server, client, frame codec |
 | proto schemas (TBD under `internal/ipc` or `api/`) | Message definitions |
 

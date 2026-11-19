@@ -6,8 +6,8 @@
 
 ```bash
 export GOSUMDB=off   # only if local sumdb is broken
-go build -o bin/imed ./cmd/imed
-TSIME_DICT=data/dicts/rime-ice.tsdict ./bin/imed
+go build -o bin/tsimed ./cmd/tsimed
+TSIME_DICT=data/dicts/rime-ice.tsdict ./bin/tsimed
 ```
 
 Environment:

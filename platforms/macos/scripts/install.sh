@@ -18,4 +18,4 @@ if [[ -x "$DEST/Contents/MacOS/TSInputMethod" ]]; then
 fi
 echo "installed $DEST"
 echo "Hans mode registered/enabled via TIS; reopen Keyboard settings or log out/in if the menu bar is stale."
-echo "Ensure imed is running and reachable via TSIME_SOCKET or /tmp/tsime-\$UID.sock."
+echo "Ensure tsimed is running and reachable via TSIME_SOCKET or /tmp/tsime-\$UID.sock."
