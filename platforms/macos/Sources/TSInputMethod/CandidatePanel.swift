@@ -95,14 +95,19 @@ private let minColumnWidth: CGFloat = 44
     }
 
     private func measureColumnWidth(texts: [String]) -> CGFloat {
-let labelFont = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
-        let textFont = NSFont.systemFont(ofSize: 16)
+let bodyPointSize: CGFloat = 16
+        let labelFont = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
+        let textFont = NSFont.systemFont(ofSize: bodyPointSize)
+        let selectedTextFont = NSFont.systemFont(ofSize: bodyPointSize, weight: .semibold)
         var maxWidth: CGFloat = minColumnWidth
         for (index, text) in texts.enumerated() {
             let label = "\(index + 1)" as NSString
             let body = text as NSString
             let labelWidth = label.size(withAttributes: [.font: labelFont]).width
-            let bodyWidth = body.size(withAttributes: [.font: textFont]).width
+            let bodyWidth = max(
+                body.size(withAttributes: [.font: textFont]).width,
+                body.size(withAttributes: [.font: selectedTextFont]).width
+            )
             maxWidth = max(maxWidth, ceil(labelWidth + 4 + bodyWidth + 12))
         }
         return maxWidth
@@ -165,9 +170,10 @@ let bg = NSColor.controlBackgroundColor.withAlphaComponent(0.96)
         border.lineWidth = 1
         border.stroke()
 
+let bodyPointSize: CGFloat = 16
         let labelFont = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
-        let textFont = NSFont.systemFont(ofSize: 16)
-        let selectedTextFont = NSFont.systemFont(ofSize: 16, weight: .semibold)
+        let textFont = NSFont.systemFont(ofSize: bodyPointSize)
+        let selectedTextFont = NSFont.systemFont(ofSize: bodyPointSize, weight: .semibold)
         let labelColor = NSColor.secondaryLabelColor.withAlphaComponent(0.72)
         let textColor = NSColor.labelColor
         let selectedLabelColor = NSColor.white.withAlphaComponent(0.85)
