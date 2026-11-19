@@ -60,6 +60,25 @@ func TestKeypadEnterCommitsRawPreedit(t *testing.T) {
 	}
 }
 
+func TestSetModeCommitsRawPreedit(t *testing.T) {
+	m := NewManager(testEngine())
+	s := m.Open(imev1.InputMode_INPUT_MODE_CHINESE)
+	_ = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "nihc"})
+	res := s.SetMode(imev1.InputMode_INPUT_MODE_ENGLISH)
+	if res.Commit == nil || res.Commit.Text != "nihc" {
+		t.Fatalf("set mode commit = %#v", res.Commit)
+	}
+	if s.Mode() != imev1.InputMode_INPUT_MODE_ENGLISH {
+		t.Fatalf("mode = %v", s.Mode())
+	}
+	if res.Composition != nil && res.Composition.Preedit != "" {
+		t.Fatalf("preedit after mode switch = %#v", res.Composition)
+	}
+	if res.Candidates != nil && len(res.Candidates.Candidates) != 0 {
+		t.Fatalf("candidates after mode switch = %#v", res.Candidates)
+	}
+}
+
 func TestDigitSelectsCandidate(t *testing.T) {
 	m := NewManager(testEngine())
 	s := m.Open(imev1.InputMode_INPUT_MODE_CHINESE)

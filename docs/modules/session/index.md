@@ -13,7 +13,7 @@
 
 ## Boundaries
 
-- **In scope:** session table, preedit buffer, generation, mode switch, edit-key behavior.
+- **In scope:** session table, preedit buffer, generation, mode switch (commits raw preedit before switching), edit-key behavior.
 - **Out of scope:** protobuf framing (ipc), dictionary algorithms (engine/pinyin), OS adapter callbacks.
 
 ## Source locations

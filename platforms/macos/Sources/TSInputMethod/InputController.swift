@@ -86,10 +86,12 @@ class TSInputController: IMKInputController {
     }
 
     @objc private func enableChinese() {
+        commitCompositionBeforeModeSwitch(client: client())
         daemon.setChineseMode(true)
     }
 
     @objc private func enableEnglish() {
+        commitCompositionBeforeModeSwitch(client: client())
         daemon.setChineseMode(false)
         clearMarked(client: client())
     }
@@ -123,6 +125,20 @@ class TSInputController: IMKInputController {
         } else {
             enableChinese()
         }
+    }
+
+    private func commitCompositionBeforeModeSwitch(client: Any?) {
+        if markedText.isEmpty && candidates.isEmpty {
+            return
+        }
+        guard let outcome = daemon.handleKey(keyCode: 36, characters: "\r", keyDown: true) else {
+            if !markedText.isEmpty {
+                insert(text: markedText, client: client)
+            }
+            clearMarked(client: client)
+            return
+        }
+        apply(outcome: outcome, client: client)
     }
 
     private func apply(outcome: KeyOutcome, client: Any?) {

@@ -64,11 +64,19 @@ func (s *Session) Mode() imev1.InputMode {
 	return s.mode
 }
 
-func (s *Session) SetMode(mode imev1.InputMode) {
+func (s *Session) SetMode(mode imev1.InputMode) *KeyResult {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	var commit *KeyResult
+	if len(s.preedit) > 0 {
+		commit = s.commitRawPreeditLocked()
+	}
 	s.mode = mode
 	s.clearCompositionLocked()
+	if commit == nil {
+		return &KeyResult{Consumed: false}
+	}
+	return commit
 }
 
 func (s *Session) HandleKey(ev *imev1.KeyEvent) *KeyResult {
