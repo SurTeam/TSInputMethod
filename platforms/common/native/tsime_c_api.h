@@ -25,6 +25,7 @@ typedef struct TsimeKeyResult {
   const char *commit_text;
   const TsimeCandidate *candidates;
   size_t candidate_count;
+  uint32_t selected_index;
   const char *error;
 } TsimeKeyResult;
 

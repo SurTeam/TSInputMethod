@@ -32,6 +32,7 @@ TsimeKeyResult toCResult(const tsime::KeyOutcome &outcome) {
   result.cursor = outcome.cursor;
   result.generation = outcome.generation;
   result.commit_text = copyCString(outcome.commitText);
+  result.selected_index = outcome.selectedIndex;
   result.error = copyCString(outcome.error);
   if (!outcome.candidates.empty()) {
     auto *items = static_cast<TsimeCandidate *>(std::calloc(outcome.candidates.size(), sizeof(TsimeCandidate)));

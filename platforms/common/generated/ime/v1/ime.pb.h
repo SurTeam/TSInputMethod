@@ -4024,6 +4024,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED CandidateList final : public ::goog
     kGenerationFieldNumber = 2,
     kPageFieldNumber = 3,
     kPageSizeFieldNumber = 4,
+    kSelectedIndexFieldNumber = 6,
   };
   // repeated .ime.v1.Candidate candidates = 5;
   [[nodiscard]] int candidates_size() const;
@@ -4090,11 +4091,21 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED CandidateList final : public ::goog
   void _internal_set_page_size(::uint32_t value);
 
   public:
+  // uint32 selected_index = 6;
+  void clear_selected_index() ;
+  [[nodiscard]] ::uint32_t selected_index() const;
+  void set_selected_index(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_selected_index() const;
+  void _internal_set_selected_index(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:ime.v1.CandidateList)
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<3, 5,
+      ::google::protobuf::internal::TcParseTable<3, 6,
                           1, 39,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
@@ -4128,6 +4139,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED CandidateList final : public ::goog
     ::uint64_t generation_;
     ::uint32_t page_;
     ::uint32_t page_size_;
+    ::uint32_t selected_index_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -6672,6 +6684,30 @@ inline ::google::protobuf::RepeatedPtrField<::ime::v1::Candidate>* PROTOBUF_NONN
 CandidateList::_internal_mutable_candidates() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.candidates_;
+}
+
+// uint32 selected_index = 6;
+inline void CandidateList::clear_selected_index() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.selected_index_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+}
+inline ::uint32_t CandidateList::selected_index() const {
+  // @@protoc_insertion_point(field_get:ime.v1.CandidateList.selected_index)
+  return _internal_selected_index();
+}
+inline void CandidateList::set_selected_index(::uint32_t value) {
+  _internal_set_selected_index(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  // @@protoc_insertion_point(field_set:ime.v1.CandidateList.selected_index)
+}
+inline ::uint32_t CandidateList::_internal_selected_index() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.selected_index_;
+}
+inline void CandidateList::_internal_set_selected_index(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.selected_index_ = value;
 }
 
 // -------------------------------------------------------------------

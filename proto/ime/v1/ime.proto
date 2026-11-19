@@ -82,6 +82,7 @@ message CandidateList {
   uint32 page = 3;
   uint32 page_size = 4;
   repeated Candidate candidates = 5;
+  uint32 selected_index = 6;
 }
 
 message SelectCandidate {

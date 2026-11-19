@@ -2597,11 +2597,11 @@ constexpr CandidateList::ParseTableT_ CandidateList::InternalGenerateParseTable_
     {
       PROTOBUF_FIELD_OFFSET(CandidateList, _impl_._has_bits_),
       0, // no _extensions_
-      5, 56,  // max_field_number, fast_idx_mask
+      6, 56,  // max_field_number, fast_idx_mask
       offsetof(ParseTableT_, field_lookup_table),
-      4294967264,  // skipmap
+      4294967232,  // skipmap
       offsetof(ParseTableT_, field_entries),
-      5,  // num_field_entries
+      6,  // num_field_entries
       1,  // num_aux_entries
       offsetof(ParseTableT_, aux_entries),
       class_data,
@@ -2632,7 +2632,10 @@ constexpr CandidateList::ParseTableT_ CandidateList::InternalGenerateParseTable_
       {::_pbi::TcParser::FastMtR1,
        {42, 0, 0,
         PROTOBUF_FIELD_OFFSET(CandidateList, _impl_.candidates_)}},
-      {::_pbi::TcParser::MiniParse, {}},
+      // uint32 selected_index = 6;
+      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(CandidateList, _impl_.selected_index_), 5>(),
+       {48, 5, 0,
+        PROTOBUF_FIELD_OFFSET(CandidateList, _impl_.selected_index_)}},
       {::_pbi::TcParser::MiniParse, {}},
     }}, {{
       65535, 65535
@@ -2647,6 +2650,8 @@ constexpr CandidateList::ParseTableT_ CandidateList::InternalGenerateParseTable_
       {PROTOBUF_FIELD_OFFSET(CandidateList, _impl_.page_size_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
       // repeated .ime.v1.Candidate candidates = 5;
       {PROTOBUF_FIELD_OFFSET(CandidateList, _impl_.candidates_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+      // uint32 selected_index = 6;
+      {PROTOBUF_FIELD_OFFSET(CandidateList, _impl_.selected_index_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -2677,7 +2682,8 @@ inline constexpr CandidateList::Impl_::Impl_(
             ::_pbi::ConstantInitialized()),
         generation_{::uint64_t{0u}},
         page_{0u},
-        page_size_{0u} {}
+        page_size_{0u},
+        selected_index_{0u} {}
 
 template <typename>
 constexpr CandidateList::CandidateList(::_pbi::ConstantInitialized,
@@ -3332,17 +3338,19 @@ const ::uint32_t
         2,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::ime::v1::CandidateList, _impl_._has_bits_),
-        8, // hasbit index offset
+        9, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::ime::v1::CandidateList, _impl_.session_id_),
         PROTOBUF_FIELD_OFFSET(::ime::v1::CandidateList, _impl_.generation_),
         PROTOBUF_FIELD_OFFSET(::ime::v1::CandidateList, _impl_.page_),
         PROTOBUF_FIELD_OFFSET(::ime::v1::CandidateList, _impl_.page_size_),
         PROTOBUF_FIELD_OFFSET(::ime::v1::CandidateList, _impl_.candidates_),
+        PROTOBUF_FIELD_OFFSET(::ime::v1::CandidateList, _impl_.selected_index_),
         1,
         2,
         3,
         4,
         0,
+        5,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::ime::v1::SelectCandidate, _impl_._has_bits_),
         6, // hasbit index offset
@@ -3446,12 +3454,12 @@ static const ::_pbi::MigrationSchema
         {76, sizeof(::ime::v1::CompositionState)},
         {87, sizeof(::ime::v1::Candidate)},
         {96, sizeof(::ime::v1::CandidateList)},
-        {109, sizeof(::ime::v1::SelectCandidate)},
-        {118, sizeof(::ime::v1::CommitText)},
-        {127, sizeof(::ime::v1::Error)},
-        {134, sizeof(::ime::v1::Status)},
-        {141, sizeof(::ime::v1::KeyEventResult)},
-        {152, sizeof(::ime::v1::Envelope)},
+        {111, sizeof(::ime::v1::SelectCandidate)},
+        {120, sizeof(::ime::v1::CommitText)},
+        {129, sizeof(::ime::v1::Error)},
+        {136, sizeof(::ime::v1::Status)},
+        {143, sizeof(::ime::v1::KeyEventResult)},
+        {154, sizeof(::ime::v1::Envelope)},
 };
 static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
     file_message_globals[] = {
@@ -3499,50 +3507,50 @@ const char descriptor_table_protodef_ime_2fv1_2fime_2eproto[] ABSL_ATTRIBUTE_SEC
     "tate\022\022\n\nsession_id\030\001 \001(\t\022\017\n\007preedit\030\002 \001("
     "\t\022\016\n\006cursor\030\003 \001(\r\022\022\n\ngeneration\030\004 \001(\004\"9\n"
     "\tCandidate\022\014\n\004text\030\001 \001(\t\022\017\n\007comment\030\002 \001("
-    "\t\022\r\n\005score\030\003 \001(\005\"\177\n\rCandidateList\022\022\n\nses"
-    "sion_id\030\001 \001(\t\022\022\n\ngeneration\030\002 \001(\004\022\014\n\004pag"
-    "e\030\003 \001(\r\022\021\n\tpage_size\030\004 \001(\r\022%\n\ncandidates"
-    "\030\005 \003(\0132\021.ime.v1.Candidate\"H\n\017SelectCandi"
-    "date\022\022\n\nsession_id\030\001 \001(\t\022\022\n\ngeneration\030\002"
-    " \001(\004\022\r\n\005index\030\003 \001(\r\"B\n\nCommitText\022\022\n\nses"
-    "sion_id\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\022\022\n\ngeneratio"
-    "n\030\003 \001(\004\"&\n\005Error\022\014\n\004code\030\001 \001(\005\022\017\n\007messag"
-    "e\030\002 \001(\t\"%\n\006Status\022\n\n\002ok\030\001 \001(\010\022\017\n\007message"
-    "\030\002 \001(\t\"\240\001\n\016KeyEventResult\022-\n\013composition"
-    "\030\001 \001(\0132\030.ime.v1.CompositionState\022)\n\ncand"
-    "idates\030\002 \001(\0132\025.ime.v1.CandidateList\022\"\n\006c"
-    "ommit\030\003 \001(\0132\022.ime.v1.CommitText\022\020\n\010consu"
-    "med\030\004 \001(\010\"\246\006\n\010Envelope\022\022\n\nrequest_id\030\001 \001"
-    "(\004\022\027\n\017sequence_number\030\002 \001(\004\022\022\n\ngeneratio"
-    "n\030\003 \001(\004\022\036\n\005hello\030\n \001(\0132\r.ime.v1.HelloH\000\022"
-    "%\n\thello_ack\030\013 \001(\0132\020.ime.v1.HelloAckH\000\022+"
-    "\n\014open_session\030\014 \001(\0132\023.ime.v1.OpenSessio"
-    "nH\000\0222\n\020open_session_ack\030\r \001(\0132\026.ime.v1.O"
-    "penSessionAckH\000\022-\n\rclose_session\030\016 \001(\0132\024"
-    ".ime.v1.CloseSessionH\000\022%\n\tkey_event\030\017 \001("
-    "\0132\020.ime.v1.KeyEventH\000\0222\n\020key_event_resul"
-    "t\030\020 \001(\0132\026.ime.v1.KeyEventResultH\000\022.\n\016set"
-    "_input_mode\030\021 \001(\0132\024.ime.v1.SetInputModeH"
-    "\000\022.\n\016get_input_mode\030\022 \001(\0132\024.ime.v1.GetIn"
-    "putModeH\000\0222\n\020input_mode_state\030\023 \001(\0132\026.im"
-    "e.v1.InputModeStateH\000\0225\n\021composition_sta"
-    "te\030\024 \001(\0132\030.ime.v1.CompositionStateH\000\022/\n\016"
-    "candidate_list\030\025 \001(\0132\025.ime.v1.CandidateL"
-    "istH\000\0223\n\020select_candidate\030\026 \001(\0132\027.ime.v1"
-    ".SelectCandidateH\000\022)\n\013commit_text\030\027 \001(\0132"
-    "\022.ime.v1.CommitTextH\000\022\036\n\005error\030\030 \001(\0132\r.i"
-    "me.v1.ErrorH\000\022 \n\006status\030\031 \001(\0132\016.ime.v1.S"
-    "tatusH\000B\t\n\007payload*W\n\tInputMode\022\032\n\026INPUT"
-    "_MODE_UNSPECIFIED\020\000\022\026\n\022INPUT_MODE_CHINES"
-    "E\020\001\022\026\n\022INPUT_MODE_ENGLISH\020\002B5Z3github.co"
-    "m/SurTeam/TSInputMethod/proto/ime/v1;ime"
-    "v1b\006proto3"
+    "\t\022\r\n\005score\030\003 \001(\005\"\227\001\n\rCandidateList\022\022\n\nse"
+    "ssion_id\030\001 \001(\t\022\022\n\ngeneration\030\002 \001(\004\022\014\n\004pa"
+    "ge\030\003 \001(\r\022\021\n\tpage_size\030\004 \001(\r\022%\n\ncandidate"
+    "s\030\005 \003(\0132\021.ime.v1.Candidate\022\026\n\016selected_i"
+    "ndex\030\006 \001(\r\"H\n\017SelectCandidate\022\022\n\nsession"
+    "_id\030\001 \001(\t\022\022\n\ngeneration\030\002 \001(\004\022\r\n\005index\030\003"
+    " \001(\r\"B\n\nCommitText\022\022\n\nsession_id\030\001 \001(\t\022\014"
+    "\n\004text\030\002 \001(\t\022\022\n\ngeneration\030\003 \001(\004\"&\n\005Erro"
+    "r\022\014\n\004code\030\001 \001(\005\022\017\n\007message\030\002 \001(\t\"%\n\006Stat"
+    "us\022\n\n\002ok\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\"\240\001\n\016KeyE"
+    "ventResult\022-\n\013composition\030\001 \001(\0132\030.ime.v1"
+    ".CompositionState\022)\n\ncandidates\030\002 \001(\0132\025."
+    "ime.v1.CandidateList\022\"\n\006commit\030\003 \001(\0132\022.i"
+    "me.v1.CommitText\022\020\n\010consumed\030\004 \001(\010\"\246\006\n\010E"
+    "nvelope\022\022\n\nrequest_id\030\001 \001(\004\022\027\n\017sequence_"
+    "number\030\002 \001(\004\022\022\n\ngeneration\030\003 \001(\004\022\036\n\005hell"
+    "o\030\n \001(\0132\r.ime.v1.HelloH\000\022%\n\thello_ack\030\013 "
+    "\001(\0132\020.ime.v1.HelloAckH\000\022+\n\014open_session\030"
+    "\014 \001(\0132\023.ime.v1.OpenSessionH\000\0222\n\020open_ses"
+    "sion_ack\030\r \001(\0132\026.ime.v1.OpenSessionAckH\000"
+    "\022-\n\rclose_session\030\016 \001(\0132\024.ime.v1.CloseSe"
+    "ssionH\000\022%\n\tkey_event\030\017 \001(\0132\020.ime.v1.KeyE"
+    "ventH\000\0222\n\020key_event_result\030\020 \001(\0132\026.ime.v"
+    "1.KeyEventResultH\000\022.\n\016set_input_mode\030\021 \001"
+    "(\0132\024.ime.v1.SetInputModeH\000\022.\n\016get_input_"
+    "mode\030\022 \001(\0132\024.ime.v1.GetInputModeH\000\0222\n\020in"
+    "put_mode_state\030\023 \001(\0132\026.ime.v1.InputModeS"
+    "tateH\000\0225\n\021composition_state\030\024 \001(\0132\030.ime."
+    "v1.CompositionStateH\000\022/\n\016candidate_list\030"
+    "\025 \001(\0132\025.ime.v1.CandidateListH\000\0223\n\020select"
+    "_candidate\030\026 \001(\0132\027.ime.v1.SelectCandidat"
+    "eH\000\022)\n\013commit_text\030\027 \001(\0132\022.ime.v1.Commit"
+    "TextH\000\022\036\n\005error\030\030 \001(\0132\r.ime.v1.ErrorH\000\022 "
+    "\n\006status\030\031 \001(\0132\016.ime.v1.StatusH\000B\t\n\007payl"
+    "oad*W\n\tInputMode\022\032\n\026INPUT_MODE_UNSPECIFI"
+    "ED\020\000\022\026\n\022INPUT_MODE_CHINESE\020\001\022\026\n\022INPUT_MO"
+    "DE_ENGLISH\020\002B5Z3github.com/SurTeam/TSInp"
+    "utMethod/proto/ime/v1;imev1b\006proto3"
 };
 static ::absl::once_flag descriptor_table_ime_2fv1_2fime_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_ime_2fv1_2fime_2eproto = {
     false,
     false,
-    2370,
+    2395,
     descriptor_table_protodef_ime_2fv1_2fime_2eproto,
     "ime/v1/ime.proto",
     &descriptor_table_ime_2fv1_2fime_2eproto_once,
@@ -6666,9 +6674,9 @@ CandidateList::CandidateList(
                offsetof(Impl_, generation_),
            reinterpret_cast<const char*>(&from._impl_) +
                offsetof(Impl_, generation_),
-           offsetof(Impl_, page_size_) -
+           offsetof(Impl_, selected_index_) -
                offsetof(Impl_, generation_) +
-               sizeof(Impl_::page_size_));
+               sizeof(Impl_::selected_index_));
 
   // @@protoc_insertion_point(copy_constructor:ime.v1.CandidateList)
 }
@@ -6687,9 +6695,9 @@ inline void CandidateList::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, generation_),
            0,
-           offsetof(Impl_, page_size_) -
+           offsetof(Impl_, selected_index_) -
                offsetof(Impl_, generation_) +
-               sizeof(Impl_::page_size_));
+               sizeof(Impl_::selected_index_));
 }
 CandidateList::~CandidateList() {
   // @@protoc_insertion_point(destructor:ime.v1.CandidateList)
@@ -6747,12 +6755,12 @@ PROTOBUF_NOINLINE void CandidateList::Clear() {
       this_._impl_.session_id_.ClearNonDefaultToEmpty();
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001cU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003cU)) {
     ::memset(&this_._impl_.generation_, 0,
              static_cast<::size_t>(
-                 reinterpret_cast<char*>(&this_._impl_.page_size_) -
+                 reinterpret_cast<char*>(&this_._impl_.selected_index_) -
                  reinterpret_cast<char*>(&this_._impl_.generation_)) +
-                 sizeof(_impl_.page_size_));
+                 sizeof(_impl_.selected_index_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -6826,6 +6834,15 @@ PROTOBUF_NOINLINE void CandidateList::Clear() {
     }
   }
 
+  // uint32 selected_index = 6;
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (this_._internal_selected_index() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          6, this_._internal_selected_index(), target);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -6849,7 +6866,7 @@ PROTOBUF_NOINLINE void CandidateList::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     // repeated .ime.v1.Candidate candidates = 5;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_candidates_size();
@@ -6885,6 +6902,13 @@ PROTOBUF_NOINLINE void CandidateList::Clear() {
             this_._internal_page_size());
       }
     }
+    // uint32 selected_index = 6;
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      if (this_._internal_selected_index() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_selected_index());
+      }
+    }
   }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
                                              &this_._impl_._cached_size_);
@@ -6904,7 +6928,7 @@ void CandidateList::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       _this->_internal_mutable_candidates()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
@@ -6934,6 +6958,11 @@ void CandidateList::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.page_size_ = from._impl_.page_size_;
       }
     }
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      if (from._internal_selected_index() != 0) {
+        _this->_impl_.selected_index_ = from._impl_.selected_index_;
+      }
+    }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
@@ -6957,8 +6986,8 @@ void CandidateList::InternalSwap(CandidateList* PROTOBUF_RESTRICT PROTOBUF_NONNU
   _impl_.candidates_.InternalSwap(&other->_impl_.candidates_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.session_id_, &other->_impl_.session_id_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(CandidateList, _impl_.page_size_)
-      + sizeof(CandidateList::_impl_.page_size_)
+      PROTOBUF_FIELD_OFFSET(CandidateList, _impl_.selected_index_)
+      + sizeof(CandidateList::_impl_.selected_index_)
       - PROTOBUF_FIELD_OFFSET(CandidateList, _impl_.generation_)>(
           reinterpret_cast<char*>(&_impl_.generation_),
           reinterpret_cast<char*>(&other->_impl_.generation_));

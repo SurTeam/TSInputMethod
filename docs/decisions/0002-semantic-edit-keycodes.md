@@ -22,8 +22,10 @@ Karabiner-Elements `pqrs::osx::cg_event::key_code` is the authoritative macOS vi
 1. `KeyEvent.key_code` on the wire is the macOS CG virtual keycode space.
 2. macOS adapter forwards `NSEvent.keyCode` unchanged.
 3. Linux/Windows adapters translate host edit keys into the same CG codes (BackSpace/VK_BACK→51, Escape→53, Space→49, Return/Enter→36, keypad Enter→76, Delete→117).
-4. Printable input is still classified primarily from `characters` (compose, digit select, `-`/`=` paging, space commit, `\r`/`\n` raw-preedit commit).
-5. Legacy ASCII edit codes 8/27/32/127 are not edit keys on the wire.
+4. Printable input is still classified primarily from `characters` (compose, digit/punctuation commit, `-`/`=` paging, space commit, `\r`/`\n` raw-preedit commit).
+5. Arrow edit codes are also CG values: Left=123, Right=124, Down=125, Up=126.
+6. `KeyEvent.modifiers` uses AppKit `NSEvent.ModifierFlags` raw bits (`shift=1<<17`, `control=1<<18`, `option=1<<19`, `command=1<<20`). Control/Option/Command mean unconsumed passthrough; Shift participates in Chinese shift-letter / shift-symbol handling.
+7. Legacy ASCII edit codes 8/27/32/127 are not edit keys on the wire.
 
 ## Consequences
 

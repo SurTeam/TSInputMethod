@@ -7,11 +7,17 @@ class TSInputController: IMKInputController {
     private var markedText: String = ""
     private var candidates: [String] = []
     private var comments: [String] = []
+    private var selectedIndex: Int = 0
     private var candidatesPanel: IMKCandidates?
     private var leftShiftDown = false
     private var leftShiftUsedAsModifier = false
 
     private let keyLeftShift: UInt16 = 56
+
+    private let modShift: UInt32 = 1 << 17
+    private let modControl: UInt32 = 1 << 18
+    private let modOption: UInt32 = 1 << 19
+    private let modCommand: UInt32 = 1 << 20
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
@@ -56,9 +62,13 @@ class TSInputController: IMKInputController {
         if !daemon.chineseMode {
             return false
         }
-        let chars = event.charactersIgnoringModifiers ?? ""
+        let modifiers = wireModifiers(from: event.modifierFlags)
+        if modifiers & (modControl | modOption | modCommand) != 0 {
+            return false
+        }
+        let chars = event.characters ?? ""
         let keyCode = UInt32(event.keyCode)
-        guard let outcome = daemon.handleKey(keyCode: keyCode, characters: chars, keyDown: true) else {
+        guard let outcome = daemon.handleKey(keyCode: keyCode, modifiers: modifiers, characters: chars, keyDown: true) else {
             return false
         }
         apply(outcome: outcome, client: sender)
@@ -76,6 +86,14 @@ class TSInputController: IMKInputController {
             return
         }
         apply(outcome: outcome, client: client())
+    }
+
+    override func candidateSelectionChanged(_ candidateString: NSAttributedString!) {
+        guard let text = candidateString?.string,
+              let index = displayCandidates().firstIndex(of: text) else {
+            return
+        }
+        selectedIndex = index
     }
 
     private func displayCandidates() -> [String] {
@@ -160,11 +178,13 @@ class TSInputController: IMKInputController {
             markedText = ""
             candidates = []
             comments = []
+            selectedIndex = 0
         }
         markedText = outcome.preedit
         setMarked(text: outcome.preedit, client: client)
         candidates = outcome.candidates
         comments = outcome.comments
+        selectedIndex = Int(outcome.selectedIndex)
         updateCandidatesPanel()
     }
 
@@ -180,6 +200,39 @@ class TSInputController: IMKInputController {
         panel.setCandidateData(shown)
         panel.update()
         panel.show(kIMKLocateCandidatesBelowHint)
+        syncCandidateHighlight(panel: panel, shown: shown)
+    }
+
+    private func syncCandidateHighlight(panel: IMKCandidates, shown: [String]) {
+        guard !shown.isEmpty else {
+            return
+        }
+        var index = selectedIndex
+        if index < 0 {
+            index = 0
+        }
+        if index >= shown.count {
+            index = shown.count - 1
+        }
+        let identifier = panel.candidateStringIdentifier(shown[index])
+        _ = panel.selectCandidate(withIdentifier: identifier)
+    }
+
+    private func wireModifiers(from flags: NSEvent.ModifierFlags) -> UInt32 {
+        var modifiers: UInt32 = 0
+        if flags.contains(.shift) {
+            modifiers |= modShift
+        }
+        if flags.contains(.control) {
+            modifiers |= modControl
+        }
+        if flags.contains(.option) {
+            modifiers |= modOption
+        }
+        if flags.contains(.command) {
+            modifiers |= modCommand
+        }
+        return modifiers
     }
 
     private func insert(text: String, client: Any?) {
@@ -205,6 +258,7 @@ class TSInputController: IMKInputController {
         markedText = ""
         candidates = []
         comments = []
+        selectedIndex = 0
         candidatesPanel?.hide()
     }
 }

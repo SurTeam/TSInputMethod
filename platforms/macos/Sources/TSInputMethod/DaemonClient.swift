@@ -6,6 +6,7 @@ struct KeyOutcome {
     var commitText: String
     var candidates: [String]
     var comments: [String]
+    var selectedIndex: UInt32
 }
 
 final class DaemonClient {
@@ -49,11 +50,11 @@ final class DaemonClient {
         _ = tsime_client_set_mode(client, sessionId, mode)
     }
 
-    func handleKey(keyCode: UInt32, characters: String, keyDown: Bool) -> KeyOutcome? {
+    func handleKey(keyCode: UInt32, modifiers: UInt32, characters: String, keyDown: Bool) -> KeyOutcome? {
         guard ensureConnected(), let client else {
             return nil
         }
-        var result = tsime_client_handle_key(client, sessionId, keyCode, 0, characters, keyDown ? 1 : 0, 0, 0)
+        var result = tsime_client_handle_key(client, sessionId, keyCode, modifiers, characters, keyDown ? 1 : 0, 0, 0)
         defer { tsime_key_result_free(&result) }
         return Self.outcome(from: result)
     }
@@ -97,7 +98,7 @@ final class DaemonClient {
         guard result.ok != 0 else {
             return nil
         }
-        var outcome = KeyOutcome(consumed: result.consumed != 0, preedit: "", commitText: "", candidates: [], comments: [])
+        var outcome = KeyOutcome(consumed: result.consumed != 0, preedit: "", commitText: "", candidates: [], comments: [], selectedIndex: result.selected_index)
         if let preedit = result.preedit {
             outcome.preedit = String(cString: preedit)
         }

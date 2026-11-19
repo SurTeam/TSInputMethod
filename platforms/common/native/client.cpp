@@ -216,6 +216,7 @@ KeyOutcome Client::handleKey(const std::string &sessionId, std::uint32_t keyCode
   }
   if (result.has_candidates()) {
     out.generation = result.candidates().generation();
+    out.selectedIndex = result.candidates().selected_index();
     for (const auto &cand : result.candidates().candidates()) {
       out.candidates.push_back(cand.text());
       out.comments.push_back(cand.comment());
@@ -262,6 +263,7 @@ KeyOutcome Client::selectCandidate(const std::string &sessionId, std::uint64_t g
     }
     if (result.has_candidates()) {
       out.generation = result.candidates().generation();
+      out.selectedIndex = result.candidates().selected_index();
       for (const auto &cand : result.candidates().candidates()) {
         out.candidates.push_back(cand.text());
         out.comments.push_back(cand.comment());

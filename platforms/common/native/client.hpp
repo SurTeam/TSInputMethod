@@ -20,6 +20,7 @@ struct KeyOutcome {
   std::vector<std::string> candidates;
   std::vector<std::string> comments;
   std::vector<std::int32_t> scores;
+  std::uint32_t selectedIndex = 0;
   std::string error;
 };
 

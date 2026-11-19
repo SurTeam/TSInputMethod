@@ -33,8 +33,8 @@ func TestModeSwitchAndCancel(t *testing.T) {
 	_ = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "abc"})
 	s.SetMode(imev1.InputMode_INPUT_MODE_ENGLISH)
 	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "x"})
-	if res.Commit == nil || res.Commit.Text != "x" {
-		t.Fatalf("english commit = %#v", res.Commit)
+	if res.Consumed || res.Commit != nil {
+		t.Fatalf("english passthrough = %#v", res)
 	}
 	s.SetMode(imev1.InputMode_INPUT_MODE_CHINESE)
 	_ = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "wo"})

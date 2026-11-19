@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.12
 // 	protoc        v7.36.2
-// source: proto/ime/v1/ime.proto
+// source: ime/v1/ime.proto
 
 package imev1
 
@@ -54,11 +54,11 @@ func (x InputMode) String() string {
 }
 
 func (InputMode) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_ime_v1_ime_proto_enumTypes[0].Descriptor()
+	return file_ime_v1_ime_proto_enumTypes[0].Descriptor()
 }
 
 func (InputMode) Type() protoreflect.EnumType {
-	return &file_proto_ime_v1_ime_proto_enumTypes[0]
+	return &file_ime_v1_ime_proto_enumTypes[0]
 }
 
 func (x InputMode) Number() protoreflect.EnumNumber {
@@ -67,7 +67,7 @@ func (x InputMode) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use InputMode.Descriptor instead.
 func (InputMode) EnumDescriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{0}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{0}
 }
 
 type ProtocolVersion struct {
@@ -80,7 +80,7 @@ type ProtocolVersion struct {
 
 func (x *ProtocolVersion) Reset() {
 	*x = ProtocolVersion{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[0]
+	mi := &file_ime_v1_ime_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -92,7 +92,7 @@ func (x *ProtocolVersion) String() string {
 func (*ProtocolVersion) ProtoMessage() {}
 
 func (x *ProtocolVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[0]
+	mi := &file_ime_v1_ime_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -105,7 +105,7 @@ func (x *ProtocolVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProtocolVersion.ProtoReflect.Descriptor instead.
 func (*ProtocolVersion) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{0}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ProtocolVersion) GetMajor() uint32 {
@@ -132,7 +132,7 @@ type Hello struct {
 
 func (x *Hello) Reset() {
 	*x = Hello{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[1]
+	mi := &file_ime_v1_ime_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -144,7 +144,7 @@ func (x *Hello) String() string {
 func (*Hello) ProtoMessage() {}
 
 func (x *Hello) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[1]
+	mi := &file_ime_v1_ime_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -157,7 +157,7 @@ func (x *Hello) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Hello.ProtoReflect.Descriptor instead.
 func (*Hello) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{1}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Hello) GetClientVersion() *ProtocolVersion {
@@ -185,7 +185,7 @@ type HelloAck struct {
 
 func (x *HelloAck) Reset() {
 	*x = HelloAck{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[2]
+	mi := &file_ime_v1_ime_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -197,7 +197,7 @@ func (x *HelloAck) String() string {
 func (*HelloAck) ProtoMessage() {}
 
 func (x *HelloAck) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[2]
+	mi := &file_ime_v1_ime_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -210,7 +210,7 @@ func (x *HelloAck) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HelloAck.ProtoReflect.Descriptor instead.
 func (*HelloAck) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{2}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *HelloAck) GetServerVersion() *ProtocolVersion {
@@ -244,7 +244,7 @@ type OpenSession struct {
 
 func (x *OpenSession) Reset() {
 	*x = OpenSession{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[3]
+	mi := &file_ime_v1_ime_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -256,7 +256,7 @@ func (x *OpenSession) String() string {
 func (*OpenSession) ProtoMessage() {}
 
 func (x *OpenSession) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[3]
+	mi := &file_ime_v1_ime_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -269,7 +269,7 @@ func (x *OpenSession) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpenSession.ProtoReflect.Descriptor instead.
 func (*OpenSession) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{3}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *OpenSession) GetClientSessionHint() string {
@@ -296,7 +296,7 @@ type OpenSessionAck struct {
 
 func (x *OpenSessionAck) Reset() {
 	*x = OpenSessionAck{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[4]
+	mi := &file_ime_v1_ime_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -308,7 +308,7 @@ func (x *OpenSessionAck) String() string {
 func (*OpenSessionAck) ProtoMessage() {}
 
 func (x *OpenSessionAck) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[4]
+	mi := &file_ime_v1_ime_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -321,7 +321,7 @@ func (x *OpenSessionAck) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpenSessionAck.ProtoReflect.Descriptor instead.
 func (*OpenSessionAck) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{4}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *OpenSessionAck) GetSessionId() string {
@@ -347,7 +347,7 @@ type CloseSession struct {
 
 func (x *CloseSession) Reset() {
 	*x = CloseSession{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[5]
+	mi := &file_ime_v1_ime_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -359,7 +359,7 @@ func (x *CloseSession) String() string {
 func (*CloseSession) ProtoMessage() {}
 
 func (x *CloseSession) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[5]
+	mi := &file_ime_v1_ime_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -372,7 +372,7 @@ func (x *CloseSession) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloseSession.ProtoReflect.Descriptor instead.
 func (*CloseSession) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{5}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CloseSession) GetSessionId() string {
@@ -396,7 +396,7 @@ type KeyEvent struct {
 
 func (x *KeyEvent) Reset() {
 	*x = KeyEvent{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[6]
+	mi := &file_ime_v1_ime_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -408,7 +408,7 @@ func (x *KeyEvent) String() string {
 func (*KeyEvent) ProtoMessage() {}
 
 func (x *KeyEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[6]
+	mi := &file_ime_v1_ime_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -421,7 +421,7 @@ func (x *KeyEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeyEvent.ProtoReflect.Descriptor instead.
 func (*KeyEvent) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{6}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *KeyEvent) GetSessionId() string {
@@ -476,7 +476,7 @@ type SetInputMode struct {
 
 func (x *SetInputMode) Reset() {
 	*x = SetInputMode{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[7]
+	mi := &file_ime_v1_ime_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -488,7 +488,7 @@ func (x *SetInputMode) String() string {
 func (*SetInputMode) ProtoMessage() {}
 
 func (x *SetInputMode) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[7]
+	mi := &file_ime_v1_ime_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -501,7 +501,7 @@ func (x *SetInputMode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetInputMode.ProtoReflect.Descriptor instead.
 func (*SetInputMode) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{7}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SetInputMode) GetSessionId() string {
@@ -527,7 +527,7 @@ type GetInputMode struct {
 
 func (x *GetInputMode) Reset() {
 	*x = GetInputMode{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[8]
+	mi := &file_ime_v1_ime_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -539,7 +539,7 @@ func (x *GetInputMode) String() string {
 func (*GetInputMode) ProtoMessage() {}
 
 func (x *GetInputMode) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[8]
+	mi := &file_ime_v1_ime_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -552,7 +552,7 @@ func (x *GetInputMode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInputMode.ProtoReflect.Descriptor instead.
 func (*GetInputMode) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{8}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetInputMode) GetSessionId() string {
@@ -572,7 +572,7 @@ type InputModeState struct {
 
 func (x *InputModeState) Reset() {
 	*x = InputModeState{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[9]
+	mi := &file_ime_v1_ime_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -584,7 +584,7 @@ func (x *InputModeState) String() string {
 func (*InputModeState) ProtoMessage() {}
 
 func (x *InputModeState) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[9]
+	mi := &file_ime_v1_ime_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -597,7 +597,7 @@ func (x *InputModeState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InputModeState.ProtoReflect.Descriptor instead.
 func (*InputModeState) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{9}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *InputModeState) GetSessionId() string {
@@ -626,7 +626,7 @@ type CompositionState struct {
 
 func (x *CompositionState) Reset() {
 	*x = CompositionState{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[10]
+	mi := &file_ime_v1_ime_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -638,7 +638,7 @@ func (x *CompositionState) String() string {
 func (*CompositionState) ProtoMessage() {}
 
 func (x *CompositionState) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[10]
+	mi := &file_ime_v1_ime_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -651,7 +651,7 @@ func (x *CompositionState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompositionState.ProtoReflect.Descriptor instead.
 func (*CompositionState) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{10}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CompositionState) GetSessionId() string {
@@ -693,7 +693,7 @@ type Candidate struct {
 
 func (x *Candidate) Reset() {
 	*x = Candidate{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[11]
+	mi := &file_ime_v1_ime_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -705,7 +705,7 @@ func (x *Candidate) String() string {
 func (*Candidate) ProtoMessage() {}
 
 func (x *Candidate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[11]
+	mi := &file_ime_v1_ime_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -718,7 +718,7 @@ func (x *Candidate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Candidate.ProtoReflect.Descriptor instead.
 func (*Candidate) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{11}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Candidate) GetText() string {
@@ -749,13 +749,14 @@ type CandidateList struct {
 	Page          uint32                 `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize      uint32                 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	Candidates    []*Candidate           `protobuf:"bytes,5,rep,name=candidates,proto3" json:"candidates,omitempty"`
+	SelectedIndex uint32                 `protobuf:"varint,6,opt,name=selected_index,json=selectedIndex,proto3" json:"selected_index,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CandidateList) Reset() {
 	*x = CandidateList{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[12]
+	mi := &file_ime_v1_ime_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -767,7 +768,7 @@ func (x *CandidateList) String() string {
 func (*CandidateList) ProtoMessage() {}
 
 func (x *CandidateList) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[12]
+	mi := &file_ime_v1_ime_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -780,7 +781,7 @@ func (x *CandidateList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CandidateList.ProtoReflect.Descriptor instead.
 func (*CandidateList) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{12}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CandidateList) GetSessionId() string {
@@ -818,6 +819,13 @@ func (x *CandidateList) GetCandidates() []*Candidate {
 	return nil
 }
 
+func (x *CandidateList) GetSelectedIndex() uint32 {
+	if x != nil {
+		return x.SelectedIndex
+	}
+	return 0
+}
+
 type SelectCandidate struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
@@ -829,7 +837,7 @@ type SelectCandidate struct {
 
 func (x *SelectCandidate) Reset() {
 	*x = SelectCandidate{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[13]
+	mi := &file_ime_v1_ime_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -841,7 +849,7 @@ func (x *SelectCandidate) String() string {
 func (*SelectCandidate) ProtoMessage() {}
 
 func (x *SelectCandidate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[13]
+	mi := &file_ime_v1_ime_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -854,7 +862,7 @@ func (x *SelectCandidate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelectCandidate.ProtoReflect.Descriptor instead.
 func (*SelectCandidate) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{13}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *SelectCandidate) GetSessionId() string {
@@ -889,7 +897,7 @@ type CommitText struct {
 
 func (x *CommitText) Reset() {
 	*x = CommitText{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[14]
+	mi := &file_ime_v1_ime_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -901,7 +909,7 @@ func (x *CommitText) String() string {
 func (*CommitText) ProtoMessage() {}
 
 func (x *CommitText) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[14]
+	mi := &file_ime_v1_ime_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -914,7 +922,7 @@ func (x *CommitText) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommitText.ProtoReflect.Descriptor instead.
 func (*CommitText) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{14}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CommitText) GetSessionId() string {
@@ -948,7 +956,7 @@ type Error struct {
 
 func (x *Error) Reset() {
 	*x = Error{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[15]
+	mi := &file_ime_v1_ime_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -960,7 +968,7 @@ func (x *Error) String() string {
 func (*Error) ProtoMessage() {}
 
 func (x *Error) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[15]
+	mi := &file_ime_v1_ime_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -973,7 +981,7 @@ func (x *Error) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Error.ProtoReflect.Descriptor instead.
 func (*Error) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{15}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *Error) GetCode() int32 {
@@ -1000,7 +1008,7 @@ type Status struct {
 
 func (x *Status) Reset() {
 	*x = Status{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[16]
+	mi := &file_ime_v1_ime_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1012,7 +1020,7 @@ func (x *Status) String() string {
 func (*Status) ProtoMessage() {}
 
 func (x *Status) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[16]
+	mi := &file_ime_v1_ime_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1025,7 +1033,7 @@ func (x *Status) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Status.ProtoReflect.Descriptor instead.
 func (*Status) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{16}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *Status) GetOk() bool {
@@ -1054,7 +1062,7 @@ type KeyEventResult struct {
 
 func (x *KeyEventResult) Reset() {
 	*x = KeyEventResult{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[17]
+	mi := &file_ime_v1_ime_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1066,7 +1074,7 @@ func (x *KeyEventResult) String() string {
 func (*KeyEventResult) ProtoMessage() {}
 
 func (x *KeyEventResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[17]
+	mi := &file_ime_v1_ime_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1079,7 +1087,7 @@ func (x *KeyEventResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeyEventResult.ProtoReflect.Descriptor instead.
 func (*KeyEventResult) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{17}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *KeyEventResult) GetComposition() *CompositionState {
@@ -1140,7 +1148,7 @@ type Envelope struct {
 
 func (x *Envelope) Reset() {
 	*x = Envelope{}
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[18]
+	mi := &file_ime_v1_ime_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1152,7 +1160,7 @@ func (x *Envelope) String() string {
 func (*Envelope) ProtoMessage() {}
 
 func (x *Envelope) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_ime_v1_ime_proto_msgTypes[18]
+	mi := &file_ime_v1_ime_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1165,7 +1173,7 @@ func (x *Envelope) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Envelope.ProtoReflect.Descriptor instead.
 func (*Envelope) Descriptor() ([]byte, []int) {
-	return file_proto_ime_v1_ime_proto_rawDescGZIP(), []int{18}
+	return file_ime_v1_ime_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *Envelope) GetRequestId() uint64 {
@@ -1440,11 +1448,11 @@ func (*Envelope_Error) isEnvelope_Payload() {}
 
 func (*Envelope_Status) isEnvelope_Payload() {}
 
-var File_proto_ime_v1_ime_proto protoreflect.FileDescriptor
+var File_ime_v1_ime_proto protoreflect.FileDescriptor
 
-const file_proto_ime_v1_ime_proto_rawDesc = "" +
+const file_ime_v1_ime_proto_rawDesc = "" +
 	"\n" +
-	"\x16proto/ime/v1/ime.proto\x12\x06ime.v1\"=\n" +
+	"\x10ime/v1/ime.proto\x12\x06ime.v1\"=\n" +
 	"\x0fProtocolVersion\x12\x14\n" +
 	"\x05major\x18\x01 \x01(\rR\x05major\x12\x14\n" +
 	"\x05minor\x18\x02 \x01(\rR\x05minor\"h\n" +
@@ -1498,7 +1506,7 @@ const file_proto_ime_v1_ime_proto_rawDesc = "" +
 	"\tCandidate\x12\x12\n" +
 	"\x04text\x18\x01 \x01(\tR\x04text\x12\x18\n" +
 	"\acomment\x18\x02 \x01(\tR\acomment\x12\x14\n" +
-	"\x05score\x18\x03 \x01(\x05R\x05score\"\xb2\x01\n" +
+	"\x05score\x18\x03 \x01(\x05R\x05score\"\xd9\x01\n" +
 	"\rCandidateList\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1e\n" +
@@ -1509,7 +1517,8 @@ const file_proto_ime_v1_ime_proto_rawDesc = "" +
 	"\tpage_size\x18\x04 \x01(\rR\bpageSize\x121\n" +
 	"\n" +
 	"candidates\x18\x05 \x03(\v2\x11.ime.v1.CandidateR\n" +
-	"candidates\"f\n" +
+	"candidates\x12%\n" +
+	"\x0eselected_index\x18\x06 \x01(\rR\rselectedIndex\"f\n" +
 	"\x0fSelectCandidate\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1e\n" +
@@ -1570,20 +1579,20 @@ const file_proto_ime_v1_ime_proto_rawDesc = "" +
 	"\x12INPUT_MODE_ENGLISH\x10\x02B5Z3github.com/SurTeam/TSInputMethod/proto/ime/v1;imev1b\x06proto3"
 
 var (
-	file_proto_ime_v1_ime_proto_rawDescOnce sync.Once
-	file_proto_ime_v1_ime_proto_rawDescData []byte
+	file_ime_v1_ime_proto_rawDescOnce sync.Once
+	file_ime_v1_ime_proto_rawDescData []byte
 )
 
-func file_proto_ime_v1_ime_proto_rawDescGZIP() []byte {
-	file_proto_ime_v1_ime_proto_rawDescOnce.Do(func() {
-		file_proto_ime_v1_ime_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_ime_v1_ime_proto_rawDesc), len(file_proto_ime_v1_ime_proto_rawDesc)))
+func file_ime_v1_ime_proto_rawDescGZIP() []byte {
+	file_ime_v1_ime_proto_rawDescOnce.Do(func() {
+		file_ime_v1_ime_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_ime_v1_ime_proto_rawDesc), len(file_ime_v1_ime_proto_rawDesc)))
 	})
-	return file_proto_ime_v1_ime_proto_rawDescData
+	return file_ime_v1_ime_proto_rawDescData
 }
 
-var file_proto_ime_v1_ime_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_ime_v1_ime_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
-var file_proto_ime_v1_ime_proto_goTypes = []any{
+var file_ime_v1_ime_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_ime_v1_ime_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_ime_v1_ime_proto_goTypes = []any{
 	(InputMode)(0),           // 0: ime.v1.InputMode
 	(*ProtocolVersion)(nil),  // 1: ime.v1.ProtocolVersion
 	(*Hello)(nil),            // 2: ime.v1.Hello
@@ -1605,7 +1614,7 @@ var file_proto_ime_v1_ime_proto_goTypes = []any{
 	(*KeyEventResult)(nil),   // 18: ime.v1.KeyEventResult
 	(*Envelope)(nil),         // 19: ime.v1.Envelope
 }
-var file_proto_ime_v1_ime_proto_depIdxs = []int32{
+var file_ime_v1_ime_proto_depIdxs = []int32{
 	1,  // 0: ime.v1.Hello.client_version:type_name -> ime.v1.ProtocolVersion
 	1,  // 1: ime.v1.HelloAck.server_version:type_name -> ime.v1.ProtocolVersion
 	0,  // 2: ime.v1.OpenSession.initial_mode:type_name -> ime.v1.InputMode
@@ -1639,12 +1648,12 @@ var file_proto_ime_v1_ime_proto_depIdxs = []int32{
 	0,  // [0:26] is the sub-list for field type_name
 }
 
-func init() { file_proto_ime_v1_ime_proto_init() }
-func file_proto_ime_v1_ime_proto_init() {
-	if File_proto_ime_v1_ime_proto != nil {
+func init() { file_ime_v1_ime_proto_init() }
+func file_ime_v1_ime_proto_init() {
+	if File_ime_v1_ime_proto != nil {
 		return
 	}
-	file_proto_ime_v1_ime_proto_msgTypes[18].OneofWrappers = []any{
+	file_ime_v1_ime_proto_msgTypes[18].OneofWrappers = []any{
 		(*Envelope_Hello)(nil),
 		(*Envelope_HelloAck)(nil),
 		(*Envelope_OpenSession)(nil),
@@ -1666,18 +1675,18 @@ func file_proto_ime_v1_ime_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_ime_v1_ime_proto_rawDesc), len(file_proto_ime_v1_ime_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ime_v1_ime_proto_rawDesc), len(file_ime_v1_ime_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_proto_ime_v1_ime_proto_goTypes,
-		DependencyIndexes: file_proto_ime_v1_ime_proto_depIdxs,
-		EnumInfos:         file_proto_ime_v1_ime_proto_enumTypes,
-		MessageInfos:      file_proto_ime_v1_ime_proto_msgTypes,
+		GoTypes:           file_ime_v1_ime_proto_goTypes,
+		DependencyIndexes: file_ime_v1_ime_proto_depIdxs,
+		EnumInfos:         file_ime_v1_ime_proto_enumTypes,
+		MessageInfos:      file_ime_v1_ime_proto_msgTypes,
 	}.Build()
-	File_proto_ime_v1_ime_proto = out.File
-	file_proto_ime_v1_ime_proto_goTypes = nil
-	file_proto_ime_v1_ime_proto_depIdxs = nil
+	File_ime_v1_ime_proto = out.File
+	file_ime_v1_ime_proto_goTypes = nil
+	file_ime_v1_ime_proto_depIdxs = nil
 }
