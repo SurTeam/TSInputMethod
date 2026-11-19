@@ -19,9 +19,9 @@ bash ../../scripts/package_macos.sh
 
 Primary artifact: `dist/macos/TSInputMethod-macos.dmg`.
 
-Open the DMG → double-click **Install TSInputMethod** → enable TSInputMethod in System Settings.
+Open the DMG → double-click **Install TSInputMethod** → enable TSInputMethod under System Settings → Keyboard → Input Sources → 简体中文.
 
-The installer places the app under `~/Library/Input Methods` and loads a LaunchAgent that auto-starts embedded `imed` with `TSIME_SCHEME=xiaohe`.
+The installer places the app under `/Library/Input Methods` (admin prompt), registers/enables the Hans mode with Text Input Source Services, and loads a LaunchAgent that auto-starts embedded `imed` with `TSIME_SCHEME=xiaohe`.
 
 Signed with the SurTeam keychain identity (`SurTeamCode` on this machine). Self-signed / non-Developer-ID limits apply; notarization is not claimed.
 
@@ -32,7 +32,7 @@ Signed with the SurTeam keychain identity (`SurTeamCode` on this machine). Self-
 ./scripts/uninstall.sh
 ```
 
-These copy `build/TSInputMethod.app` only and do not replace the DMG OOBE path.
+These install `build/TSInputMethod.app` into `/Library/Input Methods` and register the input source; they do not replace the DMG OOBE path.
 
 ## Runtime
 
@@ -42,4 +42,4 @@ These copy `build/TSInputMethod.app` only and do not replace the DMG OOBE path.
 
 ## Verification
 
-See [docs/platforms/macos/index.md](../../docs/platforms/macos/index.md). Real-env host typing is not claimed until exercised.
+See [docs/platforms/macos/index.md](../../docs/platforms/macos/index.md). TIS listing for Hans/`zh-Hans` is verified after register; host typing is not claimed until exercised.

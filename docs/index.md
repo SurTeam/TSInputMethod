@@ -33,7 +33,7 @@ Do not promote a status without evidence. This foundation turn marks documentati
 
 ## Platforms
 
-- [macOS](platforms/macos/index.md) — InputMethodKit adapter; SurTeam-signed DMG OOBE trial package (real-env pending)
+- [macOS](platforms/macos/index.md) — InputMethodKit adapter; SurTeam-signed DMG OOBE; TIS Hans/`zh-Hans` register+enable+select verified (Settings Add browser / typing pending)
 - [Windows](platforms/windows/index.md) — TSF adapter (source + scripts; compile on MSVC)
 - [Linux](platforms/linux/index.md) — Fcitx5 adapter (source + scripts; needs Fcitx5)
 

@@ -1,6 +1,6 @@
 # Platform: macOS
 
-**Status:** implemented / compiled on this host (IMKit app bundle + SurTeam-signed DMG package). **real-env: no** (system Input Source enable / TextEdit typing not verified by agent).
+**Status:** implemented / compiled on this host (IMKit app bundle + SurTeam-signed DMG package). Simplified Chinese Hans mode is TIS-registered, enabled, selectable, and selectable-as-current. **real-env typing: no** (TextEdit typing not verified by agent). System Settings Add-under-简体中文 browser not agent-confirmed.
 
 ## Adapter
 
@@ -8,6 +8,25 @@
 - Links `libtsime_ipc` (framed Protobuf over UDS).
 - English menu mode: keys are not forwarded to the daemon (native passthrough).
 - Chinese mode: `handle(_:client:)` → `tsime_client_handle_key` → preedit/commit from `KeyEventResult`.
+
+## Input-source registration
+
+`platforms/macos/Info.plist` declares a mode-enabled IMKit source:
+
+- Bundle ID / `TISInputSourceID`: `com.surteam.inputmethod.TSInputMethod`
+- Visible Hans mode: `com.surteam.inputmethod.TSInputMethod.Hans` with `TISIntendedLanguage=zh-Hans`
+- `ComponentInputModeDict` + `tsInputMethodCharacterRepertoireKey` + menu/app icons
+
+Installer copies the app into `/Library/Input Methods` (admin prompt) and runs `TSInputMethod --register-input-source` (`TISRegisterInputSource` + `TISEnableInputSource` for Hans + `AppleEnabledThirdPartyInputSources` record).
+
+Observed after install/register on this host:
+
+- `TISCreateInputSourceList` returns parent `com.surteam.inputmethod.TSInputMethod` and Hans mode `com.surteam.inputmethod.TSInputMethod.Hans`
+- Parent + Hans are both TIS-enabled; Hans is selectable (`langs=zh-Hans`); parent stays non-selectable
+- Installer records both under `com.apple.inputsources` `AppleEnabledThirdPartyInputSources`
+- After enable, Hans appears in the enabled-only TIS list and `TISSelectInputSource` can make it current
+
+System Settings → Add Input Source → 简体中文 browser was not agent-confirmed (already-enabled sources may be absent from the Add browser and appear in the enabled list / menu bar instead). TextEdit typing remains pending. If the menu bar does not refresh, reopen Keyboard settings or log out/in.
 
 ## Trial package (primary)
 
@@ -21,11 +40,12 @@ Open the DMG and double-click **Install TSInputMethod**.
 
 That installer:
 
-1. Copies embedded `TSInputMethod.app` into `~/Library/Input Methods`.
-2. Installs LaunchAgent `com.surteam.tsime.imed` to auto-start embedded `imed`.
-3. Defaults `TSIME_SCHEME=xiaohe` and points `TSIME_DICT` at the embedded rime-ice dictionary.
+1. Copies embedded `TSInputMethod.app` into `/Library/Input Methods` (admin privileges).
+2. Registers and enables the Hans input mode with Text Input Source Services.
+3. Installs LaunchAgent `com.surteam.tsime.imed` to auto-start embedded `imed`.
+4. Defaults `TSIME_SCHEME=xiaohe` and points `TSIME_DICT` at the embedded rime-ice dictionary.
 
-Then enable the input source in System Settings → Keyboard → Input Sources.
+If System Settings → Keyboard → Input Sources → 简体中文 does not list it yet, reopen the pane or log out/in; agent has verified TIS listing/enable, not the Settings UI itself.
 
 Developer-only local build helpers under `platforms/macos/scripts/` remain available; they are not the primary trial path.
 
@@ -33,7 +53,7 @@ Developer-only local build helpers under `platforms/macos/scripts/` remain avail
 
 `scripts/package_macos.sh` resolves a SurTeam codesign identity from the keychain (default match `SurTeam*`, observed `SurTeamCode`) and signs:
 
-- `TSInputMethod.app` and embedded `imed`
+- `TSInputMethod.app` and embedded `imed` (with `platforms/macos/TSInputMethod.entitlements` disabling library validation so Homebrew protobuf can load under hardened runtime)
 - `Install TSInputMethod.app`
 - the DMG
 
@@ -51,4 +71,4 @@ Override with `TSIME_SIGN_IDENTITY` if needed.
 
 | implemented | compiled | auto-tested | real-env |
 | --- | --- | --- | --- |
-| yes | yes (`make app` + packaged DMG) | package/codesign verify only | no |
+| yes | yes (`make app` + packaged DMG) | package/codesign verify + TIS enable/select after register | listing/enable/select yes; Settings Add browser / typing no |

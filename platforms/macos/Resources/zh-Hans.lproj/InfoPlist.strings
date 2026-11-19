@@ -1,0 +1,4 @@
+CFBundleDisplayName = "TS输入法";
+CFBundleName = "TS输入法";
+"com.surteam.inputmethod.TSInputMethod.Hans" = "TS输入法";
+"com.surteam.inputmethod.TSInputMethod" = "TS输入法";

@@ -36,16 +36,25 @@ sign_path() {
 
 sign_app_bundle() {
   local app="$1"
+  local entitlements="$ROOT/platforms/macos/TSInputMethod.entitlements"
   if [[ -x "$app/Contents/MacOS/imed" ]]; then
     sign_path "$app/Contents/MacOS/imed"
   fi
   if [[ -x "$app/Contents/MacOS/TSInputMethod" ]]; then
-    sign_path "$app/Contents/MacOS/TSInputMethod"
+    if [[ -f "$entitlements" ]]; then
+      codesign --force --options runtime --timestamp=none --entitlements "$entitlements" --sign "$SIGN_IDENTITY" "$app/Contents/MacOS/TSInputMethod"
+    else
+      sign_path "$app/Contents/MacOS/TSInputMethod"
+    fi
   fi
   if [[ -x "$app/Contents/MacOS/install" ]]; then
     sign_path "$app/Contents/MacOS/install"
   fi
-  codesign --force --deep --options runtime --timestamp=none --sign "$SIGN_IDENTITY" "$app"
+  if [[ -f "$entitlements" && -x "$app/Contents/MacOS/TSInputMethod" ]]; then
+    codesign --force --deep --options runtime --timestamp=none --entitlements "$entitlements" --sign "$SIGN_IDENTITY" "$app"
+  else
+    codesign --force --deep --options runtime --timestamp=none --sign "$SIGN_IDENTITY" "$app"
+  fi
 }
 
 rm -rf "$STAGE" "$DMG_STAGE"
@@ -134,8 +143,9 @@ set -euo pipefail
 
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 SRC_APP="$SELF_DIR/../Resources/TSInputMethod.app"
-DEST_DIR="$HOME/Library/Input Methods"
+DEST_DIR="/Library/Input Methods"
 DEST_APP="$DEST_DIR/TSInputMethod.app"
+USER_DEST="$HOME/Library/Input Methods/TSInputMethod.app"
 AGENT_LABEL="com.surteam.tsime.imed"
 AGENT_DIR="$HOME/Library/LaunchAgents"
 AGENT_PLIST="$AGENT_DIR/$AGENT_LABEL.plist"
@@ -147,11 +157,16 @@ if [[ ! -d "$SRC_APP" ]]; then
   exit 1
 fi
 
-mkdir -p "$DEST_DIR" "$AGENT_DIR" "$LOG_DIR"
-rm -rf "$DEST_APP"
-cp -R "$SRC_APP" "$DEST_APP"
+mkdir -p "$AGENT_DIR" "$LOG_DIR" "$HOME/Library/Input Methods"
+
+INSTALL_TMP="$(mktemp -d)/TSInputMethod.app"
+cp -R "$SRC_APP" "$INSTALL_TMP"
+osascript <<COPY
+do shell script "mkdir -p '/Library/Input Methods' && rm -rf '/Library/Input Methods/TSInputMethod.app' && cp -R '$INSTALL_TMP' '/Library/Input Methods/TSInputMethod.app' && xattr -cr '/Library/Input Methods/TSInputMethod.app' && chown -R root:wheel '/Library/Input Methods/TSInputMethod.app' && rm -rf '$USER_DEST'" with administrator privileges
+COPY
 
 IMED="$DEST_APP/Contents/MacOS/imed"
+IME_BIN="$DEST_APP/Contents/MacOS/TSInputMethod"
 DICT="$DEST_APP/Contents/Resources/data/dicts/rime-ice.tsdict"
 STDOUT="$LOG_DIR/tsime-imed.log"
 STDERR="$LOG_DIR/tsime-imed.err.log"
@@ -163,6 +178,10 @@ fi
 if [[ ! -f "$DICT" ]]; then
   osascript -e 'display alert "TSInputMethod installer" message "Embedded dictionary is missing." as critical' || true
   exit 1
+fi
+
+if [[ -x "$IME_BIN" ]]; then
+  "$IME_BIN" --register-input-source >/tmp/tsime-register.log 2>&1 || true
 fi
 
 UID_NUM="$(id -u)"
@@ -182,7 +201,7 @@ launchctl enable "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
 launchctl kickstart -k "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
 
 osascript <<OSA
-display dialog "TSInputMethod installed to:\n$DEST_APP\n\nDaemon LaunchAgent loaded (Xiaohe default).\n\nNext: System Settings → Keyboard → Input Sources → add TSInputMethod." buttons {"OK"} default button 1 with title "TSInputMethod"
+display dialog "TSInputMethod installed to:\n$DEST_APP\n\nDaemon LaunchAgent loaded (Xiaohe default).\nHans input mode registered and enabled.\n\nIf the menu bar does not show TSInputMethod yet, reopen Keyboard settings or log out/in." buttons {"OK"} default button 1 with title "TSInputMethod"
 OSA
 EOF
 chmod +x "$INSTALLER_STAGE/Contents/MacOS/install"
@@ -194,11 +213,12 @@ Primary install: open the DMG and double-click **Install TSInputMethod**.
 
 That installer:
 
-1. Copies `TSInputMethod.app` into `~/Library/Input Methods`
-2. Installs a LaunchAgent that auto-starts embedded `imed`
-3. Defaults `TSIME_SCHEME=xiaohe`
+1. Copies `TSInputMethod.app` into `/Library/Input Methods` (admin prompt)
+2. Registers and enables the Hans input mode (`TISRegisterInputSource` + enable parent/Hans)
+3. Installs a LaunchAgent that auto-starts embedded `imed` from `/Library`
+4. Defaults `TSIME_SCHEME=xiaohe`
 
-Then enable the input source in System Settings → Keyboard → Input Sources.
+Then enable the input source in System Settings → Keyboard → Input Sources → 简体中文.
 
 Developer fallback (not required for trial):
 
@@ -218,8 +238,8 @@ sign_app_bundle "$INSTALLER_STAGE"
 echo "==> create DMG"
 cp -R "$INSTALLER_STAGE" "$DMG_STAGE/Install TSInputMethod.app"
 cat > "$DMG_STAGE/README.txt" <<'EOF'
-Double-click "Install TSInputMethod" to install the IME and start the daemon.
-Then add TSInputMethod in System Settings → Keyboard → Input Sources.
+Double-click "Install TSInputMethod" to install the IME into /Library/Input Methods, register it, and start the daemon.
+Then add TSInputMethod under System Settings → Keyboard → Input Sources → 简体中文.
 Default scheme: Xiaohe (flypy).
 Signed with SurTeam identity from the build machine keychain.
 EOF

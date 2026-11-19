@@ -6,28 +6,82 @@
   <string>en</string>
   <key>CFBundleExecutable</key>
   <string>TSInputMethod</string>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon.icns</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
   <key>CFBundleIdentifier</key>
-  <string>com.surteam.TSInputMethod</string>
-  <key>CFBundleInputMethodType</key>
-  <string>palette</string>
+  <string>com.surteam.inputmethod.TSInputMethod</string>
   <key>CFBundleName</key>
   <string>TSInputMethod</string>
+  <key>CFBundleDisplayName</key>
+  <string>TSInputMethod</string>
   <key>CFBundlePackageType</key>
-  <string>BNDL</string>
+  <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>0.1.0</string>
   <key>CFBundleVersion</key>
   <string>0.1.0</string>
+  <key>ComponentInputModeDict</key>
+  <dict>
+    <key>tsInputModeListKey</key>
+    <dict>
+      <key>com.surteam.inputmethod.TSInputMethod.Hans</key>
+      <dict>
+        <key>TISInputSourceID</key>
+        <string>com.surteam.inputmethod.TSInputMethod.Hans</string>
+        <key>TISIntendedLanguage</key>
+        <string>zh-Hans</string>
+        <key>tsInputModeAlternateMenuIconFileKey</key>
+        <string>menu_icon.pdf</string>
+        <key>tsInputModeCharacterRepertoireKey</key>
+        <array>
+          <string>zh-Hans</string>
+        </array>
+        <key>tsInputModeDefaultStateKey</key>
+        <true/>
+        <key>tsInputModeIsVisibleKey</key>
+        <true/>
+        <key>tsInputModeKeyEquivalentKey</key>
+        <string>T</string>
+        <key>tsInputModeKeyEquivalentModifiersKey</key>
+        <integer>4608</integer>
+        <key>tsInputModeMenuIconFileKey</key>
+        <string>menu_icon.pdf</string>
+        <key>tsInputModePaletteIconFileKey</key>
+        <string>menu_icon.pdf</string>
+        <key>tsInputModePrimaryInScriptKey</key>
+        <true/>
+        <key>tsInputModeScriptKey</key>
+        <string>smUnicodeScript</string>
+      </dict>
+    </dict>
+    <key>tsVisibleInputModeOrderedArrayKey</key>
+    <array>
+      <string>com.surteam.inputmethod.TSInputMethod.Hans</string>
+    </array>
+  </dict>
   <key>InputMethodConnectionName</key>
   <string>TSInputMethod_1_Connection</string>
   <key>InputMethodServerControllerClass</key>
-  <string>TSInputController</string>
-  <key>LSInputSource</key>
-  <dict>
-    <key>TISInputSourceID</key>
-    <string>com.surteam.TSInputMethod.chinese</string>
-    <key>TISIntendedLanguage</key>
+  <string>TSInputMethod.TSInputController</string>
+  <key>InputMethodServerDelegateClass</key>
+  <string>TSInputMethod.TSInputController</string>
+  <key>LSBackgroundOnly</key>
+  <true/>
+  <key>LSUIElement</key>
+  <true/>
+  <key>NSPrincipalClass</key>
+  <string>NSApplication</string>
+  <key>TICapsLockLanguageSwitchCapable</key>
+  <true/>
+  <key>TISInputSourceID</key>
+  <string>com.surteam.inputmethod.TSInputMethod</string>
+  <key>tsInputMethodCharacterRepertoireKey</key>
+  <array>
     <string>zh-Hans</string>
-  </dict>
-  <key>tsComponentFlags</key>
-  <string>10000000</string>
+  </array>
+  <key>tsInputMethodIconFileKey</key>
+  <string>menu_icon.pdf</string>
 </dict>
 </plist>

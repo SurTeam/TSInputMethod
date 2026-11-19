@@ -1,0 +1,4 @@
+CFBundleDisplayName = "TSInputMethod";
+CFBundleName = "TSInputMethod";
+"com.surteam.inputmethod.TSInputMethod.Hans" = "TSInputMethod";
+"com.surteam.inputmethod.TSInputMethod" = "TSInputMethod";

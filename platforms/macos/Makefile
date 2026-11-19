@@ -16,6 +16,10 @@ common:
 app: common
 	mkdir -p $(OUT)/MacOS $(OUT)/Resources
 	cp Info.plist $(OUT)/
+	cp Resources/menu_icon.pdf $(OUT)/Resources/
+	cp Resources/AppIcon.icns $(OUT)/Resources/
+	cp -R Resources/en.lproj $(OUT)/Resources/
+	cp -R Resources/zh-Hans.lproj $(OUT)/Resources/
 	$(SWIFTC) \
 		-parse-as-library \
 		-module-name TSInputMethod \
