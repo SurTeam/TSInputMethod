@@ -10,6 +10,8 @@ class TSInputController: IMKInputController {
     private var candidates: [String] = []
     private var comments: [String] = []
     private var selectedIndex: Int = 0
+    private var settingsObserver: NSObjectProtocol?
+    private var didNotifyReady = false
 
     private let keyUpArrow: UInt32 = 126
     private let keyDownArrow: UInt32 = 125
@@ -26,6 +28,23 @@ class TSInputController: IMKInputController {
         }
         candidatePanel.onSelect = { [weak self] index in
             self?.selectDisplayedCandidate(index: index)
+        }
+        applySettings(ConfigStore.load())
+        settingsObserver = NotificationCenter.default.addObserver(
+            forName: ConfigStore.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applySettings(ConfigStore.load())
+        }
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            self?.probeDaemonReady()
+        }
+    }
+
+    deinit {
+        if let settingsObserver {
+            NotificationCenter.default.removeObserver(settingsObserver)
         }
     }
 
@@ -75,13 +94,20 @@ class TSInputController: IMKInputController {
         let english = NSMenuItem(title: "English", action: #selector(enableEnglish), keyEquivalent: "")
         english.target = self
         english.state = daemon.chineseMode ? .off : .on
+        let settings = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: "")
+        settings.target = self
         let restart = NSMenuItem(title: "Restart", action: #selector(restartInputMethod), keyEquivalent: "")
         restart.target = self
         menu.addItem(chinese)
         menu.addItem(english)
         menu.addItem(NSMenuItem.separator())
+        menu.addItem(settings)
         menu.addItem(restart)
         return menu
+    }
+
+    @objc private func openSettings() {
+        SettingsWindowController.shared.showSettings()
     }
 
     @objc private func enableChinese() {
@@ -142,6 +168,30 @@ class TSInputController: IMKInputController {
         modeToggleHotkeys.setBindings(bindings)
     }
 
+    private func applySettings(_ settings: TSIMESettings) {
+        modeToggleHotkeys.setBindings(settings.modeBindings())
+        candidatePanel.applyAppearance(settings)
+        if !candidates.isEmpty {
+            updateCandidatePanel(client: client())
+        }
+    }
+
+    private func probeDaemonReady() {
+        for _ in 0..<40 {
+            if daemon.ensureConnected() {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self, !self.didNotifyReady else {
+                        return
+                    }
+                    self.didNotifyReady = true
+                    AppNotifier.notifyReady()
+                }
+                return
+            }
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+    }
+
     private func toggleChineseEnglish() {
         if daemon.chineseMode {
             enableEnglish()
@@ -179,15 +229,17 @@ class TSInputController: IMKInputController {
             candidatePanel.hide()
             return
         }
+        let columns = ConfigStore.load().clampedColumns
+        let visible = Array(texts.prefix(columns))
         var index = selectedIndex
         if index < 0 {
             index = 0
         }
-        if index >= texts.count {
-            index = texts.count - 1
+        if index >= visible.count {
+            index = max(visible.count - 1, 0)
         }
         selectedIndex = index
-        candidatePanel.update(candidates: texts, selectedIndex: index, anchor: caretRect(client: client))
+        candidatePanel.update(candidates: visible, selectedIndex: index, anchor: caretRect(client: client))
     }
 
     private func pageCandidates(delta: Int) {

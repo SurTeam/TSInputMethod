@@ -67,10 +67,12 @@
   <string>TSInputMethod.TSInputController</string>
   <key>InputMethodServerDelegateClass</key>
   <string>TSInputMethod.TSInputController</string>
-  <key>LSBackgroundOnly</key>
+<key>LSBackgroundOnly</key>
   <true/>
   <key>LSUIElement</key>
   <true/>
+  <key>NSUserNotificationAlertStyle</key>
+  <string>banner</string>
   <key>NSPrincipalClass</key>
   <string>NSApplication</string>
   <key>TICapsLockLanguageSwitchCapable</key>

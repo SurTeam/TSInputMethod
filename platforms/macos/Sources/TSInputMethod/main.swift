@@ -25,6 +25,9 @@ static let bundleID = "com.surteam.inputmethod.TSInputMethod"
             fputs("missing bundle identifier\n", stderr)
             return
         }
+        _ = ConfigStore.load()
+        AppNotifier.prepare()
+        AppNotifier.notifyInitializing()
         _ = IMKServer(name: connectionName, bundleIdentifier: bundleIdentifier)
 
         let app = NSApplication.shared
