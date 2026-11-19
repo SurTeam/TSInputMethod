@@ -26,7 +26,7 @@ Observed after install/register on this host:
 - Installer records both under `com.apple.inputsources` `AppleEnabledThirdPartyInputSources`
 - After enable, Hans appears in the enabled-only TIS list and `TISSelectInputSource` can make it current
 
-System Settings → Add Input Source → 简体中文 browser was not agent-confirmed (already-enabled sources may be absent from the Add browser and appear in the enabled list / menu bar instead). TextEdit typing remains pending. If the menu bar does not refresh, reopen Keyboard settings or log out/in.
+System Settings → Add Input Source → 简体中文 browser was not agent-confirmed (already-enabled sources may be absent from the Add browser and appear in the enabled list / menu bar instead). TextEdit typing remains pending. After install/update the installer refreshes the IMKit process; if the menu bar is still stale, use the IME menu **Restart** item or reopen Keyboard settings, and log out/in only as a last resort.
 
 ## Trial package (primary)
 
@@ -44,8 +44,9 @@ That installer:
 2. Registers and enables the Hans input mode with Text Input Source Services.
 3. Installs LaunchAgent `com.surteam.tsimed` to auto-start embedded `tsimed`.
 4. Defaults `TSIME_SCHEME=xiaohe` and points `TSIME_DICT` at the embedded rime-ice dictionary.
+5. Refreshes the running IMKit process (`killall TSInputMethod`) so an update does not require logout by default.
 
-If System Settings → Keyboard → Input Sources → 简体中文 does not list it yet, reopen the pane or log out/in; agent has verified TIS listing/enable, not the Settings UI itself.
+If System Settings → Keyboard → Input Sources → 简体中文 does not list it yet, reopen the pane or use the IME menu **Restart** item; log out/in only as a last resort. Agent has verified TIS listing/enable, not the Settings UI itself.
 
 Developer-only local build helpers under `platforms/macos/scripts/` remain available; they are not the primary trial path.
 
@@ -67,6 +68,7 @@ Override with `TSIME_SIGN_IDENTITY` if needed.
 - Socket: `TSIME_SOCKET`, else `$XDG_RUNTIME_DIR/tsime.sock`, else temporary `tsime-$UID.sock`.
 - Candidate UI is a custom floating `NSPanel` (`CandidatePanel.swift`) owned by the adapter: fixed 9 equal-width columns, darker numeric labels `1`–`9`, highlight synced from session `selected_index`, mouse-wheel paging, and stable column count/width across pages. Composition/preedit is owned via `setMarkedText` attributes on the client (underline + accent wash), not via `IMKCandidates`. The adapter strips session-side `N.` text prefixes before drawing so labels are not doubled. Candidates stay Chinese-only; composition alone carries soft-confirmed Chinese plus remaining raw keys (e.g. `你好uijp`). `selectCandidate` returns the same composition/candidates payload as key handling; Left/Right move highlight; Up/Down and `-`/`=` page previous/next; Space soft-confirms/finishes the highlighted candidate; Enter/Return hard-commits the whole composition and clears the panel. Empty-preedit digits/punctuation commit through the session half-shape map. See [ADR 0003](../../decisions/0003-custom-candidate-panel.md).
 - `recognizedEvents` includes `flagsChanged` as well as `keyDown`. Left Shift alone (`flagsChanged`, keyCode 56) toggles in-IME Chinese/English after committing any current preedit as raw text and clearing candidates; Shift used as a chord modifier does not toggle.
+- The menu-bar IME menu keeps Chinese/English toggles and adds **Restart**: commit/clear local composition, tear down IPC, `launchctl kickstart -k` for `com.surteam.tsimed`, then terminate the IMKit process so the host reloads the installed binary.
 - `KeyEvent.key_code` is the raw macOS CG virtual key from `NSEvent.keyCode` (Karabiner-Elements table: `delete_or_backspace=0x33`, `escape=0x35`, `spacebar=0x31`, `return_or_enter=0x24`, `keypad_enter=0x4c`, `delete_forward=0x75`, letters such as `c=0x08`). No ASCII 8/27/32 remap. Printable compose/paging still uses `characters` ([ADR 0002](../../decisions/0002-semantic-edit-keycodes.md)).
 - Menu/palette icon is a rounded blue PDF with white `TS` at **21.75×15.75 pt** (same MediaBox as Fcitx5’s macOS menu icon; landscape, not the 128 pt app mark). Source SVG: `platforms/macos/Resources/menu_icon.svg`. App/installer bundles share `AppIcon.icns`.
 

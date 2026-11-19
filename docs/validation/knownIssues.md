@@ -10,7 +10,7 @@
 | KI-009 | macos-keycodes | Earlier ASCII 8/27/32 semantic remap collided with CG `c`/`-`/`u`. Fixed by adopting Karabiner CG codes on the wire (incl. Return=36 / keypad Enter=76) and dropping ASCII edit codes; real-env TextEdit recheck still pending | mitigated (source) |
 | KI-007 | macos-signing | SurTeamCode is self-signed (not Developer ID); `spctl` rejects; Gatekeeper may warn; notarization not claimed; hardened-runtime build needs library-validation entitlement for Homebrew protobuf | open |
 | KI-006 | shuangpin | Xiaohe/flypy keeps fixed 2-key boundaries (`wo`→我), expands ambiguous keys to all valid readings (`lo`/`lt`/`dv`…), soft-confirm composition (`你好uijp`), short half-code hits (`nih`→你好, single `h` prefers short words), and Backspace undo of soft confirms with cursor restored to preedit end; macOS candidates stay Chinese-only; real-env phrase flow still needs user trial | open (trial) |
-| KI-008 | macos-install | Installer now targets `/Library/Input Methods` and prompts for admin; user-level `~/Library/Input Methods` alone was insufficient for stable TIS visibility in this environment | open (document) |
+| KI-008 | macos-install | Installer now targets `/Library/Input Methods` and prompts for admin; user-level `~/Library/Input Methods` alone was insufficient for stable TIS visibility in this environment. Install/update now kills/refreshes the IMKit process and the menu exposes Restart; logout remains only a last-resort UI fallback | mitigated (source) |
 | KI-010 | daemon-rename | Daemon binary/LaunchAgent renamed `imed` → `tsimed` / `com.surteam.tsimed`; installer boots out legacy `com.surteam.tsime.imed` labels, but previously installed leftover agents may still need a reinstall/kickstart | mitigated (source) |
 
 Notes:

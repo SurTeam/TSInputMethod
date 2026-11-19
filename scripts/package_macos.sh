@@ -186,6 +186,7 @@ if [[ ! -f "$DICT" ]]; then
   exit 1
 fi
 
+killall TSInputMethod >/dev/null 2>&1 || true
 if [[ -x "$IME_BIN" ]]; then
   "$IME_BIN" --register-input-source >/tmp/tsime-register.log 2>&1 || true
 fi
@@ -212,10 +213,12 @@ sed \
 launchctl bootstrap "gui/$UID_NUM" "$AGENT_PLIST"
 launchctl enable "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
 launchctl kickstart -k "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
+killall TSInputMethod >/dev/null 2>&1 || true
 
 osascript <<OSA
-display dialog "TSInputMethod installed to:\n$DEST_APP\n\nDaemon LaunchAgent loaded (Xiaohe default).\nHans input mode registered and enabled.\n\nIf the menu bar does not show TSInputMethod yet, reopen Keyboard settings or log out/in." buttons {"OK"} default button 1 with title "TSInputMethod"
+display dialog "TSInputMethod installed to:\n$DEST_APP\n\nDaemon LaunchAgent loaded (Xiaohe default).\nHans input mode registered and enabled.\nIMKit process refreshed after install.\n\nIf the menu bar is still stale, use the IME menu Restart item or reopen Keyboard settings. Log out/in only as a last resort." buttons {"OK"} default button 1 with title "TSInputMethod"
 OSA
+
 EOF
 chmod +x "$INSTALLER_STAGE/Contents/MacOS/install"
 
@@ -230,8 +233,10 @@ That installer:
 2. Registers and enables the Hans input mode (`TISRegisterInputSource` + enable parent/Hans)
 3. Installs a LaunchAgent that auto-starts embedded `tsimed` from `/Library`
 4. Defaults `TSIME_SCHEME=xiaohe`
+5. Refreshes the running IMKit process (`killall TSInputMethod`) so updates do not require a logout
 
 Then enable the input source in System Settings → Keyboard → Input Sources → 简体中文.
+If the menu bar is still stale, use the IME menu **Restart** item or reopen Keyboard settings; log out/in only as a last resort.
 
 Developer fallback (not required for trial):
 
@@ -251,8 +256,9 @@ sign_app_bundle "$INSTALLER_STAGE"
 echo "==> create DMG"
 cp -R "$INSTALLER_STAGE" "$DMG_STAGE/Install TSInputMethod.app"
 cat > "$DMG_STAGE/README.txt" <<'EOF'
-Double-click "Install TSInputMethod" to install the IME into /Library/Input Methods, register it, and start the daemon.
+Double-click "Install TSInputMethod" to install the IME into /Library/Input Methods, register it, refresh the IMKit process, and start the daemon.
 Then add TSInputMethod under System Settings → Keyboard → Input Sources → 简体中文.
+If the menu bar is still stale, use the IME menu Restart item or reopen Keyboard settings; log out/in only as a last resort.
 Default scheme: Xiaohe (flypy).
 Signed with SurTeam identity from the build machine keychain.
 EOF

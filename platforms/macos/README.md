@@ -21,7 +21,7 @@ Primary artifact: `dist/macos/TSInputMethod-macos.dmg`.
 
 Open the DMG → double-click **Install TSInputMethod** → enable TSInputMethod under System Settings → Keyboard → Input Sources → 简体中文.
 
-The installer places the app under `/Library/Input Methods` (admin prompt), registers/enables the Hans mode with Text Input Source Services, and loads a LaunchAgent that auto-starts embedded `tsimed` with `TSIME_SCHEME=xiaohe`.
+The installer places the app under `/Library/Input Methods` (admin prompt), registers/enables the Hans mode with Text Input Source Services, refreshes the running IMKit process, and loads a LaunchAgent that auto-starts embedded `tsimed` with `TSIME_SCHEME=xiaohe`. If the menu bar is still stale afterward, use the IME menu **Restart** item or reopen Keyboard settings; log out/in only as a last resort.
 
 Signed with the SurTeam keychain identity (`SurTeamCode` on this machine). Self-signed / non-Developer-ID limits apply; notarization is not claimed.
 
@@ -32,11 +32,12 @@ Signed with the SurTeam keychain identity (`SurTeamCode` on this machine). Self-
 ./scripts/uninstall.sh
 ```
 
-These install `build/TSInputMethod.app` into `/Library/Input Methods` and register the input source; they do not replace the DMG OOBE path.
+These install `build/TSInputMethod.app` into `/Library/Input Methods`, register the input source, and refresh the IMKit process; they do not replace the DMG OOBE path.
 
 ## Runtime
 
 - English mode: menu/Left-Shift toggle; ordinary keys are not forwarded to the daemon and do not require IPC (works offline for password/login when ABC is gone).
+- Menu-bar **Restart** commits/clears composition, restarts `tsimed` when its LaunchAgent is present, and terminates the IMKit process so an update can load without logout.
 - Chinese mode: keys go through framed Protobuf IPC; preedit/candidates/commit follow Go session results; a custom `NSPanel` candidate row draws 9 equal-width columns with darker digit labels and `selected_index` highlight (mouse wheel pages); composition marked text alone shows soft-confirmed Chinese + remaining raw keys; Left Shift alone toggles Chinese/English via `recognizedEvents`+`flagsChanged`; `-`/`=` page; Delete/Escape/Space use daemon CG keycodes.
 - Socket: `TSIME_SOCKET`, else `$XDG_RUNTIME_DIR/tsime.sock`, else temporary `tsime-$UID.sock`.
 

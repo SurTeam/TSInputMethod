@@ -73,8 +73,12 @@ class TSInputController: IMKInputController {
         let english = NSMenuItem(title: "English", action: #selector(enableEnglish), keyEquivalent: "")
         english.target = self
         english.state = daemon.chineseMode ? .off : .on
+        let restart = NSMenuItem(title: "Restart", action: #selector(restartInputMethod), keyEquivalent: "")
+        restart.target = self
         menu.addItem(chinese)
         menu.addItem(english)
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(restart)
         return menu
     }
 
@@ -85,6 +89,21 @@ class TSInputController: IMKInputController {
     @objc private func enableEnglish() {
         commitCompositionLocally(client: client())
         daemon.setChineseMode(false)
+    }
+
+    @objc private func restartInputMethod() {
+        commitCompositionLocally(client: client())
+        candidatePanel.hide()
+        daemon.teardown()
+        let uid = getuid()
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+        task.arguments = ["kickstart", "-k", "gui/\(uid)/com.surteam.tsimed"]
+        try? task.run()
+        task.waitUntilExit()
+        DispatchQueue.main.async {
+            NSApp.terminate(nil)
+        }
     }
 
     private func handleFlagsChanged(_ event: NSEvent) -> Bool {
