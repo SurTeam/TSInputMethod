@@ -12,6 +12,7 @@
 | KI-006 | shuangpin | Xiaohe/flypy keeps fixed 2-key boundaries (`wo`→我), expands ambiguous keys to all valid readings (`lo`/`lt`/`dv`…), soft-confirm composition (`你好uijp`), short half-code hits (`nih`→你好, single `h` prefers short words), and Backspace undo of soft confirms with cursor restored to preedit end; macOS candidates stay Chinese-only; real-env phrase flow still needs user trial | open (trial) |
 | KI-008 | macos-install | Installer now targets `/Library/Input Methods` and prompts for admin; user-level `~/Library/Input Methods` alone was insufficient for stable TIS visibility in this environment. Install/update now kills/refreshes the IMKit process and the menu exposes Restart; logout remains only a last-resort UI fallback | mitigated (source) |
 | KI-010 | daemon-rename | Daemon binary/LaunchAgent renamed `imed` → `tsimed` / `com.surteam.tsimed`; installer boots out legacy `com.surteam.tsime.imed` labels, but previously installed leftover agents may still need a reinstall/kickstart | mitigated (source) |
+| KI-011 | macos-daemon | After DMG install/Restart, Chinese mode can look like passthrough (no preedit/candidates) when `com.surteam.tsimed` is enabled but not running / socket missing. Menu Restart and install scripts now bootstrap+kickstart the agent; logout is not required | mitigated (source) |
 
 Notes:
 

@@ -37,7 +37,7 @@ These install `build/TSInputMethod.app` into `/Library/Input Methods`, register 
 ## Runtime
 
 - English mode: menu/Left-Shift toggle; ordinary keys are not forwarded to the daemon and do not require IPC (works offline for password/login when ABC is gone).
-- Menu-bar **Restart** commits/clears composition, restarts `tsimed` when its LaunchAgent is present, and terminates the IMKit process so an update can load without logout.
+- Menu-bar **Restart** commits/clears composition, bootstraps/`kickstart`s `tsimed` if needed, and terminates the IMKit process so an update can load without logout. Passthrough with no preedit/candidates usually means the daemon is down, not that a logout is required.
 - Chinese mode: keys go through framed Protobuf IPC; preedit/candidates/commit follow Go session results; a custom `NSPanel` candidate row draws 9 equal-width columns with darker digit labels and `selected_index` highlight (mouse wheel pages); composition marked text alone shows soft-confirmed Chinese + remaining raw keys; Left Shift alone toggles Chinese/English via `recognizedEvents`+`flagsChanged`; `-`/`=` page; Delete/Escape/Space use daemon CG keycodes.
 - Socket: `TSIME_SOCKET`, else `$XDG_RUNTIME_DIR/tsime.sock`, else temporary `tsime-$UID.sock`.
 

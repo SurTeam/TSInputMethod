@@ -19,7 +19,12 @@ if [[ -x "$DEST/Contents/MacOS/TSInputMethod" ]]; then
   "$DEST/Contents/MacOS/TSInputMethod" --register-input-source || true
 fi
 UID_NUM="$(id -u)"
-if launchctl print "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1; then
+AGENT_PLIST="$HOME/Library/LaunchAgents/$AGENT_LABEL.plist"
+if [[ -f "$AGENT_PLIST" ]]; then
+  if ! launchctl print "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1; then
+    launchctl bootstrap "gui/$UID_NUM" "$AGENT_PLIST" >/dev/null 2>&1 || true
+    launchctl enable "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
+  fi
   launchctl kickstart -k "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
 fi
 killall TSInputMethod >/dev/null 2>&1 || true

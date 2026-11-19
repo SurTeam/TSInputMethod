@@ -95,14 +95,40 @@ class TSInputController: IMKInputController {
         commitCompositionLocally(client: client())
         candidatePanel.hide()
         daemon.teardown()
-        let uid = getuid()
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-        task.arguments = ["kickstart", "-k", "gui/\(uid)/com.surteam.tsimed"]
-        try? task.run()
-        task.waitUntilExit()
+        Self.ensureDaemonAgentRunning()
         DispatchQueue.main.async {
             NSApp.terminate(nil)
+        }
+    }
+
+    private static func ensureDaemonAgentRunning() {
+        let uid = getuid()
+        let label = "com.surteam.tsimed"
+        let domain = "gui/\(uid)"
+        let target = "\(domain)/\(label)"
+        if runLaunchctl(["kickstart", "-k", target]) == 0 {
+            return
+        }
+        let plist = NSHomeDirectory() + "/Library/LaunchAgents/\(label).plist"
+        _ = runLaunchctl(["bootout", target])
+        _ = runLaunchctl(["bootstrap", domain, plist])
+        _ = runLaunchctl(["enable", target])
+        _ = runLaunchctl(["kickstart", "-k", target])
+    }
+
+    @discardableResult
+    private static func runLaunchctl(_ arguments: [String]) -> Int32 {
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+        task.arguments = arguments
+        task.standardOutput = FileHandle.nullDevice
+        task.standardError = FileHandle.nullDevice
+        do {
+            try task.run()
+            task.waitUntilExit()
+            return task.terminationStatus
+        } catch {
+            return -1
         }
     }
 

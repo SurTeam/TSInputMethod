@@ -213,6 +213,17 @@ sed \
 launchctl bootstrap "gui/$UID_NUM" "$AGENT_PLIST"
 launchctl enable "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
 launchctl kickstart -k "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+  if pgrep -x tsimed >/dev/null 2>&1; then
+    break
+  fi
+  sleep 0.2
+done
+if ! pgrep -x tsimed >/dev/null 2>&1; then
+  launchctl bootstrap "gui/$UID_NUM" "$AGENT_PLIST" >/dev/null 2>&1 || true
+  launchctl kickstart -k "gui/$UID_NUM/$AGENT_LABEL" >/dev/null 2>&1 || true
+  sleep 0.5
+fi
 killall TSInputMethod >/dev/null 2>&1 || true
 
 osascript <<OSA
