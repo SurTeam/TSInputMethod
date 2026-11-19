@@ -15,6 +15,7 @@ class TSInputController: IMKInputController {
 
     private let keyUpArrow: UInt32 = 126
     private let keyDownArrow: UInt32 = 125
+    private let keyEscape: UInt32 = 53
 
     private let modShift: UInt32 = 1 << 17
     private let modControl: UInt32 = 1 << 18
@@ -84,6 +85,16 @@ class TSInputController: IMKInputController {
         }
         apply(outcome: outcome, client: sender)
         return outcome.consumed
+    }
+
+    override func deactivateServer(_ sender: Any!) {
+        finishCompositionOnDeactivate(client: sender ?? client())
+        super.deactivateServer(sender)
+    }
+
+    override func commitComposition(_ sender: Any!) {
+        finishCompositionOnDeactivate(client: sender ?? client())
+        super.commitComposition(sender)
     }
 
     override func menu() -> NSMenu! {
@@ -205,6 +216,14 @@ class TSInputController: IMKInputController {
             insert(text: markedText, client: client)
         }
         clearMarked(client: client)
+    }
+
+    private func finishCompositionOnDeactivate(client: Any?) {
+        let hadComposition = !markedText.isEmpty || !candidates.isEmpty
+        commitCompositionLocally(client: client)
+        if hadComposition {
+            _ = daemon.handleKey(keyCode: keyEscape, modifiers: 0, characters: "", keyDown: true)
+        }
     }
 
     private func apply(outcome: KeyOutcome, client: Any?) {
