@@ -4,17 +4,17 @@ import InputMethodKit
 @objc(TSInputController)
 class TSInputController: IMKInputController {
     private let daemon = DaemonClient()
+    private let candidatePanel = CandidatePanel()
     private var markedText: String = ""
     private var candidates: [String] = []
     private var comments: [String] = []
     private var selectedIndex: Int = 0
-    private var visibleCandidates: [String] = []
-    private var syncingCandidateHighlight = false
-    private var candidatesPanel: IMKCandidates?
     private var leftShiftDown = false
     private var leftShiftUsedAsModifier = false
 
     private let keyLeftShift: UInt16 = 56
+    private let keyUpArrow: UInt32 = 126
+    private let keyDownArrow: UInt32 = 125
 
     private let modShift: UInt32 = 1 << 17
     private let modControl: UInt32 = 1 << 18
@@ -23,24 +23,12 @@ class TSInputController: IMKInputController {
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
-        let panel = IMKCandidates(server: server, panelType: kIMKSingleRowSteppingCandidatePanel)
-        panel?.setSelectionKeys([
-            NSNumber(value: 18),
-            NSNumber(value: 19),
-            NSNumber(value: 20),
-            NSNumber(value: 21),
-            NSNumber(value: 23),
-            NSNumber(value: 22),
-            NSNumber(value: 26),
-            NSNumber(value: 28),
-            NSNumber(value: 25),
-        ])
-        let attrs = NSMutableDictionary()
-        attrs[IMKCandidatesSendServerKeyEventFirst] = NSNumber(value: true)
-        attrs[IMKCandidatesOpacityAttributeName] = NSNumber(value: Float(1.0))
-        attrs[NSAttributedString.Key.font] = NSFont.systemFont(ofSize: 12)
-        panel?.setAttributes(attrs as? [AnyHashable: Any])
-        candidatesPanel = panel
+        candidatePanel.onPage = { [weak self] delta in
+            self?.pageCandidates(delta: delta)
+        }
+        candidatePanel.onSelect = { [weak self] index in
+            self?.selectDisplayedCandidate(index: index)
+        }
     }
 
     override func recognizedEvents(_ sender: Any!) -> Int {
@@ -75,87 +63,6 @@ class TSInputController: IMKInputController {
         }
         apply(outcome: outcome, client: sender)
         return outcome.consumed
-    }
-
-    override func candidates(_ sender: Any!) -> [Any]! {
-        return attributedCandidates()
-    }
-
-    override func candidateSelected(_ candidateString: NSAttributedString!) {
-        guard let text = candidateString?.string,
-              let index = indexOfDisplayedCandidate(text),
-              let outcome = daemon.selectCandidate(index: UInt32(index)) else {
-            return
-        }
-        apply(outcome: outcome, client: client())
-    }
-
-    override func candidateSelectionChanged(_ candidateString: NSAttributedString!) {
-        if syncingCandidateHighlight {
-            return
-        }
-        guard let text = candidateString?.string,
-              let index = indexOfDisplayedCandidate(text) else {
-            return
-        }
-        selectedIndex = index
-    }
-
-    private func indexOfDisplayedCandidate(_ text: String) -> Int? {
-        let bare: String
-        if text.hasPrefix("• ") {
-            bare = String(text.dropFirst(2))
-        } else if text.hasPrefix("  ") {
-            bare = String(text.dropFirst(2))
-        } else {
-            bare = text
-        }
-        return bareCandidates().firstIndex(of: bare)
-    }
-
-    private func bareCandidates() -> [String] {
-        candidates.map(Self.bareCandidateText)
-    }
-
-    private func attributedCandidates() -> [NSAttributedString] {
-        let texts = bareCandidates()
-        guard !texts.isEmpty else {
-            return []
-        }
-        var index = selectedIndex
-        if index < 0 {
-            index = 0
-        }
-        if index >= texts.count {
-            index = texts.count - 1
-        }
-        let normalFont = NSFont.systemFont(ofSize: 12)
-        let selectedFont = NSFont.boldSystemFont(ofSize: 12)
-        let normalAttrs: [NSAttributedString.Key: Any] = [
-            .font: normalFont,
-            .foregroundColor: NSColor.labelColor,
-        ]
-        let selectedAttrs: [NSAttributedString.Key: Any] = [
-            .font: selectedFont,
-            .foregroundColor: NSColor.controlAccentColor,
-            .underlineStyle: NSUnderlineStyle.single.rawValue,
-        ]
-        return texts.enumerated().map { offset, text in
-            let display = offset == index ? "• \(text)" : "  \(text)"
-            return NSAttributedString(string: display, attributes: offset == index ? selectedAttrs : normalAttrs)
-        }
-    }
-
-    private static func bareCandidateText(_ text: String) -> String {
-        guard text.utf8.count >= 2 else {
-            return text
-        }
-        let first = text.utf8[text.utf8.startIndex]
-        let second = text.utf8[text.utf8.index(after: text.utf8.startIndex)]
-        if first >= 0x31, first <= 0x39, second == 0x2e {
-            return String(text.dropFirst(2))
-        }
-        return text
     }
 
     override func menu() -> NSMenu! {
@@ -225,35 +132,58 @@ class TSInputController: IMKInputController {
             candidates = []
             comments = []
             selectedIndex = 0
-            visibleCandidates = []
         }
         markedText = outcome.preedit
         setMarked(text: outcome.preedit, client: client)
         candidates = outcome.candidates
         comments = outcome.comments
         selectedIndex = Int(outcome.selectedIndex)
-        updateCandidatesPanel()
+        updateCandidatePanel(client: client)
     }
 
-    private func updateCandidatesPanel() {
-        guard let panel = candidatesPanel else {
+    private func updateCandidatePanel(client: Any?) {
+        let texts = candidates.map(Self.bareCandidateText)
+        if texts.isEmpty {
+            candidatePanel.hide()
             return
         }
-        if candidates.isEmpty {
-            visibleCandidates = []
-            panel.hide()
+        var index = selectedIndex
+        if index < 0 {
+            index = 0
+        }
+        if index >= texts.count {
+            index = texts.count - 1
+        }
+        selectedIndex = index
+        candidatePanel.update(candidates: texts, selectedIndex: index, anchor: caretRect(client: client))
+    }
+
+    private func pageCandidates(delta: Int) {
+        let keyCode = delta < 0 ? keyUpArrow : keyDownArrow
+        guard let outcome = daemon.handleKey(keyCode: keyCode, modifiers: 0, characters: "", keyDown: true) else {
             return
         }
-        let shown = bareCandidates()
-        let attributed = attributedCandidates()
-        visibleCandidates = shown
-        syncingCandidateHighlight = true
-        panel.setCandidateData(attributed)
-        panel.update()
-        panel.show(kIMKLocateCandidatesBelowHint)
-        DispatchQueue.main.async { [weak self] in
-            self?.syncingCandidateHighlight = false
+        apply(outcome: outcome, client: client())
+    }
+
+    private func selectDisplayedCandidate(index: Int) {
+        guard index >= 0, index < candidates.count,
+              let outcome = daemon.selectCandidate(index: UInt32(index)) else {
+            return
         }
+        apply(outcome: outcome, client: client())
+    }
+
+    private func caretRect(client: Any?) -> NSRect {
+        guard let client = client as? IMKTextInput else {
+            return NSRect(x: 80, y: 80, width: 1, height: 16)
+        }
+        var rect = NSRect.zero
+        _ = client.attributes(forCharacterIndex: 0, lineHeightRectangle: &rect)
+        if rect.width <= 0 && rect.height <= 0 {
+            return NSRect(x: 80, y: 80, width: 1, height: 16)
+        }
+        return rect
     }
 
     private func wireModifiers(from flags: NSEvent.ModifierFlags) -> UInt32 {
@@ -284,8 +214,19 @@ class TSInputController: IMKInputController {
         guard let client = client as? IMKTextInput else {
             return
         }
-        let attrs = mark(forStyle: kTSMHiliteRawText, at: NSRange(location: 0, length: text.utf16.count))
-        let attributed = NSAttributedString(string: text, attributes: attrs as? [NSAttributedString.Key: Any])
+        if text.isEmpty {
+            client.setMarkedText("",
+                                 selectionRange: NSRange(location: 0, length: 0),
+                                 replacementRange: NSRange(location: NSNotFound, length: NSNotFound))
+            return
+        }
+        let range = NSRange(location: 0, length: text.utf16.count)
+        var attrs = mark(forStyle: kTSMHiliteSelectedRawText, at: range) as? [NSAttributedString.Key: Any] ?? [:]
+        attrs[.underlineStyle] = NSUnderlineStyle.single.rawValue
+        attrs[.underlineColor] = NSColor.controlAccentColor
+        attrs[.foregroundColor] = NSColor.labelColor
+        attrs[.backgroundColor] = NSColor.controlAccentColor.withAlphaComponent(0.12)
+        let attributed = NSAttributedString(string: text, attributes: attrs)
         client.setMarkedText(attributed,
                              selectionRange: NSRange(location: text.utf16.count, length: 0),
                              replacementRange: NSRange(location: NSNotFound, length: NSNotFound))
@@ -297,7 +238,18 @@ class TSInputController: IMKInputController {
         candidates = []
         comments = []
         selectedIndex = 0
-        visibleCandidates = []
-        candidatesPanel?.hide()
+        candidatePanel.hide()
+    }
+
+    private static func bareCandidateText(_ text: String) -> String {
+        guard text.utf8.count >= 2 else {
+            return text
+        }
+        let first = text.utf8[text.utf8.startIndex]
+        let second = text.utf8[text.utf8.index(after: text.utf8.startIndex)]
+        if first >= 0x31, first <= 0x39, second == 0x2e {
+            return String(text.dropFirst(2))
+        }
+        return text
     }
 }

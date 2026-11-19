@@ -32,6 +32,7 @@ app: common
 		-o $(OUT)/MacOS/TSInputMethod \
 		Sources/TSInputMethod/main.swift \
 		Sources/TSInputMethod/DaemonClient.swift \
+		Sources/TSInputMethod/CandidatePanel.swift \
 		Sources/TSInputMethod/InputController.swift
 
 install: app
