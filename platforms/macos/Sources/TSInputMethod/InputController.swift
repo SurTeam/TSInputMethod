@@ -5,14 +5,12 @@ import InputMethodKit
 class TSInputController: IMKInputController {
     private let daemon = DaemonClient()
     private let candidatePanel = CandidatePanel()
+    private let modeToggleHotkeys = ModeToggleHotkeys()
     private var markedText: String = ""
     private var candidates: [String] = []
     private var comments: [String] = []
     private var selectedIndex: Int = 0
-    private var leftShiftDown = false
-    private var leftShiftUsedAsModifier = false
 
-    private let keyLeftShift: UInt16 = 56
     private let keyUpArrow: UInt32 = 126
     private let keyDownArrow: UInt32 = 125
 
@@ -41,13 +39,17 @@ class TSInputController: IMKInputController {
             return false
         }
         if event.type == .flagsChanged {
-            return handleFlagsChanged(event)
+            return modeToggleHotkeys.handleFlagsChanged(event) { [weak self] in
+                self?.toggleChineseEnglish()
+            }
         }
         if event.type != .keyDown {
             return false
         }
-        if leftShiftDown {
-            leftShiftUsedAsModifier = true
+        if modeToggleHotkeys.handleKeyDown(event, toggle: { [weak self] in
+            self?.toggleChineseEnglish()
+        }) {
+            return true
         }
         if !daemon.chineseMode {
             return false
@@ -132,27 +134,12 @@ class TSInputController: IMKInputController {
         }
     }
 
-    private func handleFlagsChanged(_ event: NSEvent) -> Bool {
-        let shiftDown = event.modifierFlags.contains(.shift)
-        if event.keyCode != keyLeftShift {
-            if leftShiftDown && shiftDown {
-                leftShiftUsedAsModifier = true
-            }
-            return false
-        }
-        if shiftDown && !leftShiftDown {
-            leftShiftDown = true
-            leftShiftUsedAsModifier = false
-            return false
-        }
-        if !shiftDown && leftShiftDown {
-            leftShiftDown = false
-            if !leftShiftUsedAsModifier {
-                toggleChineseEnglish()
-                return true
-            }
-        }
-        return false
+    func modeToggleBindings() -> [ModeToggleBinding] {
+        modeToggleHotkeys.currentBindings()
+    }
+
+    func setModeToggleBindings(_ bindings: [ModeToggleBinding]) {
+        modeToggleHotkeys.setBindings(bindings)
     }
 
     private func toggleChineseEnglish() {
