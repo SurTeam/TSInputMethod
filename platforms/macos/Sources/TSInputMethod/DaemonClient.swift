@@ -11,12 +11,23 @@ struct KeyOutcome {
 
 final class DaemonClient {
     private static var sharedChineseMode: Bool = true
+    private static var lastModeToggleAt: Date = .distantPast
+    private static let modeToggleDebounce: TimeInterval = 0.35
 
     private var client: OpaquePointer?
     private(set) var sessionId: String = ""
 
-var chineseMode: Bool {
+    var chineseMode: Bool {
         Self.sharedChineseMode
+    }
+
+    func consumeModeToggleOpportunity() -> Bool {
+        let now = Date()
+        if now.timeIntervalSince(Self.lastModeToggleAt) < Self.modeToggleDebounce {
+            return false
+        }
+        Self.lastModeToggleAt = now
+        return true
     }
 
     static func isReachable() -> Bool {

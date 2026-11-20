@@ -51,6 +51,27 @@ func TestExpandXiaoheRemainder(t *testing.T) {
 	}
 }
 
+func TestExpandXiaoheMappedSingleKeyRemainder(t *testing.T) {
+	cases := map[string]string{
+		"i": "ch",
+		"u": "sh",
+		"v": "zh",
+		"h": "h",
+		"b": "b",
+		"a": "a",
+	}
+	for in, want := range cases {
+		syls, rem, ok := ExpandXiaohe(in)
+		if !ok || rem != want || len(syls) != 0 {
+			t.Fatalf("%s => syls=%v rem=%q ok=%v want rem=%q", in, syls, rem, ok, want)
+		}
+		analyzed := AnalyzeInput(SchemeXiaohe, in)
+		if analyzed.Remainder != want {
+			t.Fatalf("AnalyzeInput(%s).Remainder=%q want %q", in, analyzed.Remainder, want)
+		}
+	}
+}
+
 func TestExpandXiaoheWOYO(t *testing.T) {
 	cases := map[string]string{
 		"wo": "wo",

@@ -123,8 +123,8 @@ override func deactivateServer(_ sender: Any!) {
     }
 
     @objc private func enableEnglish() {
-        commitCompositionLocally(client: client())
         daemon.setChineseMode(false)
+        commitCompositionLocally(client: client())
     }
 
     @objc private func restartInputMethod() {
@@ -154,6 +154,9 @@ override func deactivateServer(_ sender: Any!) {
     }
 
     private func toggleChineseEnglish() {
+        guard daemon.consumeModeToggleOpportunity() else {
+            return
+        }
         if daemon.chineseMode {
             enableEnglish()
         } else {

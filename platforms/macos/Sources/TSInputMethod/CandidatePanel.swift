@@ -120,25 +120,18 @@ final class CandidatePanel {
 
     private func measureColumnWidth(_ text: String) -> CGFloat {
         let labelFont = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
-        let textFont = font(ofSize: bodyPointSize, weight: .regular)
-        let selectedTextFont = font(ofSize: bodyPointSize, weight: .semibold)
+        let textFont = font(ofSize: bodyPointSize)
         let labelWidth = ("1" as NSString).size(withAttributes: [.font: labelFont]).width
         let body = text as NSString
-        let bodyWidth = max(
-            body.size(withAttributes: [.font: textFont]).width,
-            body.size(withAttributes: [.font: selectedTextFont]).width
-        )
+        let bodyWidth = body.size(withAttributes: [.font: textFont]).width
         return max(minColumnWidth, ceil(cellHorizontalPadding * 2 + labelWidth + labelBodyGap + bodyWidth))
     }
 
-    private func font(ofSize size: CGFloat, weight: NSFont.Weight) -> NSFont {
+    private func font(ofSize size: CGFloat) -> NSFont {
         if let named = NSFont(name: bodyFontName, size: size) {
-            if weight == .semibold {
-                return NSFontManager.shared.convert(named, toHaveTrait: .boldFontMask)
-            }
             return named
         }
-        return NSFont.systemFont(ofSize: size, weight: weight)
+        return NSFont.systemFont(ofSize: size, weight: .regular)
     }
 
     private static func bareText(_ text: String) -> String {
@@ -224,14 +217,11 @@ private final class CandidatePanelView: NSView {
         )
     }
 
-    private func bodyFont(weight: NSFont.Weight) -> NSFont {
+    private func bodyFont() -> NSFont {
         if let named = NSFont(name: bodyFontName, size: bodyPointSize) {
-            if weight == .semibold {
-                return NSFontManager.shared.convert(named, toHaveTrait: .boldFontMask)
-            }
             return named
         }
-        return NSFont.systemFont(ofSize: bodyPointSize, weight: weight)
+        return NSFont.systemFont(ofSize: bodyPointSize, weight: .regular)
     }
 
     override func draw(_ dirtyRect: NSRect) {
@@ -246,8 +236,7 @@ private final class CandidatePanelView: NSView {
         border.stroke()
 
         let labelFont = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
-        let textFont = bodyFont(weight: .regular)
-        let selectedTextFont = bodyFont(weight: .semibold)
+        let textFont = bodyFont()
         let labelColor = NSColor.secondaryLabelColor.withAlphaComponent(0.72)
         let textColor = NSColor.labelColor
         let selectedLabelColor = NSColor.white.withAlphaComponent(0.85)
@@ -269,7 +258,7 @@ private final class CandidatePanelView: NSView {
                 .foregroundColor: selected ? selectedLabelColor : labelColor,
             ]
             let bodyAttrs: [NSAttributedString.Key: Any] = [
-                .font: selected ? selectedTextFont : textFont,
+                .font: textFont,
                 .foregroundColor: selected ? selectedTextColor : textColor,
             ]
             let labelSize = label.size(withAttributes: labelAttrs)

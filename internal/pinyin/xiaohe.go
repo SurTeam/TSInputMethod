@@ -74,9 +74,19 @@ func ExpandXiaohePaths(input string) (paths [][]string, remainder string, ok boo
 		i += 2
 	}
 	if i < len(input) {
-		return paths, input[i:], true
+		return paths, mapXiaoheRemainder(input[i:]), true
 	}
 	return paths, "", true
+}
+
+func mapXiaoheRemainder(rem string) string {
+	if len(rem) != 1 {
+		return rem
+	}
+	if init, ok := xiaoheInitials[rem[0]]; ok {
+		return init
+	}
+	return rem
 }
 
 func mapXiaohePair(first, second byte) (string, bool) {
