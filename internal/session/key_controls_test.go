@@ -98,6 +98,77 @@ func TestShiftLetterCreatesLiteralCandidate(t *testing.T) {
 	}
 }
 
+func TestLiteralMixedCaseKeepsLeadingCapital(t *testing.T) {
+	m := NewManager(testEngine())
+	s := m.Open(imev1.InputMode_INPUT_MODE_CHINESE)
+	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "H", Modifiers: modShift})
+	if res.Composition == nil || res.Composition.Preedit != "H" {
+		t.Fatalf("leading capital preedit = %#v", res.Composition)
+	}
+	for _, ch := range []string{"e", "l", "l", "o"} {
+		res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: ch})
+	}
+	if res.Composition == nil || res.Composition.Preedit != "Hello" {
+		t.Fatalf("mixed case preedit = %#v", res.Composition)
+	}
+	if res.Candidates == nil || len(res.Candidates.Candidates) != 1 || bareCandidateText(res.Candidates.Candidates[0].Text) != "Hello" {
+		t.Fatalf("mixed case candidates = %#v", res.Candidates)
+	}
+}
+
+func TestLowercaseThenShiftLetterEntersLiteral(t *testing.T) {
+	m := NewManager(testEngine())
+	s := m.Open(imev1.InputMode_INPUT_MODE_CHINESE)
+	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "h"})
+	if res.Composition == nil || res.Composition.Preedit != "h" {
+		t.Fatalf("lowercase start preedit = %#v", res.Composition)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "E", Modifiers: modShift})
+	if res.Composition == nil || res.Composition.Preedit != "hE" {
+		t.Fatalf("shift after lowercase preedit = %#v", res.Composition)
+	}
+	if res.Candidates == nil || len(res.Candidates.Candidates) != 1 || bareCandidateText(res.Candidates.Candidates[0].Text) != "hE" {
+		t.Fatalf("shift after lowercase candidates = %#v", res.Candidates)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "l"})
+	if res.Composition == nil || res.Composition.Preedit != "hEl" {
+		t.Fatalf("continue mixed preedit = %#v", res.Composition)
+	}
+	if res.Candidates == nil || len(res.Candidates.Candidates) != 1 || bareCandidateText(res.Candidates.Candidates[0].Text) != "hEl" {
+		t.Fatalf("continue mixed candidates = %#v", res.Candidates)
+	}
+}
+
+func TestAllCapsLiteralSingleCandidate(t *testing.T) {
+	m := NewManager(testEngine())
+	s := m.Open(imev1.InputMode_INPUT_MODE_CHINESE)
+	var res *KeyResult
+	for _, ch := range []string{"O", "K"} {
+		res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: ch, Modifiers: modShift})
+	}
+	if res.Composition == nil || res.Composition.Preedit != "OK" {
+		t.Fatalf("all caps preedit = %#v", res.Composition)
+	}
+	if res.Candidates == nil || len(res.Candidates.Candidates) != 1 || bareCandidateText(res.Candidates.Candidates[0].Text) != "OK" {
+		t.Fatalf("all caps candidates = %#v", res.Candidates)
+	}
+}
+
+func TestAllLowercaseStaysPinyinCompose(t *testing.T) {
+	m := NewManager(testEngine())
+	s := m.Open(imev1.InputMode_INPUT_MODE_CHINESE)
+	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "ni"})
+	if res.Composition == nil || res.Composition.Preedit != "ni" {
+		t.Fatalf("lowercase pinyin preedit = %#v", res.Composition)
+	}
+	if res.Candidates == nil || len(res.Candidates.Candidates) == 0 {
+		t.Fatalf("lowercase pinyin should decode candidates = %#v", res.Candidates)
+	}
+	if bareCandidateText(res.Candidates.Candidates[0].Text) == "ni" && len(res.Candidates.Candidates) == 1 {
+		t.Fatalf("lowercase pinyin should not collapse to single literal candidate = %#v", res.Candidates)
+	}
+}
+
 func TestShiftSymbolUsesHalfShapeMap(t *testing.T) {
 	m := NewManager(testEngine())
 	s := m.Open(imev1.InputMode_INPUT_MODE_CHINESE)

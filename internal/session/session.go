@@ -319,9 +319,6 @@ func (s *Session) handleShiftInputLocked(characters string) *KeyResult {
 		}
 	}
 	if len(letters) > 0 {
-		if s.hasCompositionLocked() && !s.literal {
-			return &KeyResult{Consumed: true, Composition: s.compositionLocked(), Candidates: s.candidateListLocked(s.currentCandidatesLocked())}
-		}
 		for _, r := range letters {
 			s.preedit = append(s.preedit[:s.cursor], append([]rune{r}, s.preedit[s.cursor:]...)...)
 			s.cursor++
@@ -360,14 +357,6 @@ func (s *Session) composeCharactersLocked(characters string) *KeyResult {
 			return s.selectByDigitLocked(r)
 		}
 		if r >= 'a' && r <= 'z' {
-			if s.literal {
-				s.literal = false
-				s.preedit = nil
-				s.cursor = 0
-				s.confirmed = nil
-				s.page = 0
-				s.selectedIndex = 0
-			}
 			s.preedit = append(s.preedit[:s.cursor], append([]rune{r}, s.preedit[s.cursor:]...)...)
 			s.cursor++
 			s.page = 0
@@ -375,16 +364,11 @@ func (s *Session) composeCharactersLocked(characters string) *KeyResult {
 			continue
 		}
 		if r >= 'A' && r <= 'Z' {
-			lower := unicode.ToLower(r)
-			if s.literal {
-				s.literal = false
-				s.preedit = nil
-				s.cursor = 0
-				s.confirmed = nil
-				s.page = 0
-				s.selectedIndex = 0
+			letter := r
+			if !s.literal {
+				letter = unicode.ToLower(r)
 			}
-			s.preedit = append(s.preedit[:s.cursor], append([]rune{lower}, s.preedit[s.cursor:]...)...)
+			s.preedit = append(s.preedit[:s.cursor], append([]rune{letter}, s.preedit[s.cursor:]...)...)
 			s.cursor++
 			s.page = 0
 			s.selectedIndex = 0
