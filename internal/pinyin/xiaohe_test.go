@@ -23,11 +23,47 @@ func TestExpandXiaoheZeroInitial(t *testing.T) {
 		"aj": "an",
 		"ah": "ang",
 		"er": "er",
+		"an": "an",
+		"ai": "ai",
+		"ao": "ao",
+		"ou": "ou",
+		"en": "en",
+		"ei": "ei",
 	}
 	for in, want := range cases {
 		syls, rem, ok := ExpandXiaohe(in)
 		if !ok || rem != "" || len(syls) != 1 || syls[0] != want {
 			t.Fatalf("%s => %v rem=%q ok=%v want %s", in, syls, rem, ok, want)
+		}
+	}
+}
+
+func TestExpandXiaoheAnquanPaths(t *testing.T) {
+	cases := map[string]struct {
+		syls []string
+		rem  string
+	}{
+		"an":   {[]string{"an"}, ""},
+		"anq":  {[]string{"an"}, "q"},
+		"anqr": {[]string{"an", "quan"}, ""},
+		"ajqr": {[]string{"an", "quan"}, ""},
+	}
+	for in, want := range cases {
+		syls, rem, ok := ExpandXiaohe(in)
+		if !ok {
+			t.Fatalf("%s expand failed syls=%v rem=%q", in, syls, rem)
+		}
+		if rem != want.rem || len(syls) != len(want.syls) {
+			t.Fatalf("%s => syls=%v rem=%q want syls=%v rem=%q", in, syls, rem, want.syls, want.rem)
+		}
+		for i := range want.syls {
+			if syls[i] != want.syls[i] {
+				t.Fatalf("%s => syls=%v want %v", in, syls, want.syls)
+			}
+		}
+		analyzed := AnalyzeInput(SchemeXiaohe, in)
+		if !analyzed.FixedSplit {
+			t.Fatalf("%s should stay FixedSplit", in)
 		}
 	}
 }
