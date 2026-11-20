@@ -1,19 +1,21 @@
 # Module: dictionary
 
-**Status:** implemented / auto-tested (fixture + compiled rime-ice index load path; user dictionary CRUD/persist/concurrency).
+**Status:** implemented / auto-tested (fixture + compiled rime-ice index load path; compact mmap runtime; user dictionary CRUD/persist/concurrency).
 
 ## Goals
 
 - Load compiled Chinese dictionary indexes produced by `tools/dictBuilder`.
 - Support exact syllable-sequence lookup and prefix lookup for continuous pinyin.
 - Keep runtime free of Rime Runtime.
+- Keep system-dictionary residency close to the on-disk `.tsdict` footprint (mmap + offset indexes; materialize `Entry` on lookup).
 - Provide a local UserDictionary overlay (manual + auto-learned) that merges with the system dictionary before candidate prune.
 
 ## Boundaries
 
-- **In scope:** binary index load, syllable set, entry lookup by pinyin key, weight-ordered results, user overlay CRUD/lookup, atomic JSON persistence, phrase auto-learn helpers.
+- **In scope:** binary index load, syllable set, entry lookup by pinyin key, weight-ordered results, compact mmap/byte-buffer runtime indexes, user overlay CRUD/lookup, atomic JSON persistence, phrase auto-learn helpers.
 - **Out of scope:** YAML parsing at runtime, ranking models / SGD, platform UI, OpenCC emoji expansion (see `internal/emoji` / engine).
 - Built-in `.tsdict` remains read-only; user data lives under the OS user config directory.
+- `FromEntries` keeps an in-memory eager path for small test dictionaries; production `LoadFile` uses the compact path.
 
 ## User dictionary
 
@@ -28,6 +30,7 @@
 | Path | Role |
 | --- | --- |
 | `internal/dictionary` | Runtime loader and lookup |
+| `internal/dictionary/mmap_unix.go` / `mmap_stub.go` | Prefer `mmap` for `.tsdict`; non-unix falls back to `ReadFile` |
 | `internal/dictionary/user_dictionary.go` | User overlay CRUD + merge |
 | `internal/dictionary/user_storage.go` | Atomic JSON persistence |
 | `internal/dictionary/user_learning.go` | Phrase auto-learn |

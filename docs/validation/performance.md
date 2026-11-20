@@ -1,6 +1,6 @@
 # Performance validation
 
-**Status:** bench entry points exist; recorded timings are host-local samples, not SLA claims.
+**Status:** bench entry points exist; recorded timings and dictionary residency samples are host-local, not SLA claims.
 
 ## Budgets (targets, not guarantees)
 
@@ -14,7 +14,23 @@
 | FusedRanker (3 cands) | TBD | sample M1 Pro: ~5421 ns/op, 1296 B/op (`BenchmarkFusedRanker`) |
 | Personal eval est_model_bytes (fixture) | TBD | Fast 0; UserFreq 48; SGD 464 (21 weights); UserFreq+SGD 320 |
 | Personal eval heap_alloc_b (fixture) | TBD | ~224–239 KiB after GC (`runtime.MemStats.HeapAlloc`) |
-| Daemon RSS after dict load | TBD | not measured |
+| Daemon RSS after dict load | closer to on-disk `.tsdict` than 10× Go expansion | pre-opt live `tsimed` RSS ≈516 MiB; post-opt LoadFile HeapAlloc Δ ≈34.7 MiB (see below) |
+| Dict LoadFile HeapAlloc (full rime-ice) | ≪ prior ~418 MiB eager expansion | after compact mmap runtime: ≈34.7 MiB |
+
+## Dictionary residency (rime-ice.tsdict)
+
+Same compiled index: ≈43 MiB on disk, `entry_count=1910826`.
+
+| Stage | Method | Result |
+| --- | --- | --- |
+| Before (eager `[]Entry` + `map[string][]int`) | `LoadFile` then `runtime.GC` + `MemStats` | HeapAlloc Δ ≈ **418.0 MiB**; live `tsimed` RSS ≈ **516 MiB** |
+| After (mmap bytes + `entryOff` / sorted `keyBlob` / `postings`) | same probe on compact runtime | HeapAlloc Δ ≈ **34.7 MiB**; `compact=true`; approximate index bytes ≈7.3 MiB offsets + ≈12.9 MiB keys + ≈7.3 MiB postings |
+
+Notes:
+
+- mmap file pages are outside Go `HeapAlloc`; compare HeapAlloc for Go-owned structures, and process RSS after shipping a rebuilt daemon for end-to-end residency.
+- Load still builds a temporary grouping map that is discarded before return; steady-state no longer retains per-entry Go strings.
+- Design mirrors SQLite-style sorted key + offset/postings + on-demand decode over a memory-mapped table.
 
 ## Capacity / eviction (personalization)
 
@@ -41,4 +57,5 @@ Record machine, OS, commit SHA, and full command output before promoting any num
 ## Method
 
 - Package benches live next to modules (`*_bench_test.go`) plus `tests/performance`.
+- Dictionary residency: temporary `LoadFile` + `runtime.MemStats` probe against full `rime-ice.tsdict` (package test cwd may resolve the installed app Resources copy).
 - Re-evaluate FlatBuffers / Cap’n Proto only with comparative benches (see ADR 0001).
