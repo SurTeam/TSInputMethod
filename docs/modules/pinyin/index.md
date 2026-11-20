@@ -8,11 +8,12 @@
 - Lattice / composition search over dictionary entries.
 - Frequency-oriented candidate ordering for the engine API.
 - Xiaohe (flypy) double-pinyin expands by fixed 2-key pairs (rime-ice / flypy algebra), then decodes on those syllables without re-segmenting the joined quanpin string.
+- Optional UserDictionary overlay merges into exact/prefix/partial/lattice lookups via `Decoder.SetUserDictionary` before the finish prune.
 
 ## Boundaries
 
-- **In scope:** syllable validity, segmentation, decode candidates, scheme normalization.
-- **Out of scope:** IPC, session editing keys (owned by `internal/session`), neural ranking.
+- **In scope:** syllable validity, segmentation, decode candidates, scheme normalization, user-overlay merge points.
+- **Out of scope:** IPC, session editing keys (owned by `internal/session`), neural ranking, user-dictionary persistence.
 
 ## Schemes
 

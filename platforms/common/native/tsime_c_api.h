@@ -36,6 +36,7 @@ void tsime_client_disconnect(TsimeClient *client);
 int tsime_client_hello(TsimeClient *client, const char *client_name);
 int tsime_client_open_session(TsimeClient *client, int mode, char *session_id_out, size_t session_id_cap);
 int tsime_client_close_session(TsimeClient *client, const char *session_id);
+int tsime_client_invalidate_learning_context(TsimeClient *client, const char *session_id);
 int tsime_client_set_mode(TsimeClient *client, const char *session_id, int mode);
 TsimeKeyResult tsime_client_handle_key(TsimeClient *client, const char *session_id, uint32_t key_code,
                                        uint32_t modifiers, const char *characters, int key_down, int is_repeat,

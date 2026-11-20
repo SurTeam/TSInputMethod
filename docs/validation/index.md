@@ -22,6 +22,8 @@ See [../index.md](../index.md) for implemented / compiled / auto-tested / real-e
 | Windows TSF adapter | yes (source + scripts) | **no** (needs MSVC) | no | **no** |
 | Linux Fcitx5 adapter | yes (source + scripts) | **no** (needs Fcitx5) | no | **no** |
 | Ranking / Inference | yes (API + FastRanker + stubs) | yes | yes (unit) | no |
+| Online SGD personalization + user dict | yes | yes | yes (`go test ./...`; `-race` on personal/ranking/engine/session/dictionary/pinyin) | no |
+| `cmd/tsime-personal-eval` | yes | yes | fixture replay smoke | no |
 | Xiaohe / flypy shuangpin | yes | yes | yes (unit) | no |
 | macOS trial package (`scripts/package_macos.sh`) | yes (DMG OOBE + SurTeam codesign + TIS register/enable) | yes when packaged | codesign verify + TIS parent/Hans enable + select | Settings Add browser / typing **no** |
 

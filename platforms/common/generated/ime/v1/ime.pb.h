@@ -137,6 +137,14 @@ extern const ::google::protobuf::internal::ClassDataFull InputModeState_class_da
 #else
 extern const InputModeStateGlobalsTypeInternal InputModeState_globals_;
 #endif  // PROTOBUF_MESSAGE_GLOBALS
+class InvalidateLearningContext;
+struct InvalidateLearningContextGlobalsTypeInternal;
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+extern InvalidateLearningContextGlobalsTypeInternal InvalidateLearningContext_globals_;
+extern const ::google::protobuf::internal::ClassDataFull InvalidateLearningContext_class_data_;
+#else
+extern const InvalidateLearningContextGlobalsTypeInternal InvalidateLearningContext_globals_;
+#endif  // PROTOBUF_MESSAGE_GLOBALS
 class KeyEvent;
 struct KeyEventGlobalsTypeInternal;
 #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -320,7 +328,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Status final : public ::google::pro
   [[nodiscard]] static const Status& default_instance() {
     return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<Status>(&Status_globals_);
   }
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 17;
   friend void swap(Status& a, Status& b) { a.Swap(&b); }
   inline void Swap(Status* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -538,7 +546,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED SetInputMode final : public ::googl
   [[nodiscard]] static const SetInputMode& default_instance() {
     return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<SetInputMode>(&SetInputMode_globals_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(SetInputMode& a, SetInputMode& b) { a.Swap(&b); }
   inline void Swap(SetInputMode* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -756,7 +764,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED SelectCandidate final : public ::go
   [[nodiscard]] static const SelectCandidate& default_instance() {
     return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<SelectCandidate>(&SelectCandidate_globals_);
   }
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 14;
   friend void swap(SelectCandidate& a, SelectCandidate& b) { a.Swap(&b); }
   inline void Swap(SelectCandidate* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1635,7 +1643,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED KeyEvent final : public ::google::p
   [[nodiscard]] static const KeyEvent& default_instance() {
     return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<KeyEvent>(&KeyEvent_globals_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(KeyEvent& a, KeyEvent& b) { a.Swap(&b); }
   inline void Swap(KeyEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1848,6 +1856,212 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED KeyEvent final : public ::google::p
 };
 // -------------------------------------------------------------------
 
+class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InvalidateLearningContext final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:ime.v1.InvalidateLearningContext) */ {
+  using Super_ = ::google::protobuf::Message;
+
+ public:
+  inline InvalidateLearningContext() : InvalidateLearningContext(nullptr) {}
+  ~InvalidateLearningContext() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(InvalidateLearningContext* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(InvalidateLearningContext));
+  }
+#endif
+
+  template <typename = void>
+  explicit constexpr InvalidateLearningContext(::google::protobuf::internal::ConstantInitialized,
+                           const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+                               class_data);
+
+  inline InvalidateLearningContext(const InvalidateLearningContext& from) : InvalidateLearningContext(nullptr, from) {}
+  inline InvalidateLearningContext(InvalidateLearningContext&& from) noexcept : InvalidateLearningContext(nullptr, ::std::move(from)) {}
+  inline InvalidateLearningContext& operator=(const InvalidateLearningContext& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline InvalidateLearningContext& operator=(InvalidateLearningContext&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  [[nodiscard]] inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  [[nodiscard]] inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL
+  mutable_unknown_fields() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  [[nodiscard]] static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  [[nodiscard]] static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL
+  GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  [[nodiscard]] static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  [[nodiscard]] static const InvalidateLearningContext& default_instance() {
+    return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<InvalidateLearningContext>(&InvalidateLearningContext_globals_);
+  }
+  static constexpr int kIndexInFileMessages = 6;
+  friend void swap(InvalidateLearningContext& a, InvalidateLearningContext& b) { a.Swap(&b); }
+  inline void Swap(InvalidateLearningContext* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(InvalidateLearningContext* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  [[nodiscard]] InvalidateLearningContext* PROTOBUF_NONNULL
+  New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return Super_::DefaultConstruct<InvalidateLearningContext>(arena);
+  }
+  using Super_::CopyFrom;
+  void CopyFrom(const InvalidateLearningContext& from);
+  using Super_::MergeFrom;
+  void MergeFrom(const InvalidateLearningContext& from) { InvalidateLearningContext::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  [[nodiscard]] bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  [[nodiscard]] static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  [[nodiscard]] static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  [[nodiscard]] ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  [[nodiscard]] ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  [[nodiscard]] ::size_t ByteSizeLong() const final;
+  [[nodiscard]] ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  [[nodiscard]] int GetCachedSize() const {
+    return _impl_._cached_size_.Get();
+  }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(InvalidateLearningContext* PROTOBUF_NONNULL other);
+ private:
+  static ::absl::string_view FullMessageName() { return "ime.v1.InvalidateLearningContext"; }
+
+  explicit InvalidateLearningContext(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  InvalidateLearningContext(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const InvalidateLearningContext& from);
+  InvalidateLearningContext(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, InvalidateLearningContext&& from) noexcept
+      : InvalidateLearningContext(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_(
+      const MessageLite& prototype,
+      const ::google::protobuf::internal::TcParseTableBase* PROTOBUF_NULLABLE tc_table = nullptr);
+
+  [[nodiscard]] ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kSessionIdFieldNumber = 1,
+  };
+  // string session_id = 1;
+  void clear_session_id() ;
+  [[nodiscard]] const ::std::string& session_id() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_session_id(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_session_id();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_session_id();
+  void set_allocated_session_id(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_session_id() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_session_id(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_session_id();
+
+  public:
+  // @@protoc_insertion_point(class_scope:ime.v1.InvalidateLearningContext)
+ private:
+  class _Internal;
+  using ParseTableT_ =
+      ::google::protobuf::internal::TcParseTable<0, 1,
+                          0, 51,
+                          2>;
+  static constexpr ParseTableT_ InternalGenerateParseTable_(
+      const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
+  friend class ::google::protobuf::internal::TcParser;
+  #ifndef PROTOBUF_MESSAGE_GLOBALS
+  static const ParseTableT_ _table_;
+  #endif
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  friend ::google::protobuf::internal::PrivateAccess;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                                    ::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const InvalidateLearningContext& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr session_id_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_ime_2fv1_2fime_2eproto;
+};
+// -------------------------------------------------------------------
+
 class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InputModeState final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:ime.v1.InputModeState) */ {
   using Super_ = ::google::protobuf::Message;
@@ -1906,7 +2120,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InputModeState final : public ::goo
   [[nodiscard]] static const InputModeState& default_instance() {
     return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<InputModeState>(&InputModeState_globals_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(InputModeState& a, InputModeState& b) { a.Swap(&b); }
   inline void Swap(InputModeState* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2124,7 +2338,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED GetInputMode final : public ::googl
   [[nodiscard]] static const GetInputMode& default_instance() {
     return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<GetInputMode>(&GetInputMode_globals_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(GetInputMode& a, GetInputMode& b) { a.Swap(&b); }
   inline void Swap(GetInputMode* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2330,7 +2544,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Error final : public ::google::prot
   [[nodiscard]] static const Error& default_instance() {
     return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<Error>(&Error_globals_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(Error& a, Error& b) { a.Swap(&b); }
   inline void Swap(Error* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2548,7 +2762,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED CompositionState final : public ::g
   [[nodiscard]] static const CompositionState& default_instance() {
     return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<CompositionState>(&CompositionState_globals_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(CompositionState& a, CompositionState& b) { a.Swap(&b); }
   inline void Swap(CompositionState* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2795,7 +3009,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED CommitText final : public ::google:
   [[nodiscard]] static const CommitText& default_instance() {
     return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<CommitText>(&CommitText_globals_);
   }
-  static constexpr int kIndexInFileMessages = 14;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(CommitText& a, CommitText& b) { a.Swap(&b); }
   inline void Swap(CommitText* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3236,7 +3450,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Candidate final : public ::google::
   [[nodiscard]] static const Candidate& default_instance() {
     return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<Candidate>(&Candidate_globals_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(Candidate& a, Candidate& b) { a.Swap(&b); }
   inline void Swap(Candidate* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3929,7 +4143,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED CandidateList final : public ::goog
   [[nodiscard]] static const CandidateList& default_instance() {
     return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<CandidateList>(&CandidateList_globals_);
   }
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(CandidateList& a, CandidateList& b) { a.Swap(&b); }
   inline void Swap(CandidateList* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4205,7 +4419,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED KeyEventResult final : public ::goo
   [[nodiscard]] static const KeyEventResult& default_instance() {
     return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<KeyEventResult>(&KeyEventResult_globals_);
   }
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(KeyEventResult& a, KeyEventResult& b) { a.Swap(&b); }
   inline void Swap(KeyEventResult* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4463,6 +4677,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Envelope final : public ::google::p
     kOpenSession = 12,
     kOpenSessionAck = 13,
     kCloseSession = 14,
+    kInvalidateLearningContext = 26,
     kKeyEvent = 15,
     kKeyEventResult = 16,
     kSetInputMode = 17,
@@ -4476,7 +4691,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Envelope final : public ::google::p
     kStatus = 25,
     PAYLOAD_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 18;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(Envelope& a, Envelope& b) { a.Swap(&b); }
   inline void Swap(Envelope* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4574,6 +4789,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Envelope final : public ::google::p
     kOpenSessionFieldNumber = 12,
     kOpenSessionAckFieldNumber = 13,
     kCloseSessionFieldNumber = 14,
+    kInvalidateLearningContextFieldNumber = 26,
     kKeyEventFieldNumber = 15,
     kKeyEventResultFieldNumber = 16,
     kSetInputModeFieldNumber = 17,
@@ -4709,6 +4925,25 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Envelope final : public ::google::p
   private:
   const ::ime::v1::CloseSession& _internal_close_session() const;
   ::ime::v1::CloseSession* PROTOBUF_NONNULL _internal_mutable_close_session();
+
+  public:
+  // .ime.v1.InvalidateLearningContext invalidate_learning_context = 26;
+  [[nodiscard]] bool has_invalidate_learning_context() const;
+  private:
+  bool _internal_has_invalidate_learning_context() const;
+
+  public:
+  void clear_invalidate_learning_context() ;
+  [[nodiscard]] const ::ime::v1::InvalidateLearningContext& invalidate_learning_context() const;
+  [[nodiscard]] ::ime::v1::InvalidateLearningContext* PROTOBUF_NULLABLE release_invalidate_learning_context();
+  ::ime::v1::InvalidateLearningContext* PROTOBUF_NONNULL mutable_invalidate_learning_context();
+  void set_allocated_invalidate_learning_context(::ime::v1::InvalidateLearningContext* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_invalidate_learning_context(::ime::v1::InvalidateLearningContext* PROTOBUF_NULLABLE value);
+  ::ime::v1::InvalidateLearningContext* PROTOBUF_NULLABLE unsafe_arena_release_invalidate_learning_context();
+
+  private:
+  const ::ime::v1::InvalidateLearningContext& _internal_invalidate_learning_context() const;
+  ::ime::v1::InvalidateLearningContext* PROTOBUF_NONNULL _internal_mutable_invalidate_learning_context();
 
   public:
   // .ime.v1.KeyEvent key_event = 15;
@@ -4930,6 +5165,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Envelope final : public ::google::p
   void set_has_open_session();
   void set_has_open_session_ack();
   void set_has_close_session();
+  void set_has_invalidate_learning_context();
   void set_has_key_event();
   void set_has_key_event_result();
   void set_has_set_input_mode();
@@ -4944,8 +5180,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Envelope final : public ::google::p
   [[nodiscard]] inline bool has_payload() const;
   inline void clear_has_payload();
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<2, 19,
-                          16, 0,
+      ::google::protobuf::internal::TcParseTable<2, 20,
+                          17, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -4984,6 +5220,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Envelope final : public ::google::p
       ::google::protobuf::Message* PROTOBUF_NULLABLE open_session_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE open_session_ack_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE close_session_;
+      ::google::protobuf::Message* PROTOBUF_NULLABLE invalidate_learning_context_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE key_event_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE key_event_result_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE set_input_mode_;
@@ -5673,6 +5910,74 @@ inline void CloseSession::set_allocated_session_id(::std::string* PROTOBUF_NULLA
     _impl_.session_id_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:ime.v1.CloseSession.session_id)
+}
+
+// -------------------------------------------------------------------
+
+// InvalidateLearningContext
+
+// string session_id = 1;
+inline void InvalidateLearningContext::clear_session_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.session_id_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+}
+inline const ::std::string& InvalidateLearningContext::session_id() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:ime.v1.InvalidateLearningContext.session_id)
+  return _internal_session_id();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void InvalidateLearningContext::set_session_id(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.session_id_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:ime.v1.InvalidateLearningContext.session_id)
+}
+inline ::std::string* PROTOBUF_NONNULL InvalidateLearningContext::mutable_session_id()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_session_id();
+  // @@protoc_insertion_point(field_mutable:ime.v1.InvalidateLearningContext.session_id)
+  return _s;
+}
+inline const ::std::string& InvalidateLearningContext::_internal_session_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.session_id_.Get();
+}
+inline void InvalidateLearningContext::_internal_set_session_id(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.session_id_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL InvalidateLearningContext::_internal_mutable_session_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.session_id_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE InvalidateLearningContext::release_session_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:ime.v1.InvalidateLearningContext.session_id)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.session_id_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.session_id_.Set("", GetArena());
+  }
+  return released;
+}
+inline void InvalidateLearningContext::set_allocated_session_id(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.session_id_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.session_id_.IsDefault()) {
+    _impl_.session_id_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:ime.v1.InvalidateLearningContext.session_id)
 }
 
 // -------------------------------------------------------------------
@@ -7966,6 +8271,87 @@ inline ::ime::v1::CloseSession* PROTOBUF_NONNULL Envelope::mutable_close_session
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::ime::v1::CloseSession* _msg = _internal_mutable_close_session();
   // @@protoc_insertion_point(field_mutable:ime.v1.Envelope.close_session)
+  return _msg;
+}
+
+// .ime.v1.InvalidateLearningContext invalidate_learning_context = 26;
+inline bool Envelope::has_invalidate_learning_context() const {
+  return payload_case() == kInvalidateLearningContext;
+}
+inline bool Envelope::_internal_has_invalidate_learning_context() const {
+  return payload_case() == kInvalidateLearningContext;
+}
+inline void Envelope::set_has_invalidate_learning_context() {
+  _impl_._oneof_case_[0] = kInvalidateLearningContext;
+}
+inline void Envelope::clear_invalidate_learning_context() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (payload_case() == kInvalidateLearningContext) {
+    if (GetArena() == nullptr) {
+      delete _impl_.payload_.invalidate_learning_context_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.invalidate_learning_context_);
+    }
+    clear_has_payload();
+  }
+}
+inline ::ime::v1::InvalidateLearningContext* PROTOBUF_NULLABLE Envelope::release_invalidate_learning_context() {
+  // @@protoc_insertion_point(field_release:ime.v1.Envelope.invalidate_learning_context)
+  if (payload_case() == kInvalidateLearningContext) {
+    clear_has_payload();
+    auto* temp = reinterpret_cast<::ime::v1::InvalidateLearningContext*>(_impl_.payload_.invalidate_learning_context_);
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.payload_.invalidate_learning_context_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::ime::v1::InvalidateLearningContext& Envelope::_internal_invalidate_learning_context() const {
+  return payload_case() == kInvalidateLearningContext ? static_cast<const ::ime::v1::InvalidateLearningContext&>(*reinterpret_cast<::ime::v1::InvalidateLearningContext*>(_impl_.payload_.invalidate_learning_context_))
+                     : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::ime::v1::InvalidateLearningContext>(&::ime::v1::InvalidateLearningContext_globals_);
+}
+inline const ::ime::v1::InvalidateLearningContext& Envelope::invalidate_learning_context() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:ime.v1.Envelope.invalidate_learning_context)
+  return _internal_invalidate_learning_context();
+}
+inline ::ime::v1::InvalidateLearningContext* PROTOBUF_NULLABLE Envelope::unsafe_arena_release_invalidate_learning_context() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:ime.v1.Envelope.invalidate_learning_context)
+  if (payload_case() == kInvalidateLearningContext) {
+    clear_has_payload();
+    auto* temp = reinterpret_cast<::ime::v1::InvalidateLearningContext*>(_impl_.payload_.invalidate_learning_context_);
+    _impl_.payload_.invalidate_learning_context_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void Envelope::unsafe_arena_set_allocated_invalidate_learning_context(
+    ::ime::v1::InvalidateLearningContext* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_payload();
+  if (value) {
+    set_has_invalidate_learning_context();
+    _impl_.payload_.invalidate_learning_context_ = reinterpret_cast<::google::protobuf::Message*>(value);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:ime.v1.Envelope.invalidate_learning_context)
+}
+inline ::ime::v1::InvalidateLearningContext* PROTOBUF_NONNULL Envelope::_internal_mutable_invalidate_learning_context() {
+  if (payload_case() != kInvalidateLearningContext) {
+    clear_payload();
+    set_has_invalidate_learning_context();
+    _impl_.payload_.invalidate_learning_context_ = reinterpret_cast<::google::protobuf::Message*>(Super_::DefaultConstruct<::ime::v1::InvalidateLearningContext>(GetArena()));
+  }
+  return reinterpret_cast<::ime::v1::InvalidateLearningContext*>(_impl_.payload_.invalidate_learning_context_);
+}
+inline ::ime::v1::InvalidateLearningContext* PROTOBUF_NONNULL Envelope::mutable_invalidate_learning_context()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::ime::v1::InvalidateLearningContext* _msg = _internal_mutable_invalidate_learning_context();
+  // @@protoc_insertion_point(field_mutable:ime.v1.Envelope.invalidate_learning_context)
   return _msg;
 }
 

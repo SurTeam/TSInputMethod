@@ -164,7 +164,12 @@ void TsimeTextService::applyResult(ITfContext *pic, const TsimeKeyResult &result
   }
 }
 
-STDMETHODIMP TsimeTextService::OnSetFocus(BOOL) { return S_OK; }
+STDMETHODIMP TsimeTextService::OnSetFocus(BOOL fForeground) {
+  if (!fForeground && client_ != nullptr && sessionId_[0] != '\0') {
+    tsime_client_invalidate_learning_context(client_, sessionId_);
+  }
+  return S_OK;
+}
 
 STDMETHODIMP TsimeTextService::OnTestKeyDown(ITfContext *, WPARAM wParam, LPARAM, BOOL *pfEaten) {
   if (pfEaten == nullptr) {

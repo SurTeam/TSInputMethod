@@ -28,7 +28,7 @@
 | `request_id` | Correlate request/response |
 | `sequence_number` | Client ordering hint |
 | `generation` | Composition/candidate generation for stale discard |
-| `payload` | oneof Hello, session, key, candidate, commit, error |
+| `payload` | oneof Hello, session, key, candidate, commit, invalidate_learning_context, error |
 
 ## Negotiation
 

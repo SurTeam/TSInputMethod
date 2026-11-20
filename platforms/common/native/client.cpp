@@ -159,6 +159,16 @@ bool Client::closeSession(const std::string &sessionId) {
   return roundTrip(req, &resp);
 }
 
+bool Client::invalidateLearningContext(const std::string &sessionId) {
+  std::lock_guard<std::mutex> lock(mu_);
+  ime::v1::Envelope req;
+  req.set_request_id(nextRequestId_++);
+  req.set_sequence_number(nextSequence_++);
+  req.mutable_invalidate_learning_context()->set_session_id(sessionId);
+  ime::v1::Envelope resp;
+  return roundTrip(req, &resp) && resp.has_status() && resp.status().ok();
+}
+
 bool Client::setMode(const std::string &sessionId, int mode) {
   std::lock_guard<std::mutex> lock(mu_);
   ime::v1::Envelope req;

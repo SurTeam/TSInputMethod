@@ -97,6 +97,13 @@ extern "C" int tsime_client_close_session(TsimeClient *client, const char *sessi
   return client->inner.closeSession(session_id) ? 1 : 0;
 }
 
+extern "C" int tsime_client_invalidate_learning_context(TsimeClient *client, const char *session_id) {
+  if (client == nullptr || session_id == nullptr) {
+    return 0;
+  }
+  return client->inner.invalidateLearningContext(session_id) ? 1 : 0;
+}
+
 extern "C" int tsime_client_set_mode(TsimeClient *client, const char *session_id, int mode) {
   if (client == nullptr || session_id == nullptr) {
     return 0;

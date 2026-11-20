@@ -90,6 +90,67 @@ func TestHelloOpenSessionKeyEvent(t *testing.T) {
 	}
 }
 
+func TestInvalidateLearningContextRPC(t *testing.T) {
+	dir := t.TempDir()
+	socketPath := filepath.Join(dir, "i.sock")
+	manager := session.NewManager(engine.NewStubEngine())
+	server, err := ListenUnix(socketPath, manager)
+	if err != nil {
+		t.Fatalf("ListenUnix: %v", err)
+	}
+	go func() { _ = server.Serve() }()
+	t.Cleanup(func() { _ = server.Close() })
+	time.Sleep(20 * time.Millisecond)
+
+	client, err := DialUnix(socketPath)
+	if err != nil {
+		t.Fatalf("DialUnix: %v", err)
+	}
+	defer client.Close()
+
+	_, _ = client.RoundTrip(&imev1.Envelope{
+		RequestId: 1,
+		Payload: &imev1.Envelope_Hello{
+			Hello: &imev1.Hello{ClientVersion: &imev1.ProtocolVersion{Major: 1, Minor: 0}},
+		},
+	})
+	open, err := client.RoundTrip(&imev1.Envelope{
+		RequestId: 2,
+		Payload: &imev1.Envelope_OpenSession{
+			OpenSession: &imev1.OpenSession{InitialMode: imev1.InputMode_INPUT_MODE_CHINESE},
+		},
+	})
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	sessionID := open.GetOpenSessionAck().GetSessionId()
+	sess, ok := server.manager.Get(sessionID)
+	if !ok {
+		t.Fatalf("session missing")
+	}
+	_ = sess.HandleKey(&imev1.KeyEvent{SessionId: sessionID, Characters: "ni", KeyDown: true})
+	_ = sess.HandleKey(&imev1.KeyEvent{SessionId: sessionID, KeyCode: 49, KeyDown: true})
+	if sess.CommittedContext() == "" && sess.EffectiveContext() == "" {
+		t.Fatalf("expected stub commit to seed learning context")
+	}
+	resp, err := client.RoundTrip(&imev1.Envelope{
+		RequestId: 3,
+		Payload: &imev1.Envelope_InvalidateLearningContext{
+			InvalidateLearningContext: &imev1.InvalidateLearningContext{SessionId: sessionID},
+		},
+	})
+	if err != nil {
+		t.Fatalf("invalidate: %v", err)
+	}
+	status := resp.GetStatus()
+	if status == nil || !status.Ok {
+		t.Fatalf("invalidate status = %#v", resp)
+	}
+	if sess.CommittedContext() != "" || sess.EffectiveContext() != "" {
+		t.Fatalf("context remained committed=%q effective=%q", sess.CommittedContext(), sess.EffectiveContext())
+	}
+}
+
 func TestStaleCandidateGeneration(t *testing.T) {
 	_, socketPath := startTestServer(t)
 	client, err := DialUnix(socketPath)

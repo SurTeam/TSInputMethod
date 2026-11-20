@@ -41,6 +41,8 @@ PROTOBUF_CONSTINIT ::google::protobuf::internal::ReflectionData
         {&::_pbi::kDescriptorMethods, &::descriptor_table_ime_2fv1_2fime_2eproto, /* tracker*/ nullptr,},
         // ::ime::v1::CloseSession
         {&::_pbi::kDescriptorMethods, &::descriptor_table_ime_2fv1_2fime_2eproto, /* tracker*/ nullptr,},
+        // ::ime::v1::InvalidateLearningContext
+        {&::_pbi::kDescriptorMethods, &::descriptor_table_ime_2fv1_2fime_2eproto, /* tracker*/ nullptr,},
         // ::ime::v1::KeyEvent
         {&::_pbi::kDescriptorMethods, &::descriptor_table_ime_2fv1_2fime_2eproto, /* tracker*/ nullptr,},
         // ::ime::v1::SetInputMode
@@ -173,7 +175,7 @@ constexpr auto Status::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[16],
+      &file_reflection_data[17],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -325,7 +327,7 @@ constexpr auto SetInputMode::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[7],
+      &file_reflection_data[8],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -485,7 +487,7 @@ constexpr auto SelectCandidate::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[13],
+      &file_reflection_data[14],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -1121,7 +1123,7 @@ constexpr auto KeyEvent::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[6],
+      &file_reflection_data[7],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -1168,6 +1170,151 @@ const ::_pbi::ClassData* KeyEvent_get_class_data() {
   return KeyEvent_globals_.GetClassData();
 #else
   return KeyEvent_class_data_.base();
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+}
+}  // namespace
+#endif  // PROTOBUF_CUSTOM_VTABLE
+class InvalidateLearningContext::_Internal {
+ public:
+  using HasBits = decltype(::std::declval<InvalidateLearningContext>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(InvalidateLearningContext, _impl_._has_bits_);
+};
+
+constexpr InvalidateLearningContext::ParseTableT_ InvalidateLearningContext::InternalGenerateParseTable_(const ::_pbi::ClassData* class_data) {
+  return ParseTableT_{
+    {
+      PROTOBUF_FIELD_OFFSET(InvalidateLearningContext, _impl_._has_bits_),
+      0, // no _extensions_
+      1, 0,  // max_field_number, fast_idx_mask
+      offsetof(ParseTableT_, field_lookup_table),
+      4294967294,  // skipmap
+      offsetof(ParseTableT_, field_entries),
+      1,  // num_field_entries
+      0,  // num_aux_entries
+      offsetof(ParseTableT_, field_names),  // no aux_entries
+      class_data,
+      nullptr,  // post_loop_handler
+      ::_pbi::TcParser::MpUnknownFields,  // fallback
+      #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+      ::_pbi::TcParser::GetTable<::ime::v1::InvalidateLearningContext>(),  // to_prefetch
+      #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+    }, {{
+      // string session_id = 1;
+      {::_pbi::TcParser::FastUS1,
+       {10, 0, 0,
+        PROTOBUF_FIELD_OFFSET(InvalidateLearningContext, _impl_.session_id_)}},
+    }}, {{
+      65535, 65535
+    }}, {{
+      // string session_id = 1;
+      {PROTOBUF_FIELD_OFFSET(InvalidateLearningContext, _impl_.session_id_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    }},
+    // no aux_entries
+    {{
+      "\40\12\0\0\0\0\0\0"
+      "ime.v1.InvalidateLearningContext"
+      "session_id"
+    }},
+  };
+}
+
+
+inline constexpr InvalidateLearningContext::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    ::_pbi::ConstantInitialized) noexcept
+      : session_id_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()) {}
+
+template <typename>
+constexpr InvalidateLearningContext::InvalidateLearningContext(::_pbi::ConstantInitialized,
+                       const ::_pbi::ClassData* PROTOBUF_NONNULL class_data)
+    : Super_(
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          class_data
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          ),
+      _impl_(internal_visibility(), ::_pbi::ConstantInitialized()) {
+}
+inline void* PROTOBUF_NONNULL InvalidateLearningContext::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) InvalidateLearningContext(arena);
+}
+constexpr auto InvalidateLearningContext::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(InvalidateLearningContext), alignof(InvalidateLearningContext));
+}
+constexpr auto InvalidateLearningContext::InternalGenerateClassData_(
+    const MessageLite& prototype,
+    const ::google::protobuf::internal::TcParseTableBase* tc_table) {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &prototype,
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+          &_table_.header,
+#else
+          tc_table,
+#endif
+          nullptr,  // IsInitialized
+          &InvalidateLearningContext::MergeImpl,
+          Super_::GetNewImpl<InvalidateLearningContext>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &InvalidateLearningContext::SharedDtor,
+          Super_::GetClearImpl<InvalidateLearningContext>(), &InvalidateLearningContext::ByteSizeLong,
+              &InvalidateLearningContext::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(InvalidateLearningContext, _impl_._cached_size_),
+          false,
+      },
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+      &file_reflection_data[6],
+#else   // !PROTOBUF_MESSAGE_GLOBALS
+      &::_pbi::kDescriptorMethods,
+      &descriptor_table_ime_2fv1_2fime_2eproto,
+      nullptr,  // tracker
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+  };
+}
+struct InvalidateLearningContextGlobalsTypeInternal : ::_pbi::MessageGlobalsBase {
+  constexpr InvalidateLearningContextGlobalsTypeInternal()
+      :
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+        _default(::_pbi::ConstantInitialized{},
+                 InvalidateLearningContext_class_data_.base())
+#else   // !PROTOBUF_MESSAGE_GLOBALS
+        MessageGlobalsBase(InvalidateLearningContext::InternalGenerateClassData_(
+            _default, &InvalidateLearningContext_globals_._table.header)),
+        _default(::_pbi::ConstantInitialized{}, GetClassData()),
+        _table(::_pbi::PrivateAccess::GenerateParseTable<InvalidateLearningContext>(
+            GetClassData()))
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+  {
+  }
+  ~InvalidateLearningContextGlobalsTypeInternal() {}
+  union {
+    alignas(::_pbi::kMaxMessageAlignment) InvalidateLearningContext _default;
+  };
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+  decltype(::_pbi::PrivateAccess::GenerateParseTable<InvalidateLearningContext>(
+      ::std::declval<const ::_pbi::ClassData*>())) _table;
+#endif
+};
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+static_assert(PROTOBUF_FIELD_OFFSET(InvalidateLearningContextGlobalsTypeInternal, _default) ==
+              ::_pbi::MessageGlobalsBase::OffsetToDefault());
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PROTOBUF_MESSAGE_GLOBALS_CONST InvalidateLearningContextGlobalsTypeInternal InvalidateLearningContext_globals_
+        PROTOBUF_MESSAGE_GLOBALS_SECTION(.data.rel.ro);
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+namespace {
+const ::_pbi::ClassData* InvalidateLearningContext_get_class_data() {
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+  return InvalidateLearningContext_globals_.GetClassData();
+#else
+  return InvalidateLearningContext_class_data_.base();
 #endif  // PROTOBUF_MESSAGE_GLOBALS
 }
 }  // namespace
@@ -1273,7 +1420,7 @@ constexpr auto InputModeState::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[9],
+      &file_reflection_data[10],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -1418,7 +1565,7 @@ constexpr auto GetInputMode::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[8],
+      &file_reflection_data[9],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -1570,7 +1717,7 @@ constexpr auto Error::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[15],
+      &file_reflection_data[16],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -1739,7 +1886,7 @@ constexpr auto CompositionState::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[10],
+      &file_reflection_data[11],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -1902,7 +2049,7 @@ constexpr auto CommitText::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[14],
+      &file_reflection_data[15],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -2210,7 +2357,7 @@ constexpr auto Candidate::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[11],
+      &file_reflection_data[12],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -2726,7 +2873,7 @@ constexpr auto CandidateList::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[12],
+      &file_reflection_data[13],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -2903,7 +3050,7 @@ constexpr auto KeyEventResult::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[17],
+      &file_reflection_data[18],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -2968,12 +3115,12 @@ constexpr Envelope::ParseTableT_ Envelope::InternalGenerateParseTable_(const ::_
     {
       PROTOBUF_FIELD_OFFSET(Envelope, _impl_._has_bits_),
       0, // no _extensions_
-      25, 24,  // max_field_number, fast_idx_mask
+      26, 24,  // max_field_number, fast_idx_mask
       offsetof(ParseTableT_, field_lookup_table),
-      4261413368,  // skipmap
+      4227858936,  // skipmap
       offsetof(ParseTableT_, field_entries),
-      19,  // num_field_entries
-      16,  // num_aux_entries
+      20,  // num_field_entries
+      17,  // num_aux_entries
       offsetof(ParseTableT_, aux_entries),
       class_data,
       nullptr,  // post_loop_handler
@@ -3041,6 +3188,8 @@ constexpr Envelope::ParseTableT_ Envelope::InternalGenerateParseTable_(const ::_
       {PROTOBUF_FIELD_OFFSET(Envelope, _impl_.payload_.error_), _Internal::kOneofCaseOffset + 0, 14, (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
       // .ime.v1.Status status = 25;
       {PROTOBUF_FIELD_OFFSET(Envelope, _impl_.payload_.status_), _Internal::kOneofCaseOffset + 0, 15, (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+      // .ime.v1.InvalidateLearningContext invalidate_learning_context = 26;
+      {PROTOBUF_FIELD_OFFSET(Envelope, _impl_.payload_.invalidate_learning_context_), _Internal::kOneofCaseOffset + 0, 16, (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -3123,6 +3272,11 @@ constexpr Envelope::ParseTableT_ Envelope::InternalGenerateParseTable_(const ::_
         #else
         {::_pbi::FieldAuxMessageGlobals(), &::ime::v1::Status_globals_},
         #endif
+        #ifndef PROTOBUF_MESSAGE_GLOBALS
+        {::_pbi::TcParser::GetTable<::ime::v1::InvalidateLearningContext>()},
+        #else
+        {::_pbi::FieldAuxMessageGlobals(), &::ime::v1::InvalidateLearningContext_globals_},
+        #endif
     }},
     {{
     }},
@@ -3180,7 +3334,7 @@ constexpr auto Envelope::InternalGenerateClassData_(
           false,
       },
 #ifdef PROTOBUF_MESSAGE_GLOBALS
-      &file_reflection_data[18],
+      &file_reflection_data[19],
 #else   // !PROTOBUF_MESSAGE_GLOBALS
       &::_pbi::kDescriptorMethods,
       &descriptor_table_ime_2fv1_2fime_2eproto,
@@ -3281,6 +3435,11 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::ime::v1::CloseSession, _impl_._has_bits_),
         4, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::ime::v1::CloseSession, _impl_.session_id_),
+        0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::ime::v1::InvalidateLearningContext, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::ime::v1::InvalidateLearningContext, _impl_.session_id_),
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::ime::v1::KeyEvent, _impl_._has_bits_),
@@ -3397,10 +3556,11 @@ const ::uint32_t
         0x085, // bitmap
         PROTOBUF_FIELD_OFFSET(::ime::v1::Envelope, _impl_._has_bits_),
         PROTOBUF_FIELD_OFFSET(::ime::v1::Envelope, _impl_._oneof_case_[0]),
-        24, // hasbit index offset
+        25, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::ime::v1::Envelope, _impl_.request_id_),
         PROTOBUF_FIELD_OFFSET(::ime::v1::Envelope, _impl_.sequence_number_),
         PROTOBUF_FIELD_OFFSET(::ime::v1::Envelope, _impl_.generation_),
+        PROTOBUF_FIELD_OFFSET(::ime::v1::Envelope, _impl_.payload_),
         PROTOBUF_FIELD_OFFSET(::ime::v1::Envelope, _impl_.payload_),
         PROTOBUF_FIELD_OFFSET(::ime::v1::Envelope, _impl_.payload_),
         PROTOBUF_FIELD_OFFSET(::ime::v1::Envelope, _impl_.payload_),
@@ -3437,6 +3597,7 @@ const ::uint32_t
         ~0u,
         ~0u,
         ~0u,
+        ~0u,
 };
 
 static const ::_pbi::MigrationSchema
@@ -3447,19 +3608,20 @@ static const ::_pbi::MigrationSchema
         {23, sizeof(::ime::v1::OpenSession)},
         {30, sizeof(::ime::v1::OpenSessionAck)},
         {37, sizeof(::ime::v1::CloseSession)},
-        {42, sizeof(::ime::v1::KeyEvent)},
-        {57, sizeof(::ime::v1::SetInputMode)},
-        {64, sizeof(::ime::v1::GetInputMode)},
-        {69, sizeof(::ime::v1::InputModeState)},
-        {76, sizeof(::ime::v1::CompositionState)},
-        {87, sizeof(::ime::v1::Candidate)},
-        {96, sizeof(::ime::v1::CandidateList)},
-        {111, sizeof(::ime::v1::SelectCandidate)},
-        {120, sizeof(::ime::v1::CommitText)},
-        {129, sizeof(::ime::v1::Error)},
-        {136, sizeof(::ime::v1::Status)},
-        {143, sizeof(::ime::v1::KeyEventResult)},
-        {154, sizeof(::ime::v1::Envelope)},
+        {42, sizeof(::ime::v1::InvalidateLearningContext)},
+        {47, sizeof(::ime::v1::KeyEvent)},
+        {62, sizeof(::ime::v1::SetInputMode)},
+        {69, sizeof(::ime::v1::GetInputMode)},
+        {74, sizeof(::ime::v1::InputModeState)},
+        {81, sizeof(::ime::v1::CompositionState)},
+        {92, sizeof(::ime::v1::Candidate)},
+        {101, sizeof(::ime::v1::CandidateList)},
+        {116, sizeof(::ime::v1::SelectCandidate)},
+        {125, sizeof(::ime::v1::CommitText)},
+        {134, sizeof(::ime::v1::Error)},
+        {141, sizeof(::ime::v1::Status)},
+        {148, sizeof(::ime::v1::KeyEventResult)},
+        {159, sizeof(::ime::v1::Envelope)},
 };
 static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
     file_message_globals[] = {
@@ -3469,6 +3631,7 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
         &::ime::v1::OpenSession_globals_,
         &::ime::v1::OpenSessionAck_globals_,
         &::ime::v1::CloseSession_globals_,
+        &::ime::v1::InvalidateLearningContext_globals_,
         &::ime::v1::KeyEvent_globals_,
         &::ime::v1::SetInputMode_globals_,
         &::ime::v1::GetInputMode_globals_,
@@ -3496,67 +3659,70 @@ const char descriptor_table_protodef_ime_2fv1_2fime_2eproto[] ABSL_ATTRIBUTE_SEC
     "me.v1.InputMode\"E\n\016OpenSessionAck\022\022\n\nses"
     "sion_id\030\001 \001(\t\022\037\n\004mode\030\002 \001(\0162\021.ime.v1.Inp"
     "utMode\"\"\n\014CloseSession\022\022\n\nsession_id\030\001 \001"
-    "(\t\"|\n\010KeyEvent\022\022\n\nsession_id\030\001 \001(\t\022\020\n\010ke"
-    "y_code\030\002 \001(\r\022\021\n\tmodifiers\030\003 \001(\r\022\022\n\nchara"
-    "cters\030\004 \001(\t\022\021\n\tis_repeat\030\005 \001(\010\022\020\n\010key_do"
-    "wn\030\006 \001(\010\"C\n\014SetInputMode\022\022\n\nsession_id\030\001"
-    " \001(\t\022\037\n\004mode\030\002 \001(\0162\021.ime.v1.InputMode\"\"\n"
-    "\014GetInputMode\022\022\n\nsession_id\030\001 \001(\t\"E\n\016Inp"
-    "utModeState\022\022\n\nsession_id\030\001 \001(\t\022\037\n\004mode\030"
-    "\002 \001(\0162\021.ime.v1.InputMode\"[\n\020CompositionS"
-    "tate\022\022\n\nsession_id\030\001 \001(\t\022\017\n\007preedit\030\002 \001("
-    "\t\022\016\n\006cursor\030\003 \001(\r\022\022\n\ngeneration\030\004 \001(\004\"9\n"
-    "\tCandidate\022\014\n\004text\030\001 \001(\t\022\017\n\007comment\030\002 \001("
-    "\t\022\r\n\005score\030\003 \001(\005\"\227\001\n\rCandidateList\022\022\n\nse"
-    "ssion_id\030\001 \001(\t\022\022\n\ngeneration\030\002 \001(\004\022\014\n\004pa"
-    "ge\030\003 \001(\r\022\021\n\tpage_size\030\004 \001(\r\022%\n\ncandidate"
-    "s\030\005 \003(\0132\021.ime.v1.Candidate\022\026\n\016selected_i"
-    "ndex\030\006 \001(\r\"H\n\017SelectCandidate\022\022\n\nsession"
-    "_id\030\001 \001(\t\022\022\n\ngeneration\030\002 \001(\004\022\r\n\005index\030\003"
-    " \001(\r\"B\n\nCommitText\022\022\n\nsession_id\030\001 \001(\t\022\014"
-    "\n\004text\030\002 \001(\t\022\022\n\ngeneration\030\003 \001(\004\"&\n\005Erro"
-    "r\022\014\n\004code\030\001 \001(\005\022\017\n\007message\030\002 \001(\t\"%\n\006Stat"
-    "us\022\n\n\002ok\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\"\240\001\n\016KeyE"
-    "ventResult\022-\n\013composition\030\001 \001(\0132\030.ime.v1"
-    ".CompositionState\022)\n\ncandidates\030\002 \001(\0132\025."
-    "ime.v1.CandidateList\022\"\n\006commit\030\003 \001(\0132\022.i"
-    "me.v1.CommitText\022\020\n\010consumed\030\004 \001(\010\"\246\006\n\010E"
-    "nvelope\022\022\n\nrequest_id\030\001 \001(\004\022\027\n\017sequence_"
-    "number\030\002 \001(\004\022\022\n\ngeneration\030\003 \001(\004\022\036\n\005hell"
-    "o\030\n \001(\0132\r.ime.v1.HelloH\000\022%\n\thello_ack\030\013 "
-    "\001(\0132\020.ime.v1.HelloAckH\000\022+\n\014open_session\030"
-    "\014 \001(\0132\023.ime.v1.OpenSessionH\000\0222\n\020open_ses"
-    "sion_ack\030\r \001(\0132\026.ime.v1.OpenSessionAckH\000"
-    "\022-\n\rclose_session\030\016 \001(\0132\024.ime.v1.CloseSe"
-    "ssionH\000\022%\n\tkey_event\030\017 \001(\0132\020.ime.v1.KeyE"
-    "ventH\000\0222\n\020key_event_result\030\020 \001(\0132\026.ime.v"
-    "1.KeyEventResultH\000\022.\n\016set_input_mode\030\021 \001"
-    "(\0132\024.ime.v1.SetInputModeH\000\022.\n\016get_input_"
-    "mode\030\022 \001(\0132\024.ime.v1.GetInputModeH\000\0222\n\020in"
-    "put_mode_state\030\023 \001(\0132\026.ime.v1.InputModeS"
-    "tateH\000\0225\n\021composition_state\030\024 \001(\0132\030.ime."
-    "v1.CompositionStateH\000\022/\n\016candidate_list\030"
-    "\025 \001(\0132\025.ime.v1.CandidateListH\000\0223\n\020select"
-    "_candidate\030\026 \001(\0132\027.ime.v1.SelectCandidat"
-    "eH\000\022)\n\013commit_text\030\027 \001(\0132\022.ime.v1.Commit"
-    "TextH\000\022\036\n\005error\030\030 \001(\0132\r.ime.v1.ErrorH\000\022 "
-    "\n\006status\030\031 \001(\0132\016.ime.v1.StatusH\000B\t\n\007payl"
-    "oad*W\n\tInputMode\022\032\n\026INPUT_MODE_UNSPECIFI"
-    "ED\020\000\022\026\n\022INPUT_MODE_CHINESE\020\001\022\026\n\022INPUT_MO"
-    "DE_ENGLISH\020\002B5Z3github.com/SurTeam/TSInp"
-    "utMethod/proto/ime/v1;imev1b\006proto3"
+    "(\t\"/\n\031InvalidateLearningContext\022\022\n\nsessi"
+    "on_id\030\001 \001(\t\"|\n\010KeyEvent\022\022\n\nsession_id\030\001 "
+    "\001(\t\022\020\n\010key_code\030\002 \001(\r\022\021\n\tmodifiers\030\003 \001(\r"
+    "\022\022\n\ncharacters\030\004 \001(\t\022\021\n\tis_repeat\030\005 \001(\010\022"
+    "\020\n\010key_down\030\006 \001(\010\"C\n\014SetInputMode\022\022\n\nses"
+    "sion_id\030\001 \001(\t\022\037\n\004mode\030\002 \001(\0162\021.ime.v1.Inp"
+    "utMode\"\"\n\014GetInputMode\022\022\n\nsession_id\030\001 \001"
+    "(\t\"E\n\016InputModeState\022\022\n\nsession_id\030\001 \001(\t"
+    "\022\037\n\004mode\030\002 \001(\0162\021.ime.v1.InputMode\"[\n\020Com"
+    "positionState\022\022\n\nsession_id\030\001 \001(\t\022\017\n\007pre"
+    "edit\030\002 \001(\t\022\016\n\006cursor\030\003 \001(\r\022\022\n\ngeneration"
+    "\030\004 \001(\004\"9\n\tCandidate\022\014\n\004text\030\001 \001(\t\022\017\n\007com"
+    "ment\030\002 \001(\t\022\r\n\005score\030\003 \001(\005\"\227\001\n\rCandidateL"
+    "ist\022\022\n\nsession_id\030\001 \001(\t\022\022\n\ngeneration\030\002 "
+    "\001(\004\022\014\n\004page\030\003 \001(\r\022\021\n\tpage_size\030\004 \001(\r\022%\n\n"
+    "candidates\030\005 \003(\0132\021.ime.v1.Candidate\022\026\n\016s"
+    "elected_index\030\006 \001(\r\"H\n\017SelectCandidate\022\022"
+    "\n\nsession_id\030\001 \001(\t\022\022\n\ngeneration\030\002 \001(\004\022\r"
+    "\n\005index\030\003 \001(\r\"B\n\nCommitText\022\022\n\nsession_i"
+    "d\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\022\022\n\ngeneration\030\003 \001("
+    "\004\"&\n\005Error\022\014\n\004code\030\001 \001(\005\022\017\n\007message\030\002 \001("
+    "\t\"%\n\006Status\022\n\n\002ok\030\001 \001(\010\022\017\n\007message\030\002 \001(\t"
+    "\"\240\001\n\016KeyEventResult\022-\n\013composition\030\001 \001(\013"
+    "2\030.ime.v1.CompositionState\022)\n\ncandidates"
+    "\030\002 \001(\0132\025.ime.v1.CandidateList\022\"\n\006commit\030"
+    "\003 \001(\0132\022.ime.v1.CommitText\022\020\n\010consumed\030\004 "
+    "\001(\010\"\360\006\n\010Envelope\022\022\n\nrequest_id\030\001 \001(\004\022\027\n\017"
+    "sequence_number\030\002 \001(\004\022\022\n\ngeneration\030\003 \001("
+    "\004\022\036\n\005hello\030\n \001(\0132\r.ime.v1.HelloH\000\022%\n\thel"
+    "lo_ack\030\013 \001(\0132\020.ime.v1.HelloAckH\000\022+\n\014open"
+    "_session\030\014 \001(\0132\023.ime.v1.OpenSessionH\000\0222\n"
+    "\020open_session_ack\030\r \001(\0132\026.ime.v1.OpenSes"
+    "sionAckH\000\022-\n\rclose_session\030\016 \001(\0132\024.ime.v"
+    "1.CloseSessionH\000\022H\n\033invalidate_learning_"
+    "context\030\032 \001(\0132!.ime.v1.InvalidateLearnin"
+    "gContextH\000\022%\n\tkey_event\030\017 \001(\0132\020.ime.v1.K"
+    "eyEventH\000\0222\n\020key_event_result\030\020 \001(\0132\026.im"
+    "e.v1.KeyEventResultH\000\022.\n\016set_input_mode\030"
+    "\021 \001(\0132\024.ime.v1.SetInputModeH\000\022.\n\016get_inp"
+    "ut_mode\030\022 \001(\0132\024.ime.v1.GetInputModeH\000\0222\n"
+    "\020input_mode_state\030\023 \001(\0132\026.ime.v1.InputMo"
+    "deStateH\000\0225\n\021composition_state\030\024 \001(\0132\030.i"
+    "me.v1.CompositionStateH\000\022/\n\016candidate_li"
+    "st\030\025 \001(\0132\025.ime.v1.CandidateListH\000\0223\n\020sel"
+    "ect_candidate\030\026 \001(\0132\027.ime.v1.SelectCandi"
+    "dateH\000\022)\n\013commit_text\030\027 \001(\0132\022.ime.v1.Com"
+    "mitTextH\000\022\036\n\005error\030\030 \001(\0132\r.ime.v1.ErrorH"
+    "\000\022 \n\006status\030\031 \001(\0132\016.ime.v1.StatusH\000B\t\n\007p"
+    "ayload*W\n\tInputMode\022\032\n\026INPUT_MODE_UNSPEC"
+    "IFIED\020\000\022\026\n\022INPUT_MODE_CHINESE\020\001\022\026\n\022INPUT"
+    "_MODE_ENGLISH\020\002B5Z3github.com/SurTeam/TS"
+    "InputMethod/proto/ime/v1;imev1b\006proto3"
 };
 static ::absl::once_flag descriptor_table_ime_2fv1_2fime_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_ime_2fv1_2fime_2eproto = {
     false,
     false,
-    2395,
+    2518,
     descriptor_table_protodef_ime_2fv1_2fime_2eproto,
     "ime/v1/ime.proto",
     &descriptor_table_ime_2fv1_2fime_2eproto_once,
     nullptr,
     0,
-    19,
+    20,
     schemas,
     file_message_globals,
     TableStruct_ime_2fv1_2fime_2eproto::offsets,
@@ -5004,6 +5170,215 @@ void CloseSession::InternalSwap(CloseSession* PROTOBUF_RESTRICT PROTOBUF_NONNULL
 }
 
 ::google::protobuf::Metadata CloseSession::GetMetadata() const {
+  return Super_::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+InvalidateLearningContext::InvalidateLearningContext(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : Super_(arena, InvalidateLearningContext_get_class_data()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : Super_(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:ime.v1.InvalidateLearningContext)
+}
+PROTOBUF_NDEBUG_INLINE InvalidateLearningContext::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::ime::v1::InvalidateLearningContext& from_msg)
+      : _has_bits_{from._has_bits_},
+        session_id_(arena, from.session_id_) {}
+
+InvalidateLearningContext::InvalidateLearningContext(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const InvalidateLearningContext& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : Super_(arena, InvalidateLearningContext_get_class_data()) {
+
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : Super_(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  InvalidateLearningContext* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+
+  // @@protoc_insertion_point(copy_constructor:ime.v1.InvalidateLearningContext)
+}
+PROTOBUF_NDEBUG_INLINE InvalidateLearningContext::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : session_id_(arena) {}
+
+inline void InvalidateLearningContext::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+InvalidateLearningContext::~InvalidateLearningContext() {
+  // @@protoc_insertion_point(destructor:ime.v1.InvalidateLearningContext)
+  SharedDtor(*this);
+}
+inline void InvalidateLearningContext::SharedDtor(MessageLite& self) {
+  InvalidateLearningContext& this_ = static_cast<InvalidateLearningContext&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.session_id_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull InvalidateLearningContext_class_data_ =
+        InvalidateLearningContext::InternalGenerateClassData_(InvalidateLearningContext_globals_._default);
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+InvalidateLearningContext::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&InvalidateLearningContext_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(InvalidateLearningContext_class_data_.tc_table);
+  return InvalidateLearningContext_class_data_.base();
+}
+#else
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+InvalidateLearningContext::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&InvalidateLearningContext_globals_);
+  ::google::protobuf::internal::PrefetchToLocalCache(
+      ::google::protobuf::internal::MessageGlobalsBase::ToParseTableBase(&InvalidateLearningContext_globals_));
+  return InvalidateLearningContext_globals_.GetClassData();
+}
+#endif  // !PROTOBUF_MESSAGE_GLOBALS
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+PROTOBUF_CONSTINIT
+PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const InvalidateLearningContext::ParseTableT_
+    InvalidateLearningContext::_table_ =
+        InvalidateLearningContext::InternalGenerateParseTable_(InvalidateLearningContext_class_data_.base());
+#endif  // !PROTOBUF_MESSAGE_GLOBALS
+PROTOBUF_NOINLINE void InvalidateLearningContext::Clear() {
+  auto& this_ [[maybe_unused]] = *this;
+  // @@protoc_insertion_point(message_clear_start:ime.v1.InvalidateLearningContext)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits [[maybe_unused]] = 0;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    this_._impl_.session_id_.ClearNonDefaultToEmpty();
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL InvalidateLearningContext::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const InvalidateLearningContext& this_ = static_cast<const InvalidateLearningContext&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL InvalidateLearningContext::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const InvalidateLearningContext& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:ime.v1.InvalidateLearningContext)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // string session_id = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_session_id().empty()) {
+      const ::std::string& _s = this_._internal_session_id();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "ime.v1.InvalidateLearningContext.session_id");
+      target = stream->WriteStringMaybeAliased(1, _s, target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:ime.v1.InvalidateLearningContext)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t InvalidateLearningContext::ByteSizeLong(const MessageLite& base) {
+  const InvalidateLearningContext& this_ = static_cast<const InvalidateLearningContext&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t InvalidateLearningContext::ByteSizeLong() const {
+  const InvalidateLearningContext& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:ime.v1.InvalidateLearningContext)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits [[maybe_unused]] = 0;
+
+   {
+    // string session_id = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!this_._internal_session_id().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_session_id());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void InvalidateLearningContext::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                      const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this = static_cast<InvalidateLearningContext*>(&to_msg);
+  auto& from = static_cast<const InvalidateLearningContext&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:ime.v1.InvalidateLearningContext)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!from._internal_session_id().empty()) {
+      _this->_internal_set_session_id(from._internal_session_id());
+    } else {
+      if (_this->_impl_.session_id_.IsDefault()) {
+        _this->_internal_set_session_id("");
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void InvalidateLearningContext::CopyFrom(const InvalidateLearningContext& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:ime.v1.InvalidateLearningContext)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void InvalidateLearningContext::InternalSwap(InvalidateLearningContext* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.session_id_, &other->_impl_.session_id_, arena);
+}
+
+::google::protobuf::Metadata InvalidateLearningContext::GetMetadata() const {
   return Super_::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================
@@ -8388,6 +8763,19 @@ void Envelope::set_allocated_close_session(::ime::v1::CloseSession* PROTOBUF_NUL
   }
   // @@protoc_insertion_point(field_set_allocated:ime.v1.Envelope.close_session)
 }
+void Envelope::set_allocated_invalidate_learning_context(::ime::v1::InvalidateLearningContext* PROTOBUF_NULLABLE invalidate_learning_context) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_payload();
+  if (invalidate_learning_context) {
+    ::google::protobuf::Arena* submessage_arena = invalidate_learning_context->GetArena();
+    if (message_arena != submessage_arena) {
+      invalidate_learning_context = ::google::protobuf::internal::GetOwnedMessage(message_arena, invalidate_learning_context, submessage_arena);
+    }
+    set_has_invalidate_learning_context();
+    _impl_.payload_.invalidate_learning_context_ = invalidate_learning_context;
+  }
+  // @@protoc_insertion_point(field_set_allocated:ime.v1.Envelope.invalidate_learning_context)
+}
 void Envelope::set_allocated_key_event(::ime::v1::KeyEvent* PROTOBUF_NULLABLE key_event) {
   ::google::protobuf::Arena* message_arena = GetArena();
   clear_payload();
@@ -8587,6 +8975,9 @@ Envelope::Envelope(
       case kCloseSession:
         _impl_.payload_.close_session_ = Super_::CopyConstruct(arena, *from._impl_.payload_.close_session_);
         break;
+      case kInvalidateLearningContext:
+        _impl_.payload_.invalidate_learning_context_ = Super_::CopyConstruct(arena, *from._impl_.payload_.invalidate_learning_context_);
+        break;
       case kKeyEvent:
         _impl_.payload_.key_event_ = Super_::CopyConstruct(arena, *from._impl_.payload_.key_event_);
         break;
@@ -8697,6 +9088,14 @@ void Envelope::clear_payload() {
         delete _impl_.payload_.close_session_;
       } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
         ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.close_session_);
+      }
+      break;
+    }
+    case kInvalidateLearningContext: {
+      if (GetArena() == nullptr) {
+        delete _impl_.payload_.invalidate_learning_context_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.payload_.invalidate_learning_context_);
       }
       break;
     }
@@ -8984,6 +9383,12 @@ PROTOBUF_NOINLINE void Envelope::Clear() {
           stream);
       break;
     }
+    case kInvalidateLearningContext: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          26, *this_._impl_.payload_.invalidate_learning_context_, this_._impl_.payload_.invalidate_learning_context_->GetCachedSize(), target,
+          stream);
+      break;
+    }
     default:
       break;
   }
@@ -9062,6 +9467,12 @@ PROTOBUF_NOINLINE void Envelope::Clear() {
     case kCloseSession: {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.payload_.close_session_);
+      break;
+    }
+    // .ime.v1.InvalidateLearningContext invalidate_learning_context = 26;
+    case kInvalidateLearningContext: {
+      total_size += 2 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.payload_.invalidate_learning_context_);
       break;
     }
     // .ime.v1.KeyEvent key_event = 15;
@@ -9219,6 +9630,14 @@ void Envelope::MergeImpl(::google::protobuf::MessageLite& to_msg,
           _this->_impl_.payload_.close_session_ = Super_::CopyConstruct(arena, *from._impl_.payload_.close_session_);
         } else {
           _this->_impl_.payload_.close_session_->MergeFrom(*from._impl_.payload_.close_session_);
+        }
+        break;
+      }
+      case kInvalidateLearningContext: {
+        if (oneof_needs_init) {
+          _this->_impl_.payload_.invalidate_learning_context_ = Super_::CopyConstruct(arena, *from._impl_.payload_.invalidate_learning_context_);
+        } else {
+          _this->_impl_.payload_.invalidate_learning_context_->MergeFrom(*from._impl_.payload_.invalidate_learning_context_);
         }
         break;
       }

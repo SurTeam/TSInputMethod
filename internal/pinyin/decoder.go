@@ -17,6 +17,7 @@ type Candidate struct {
 
 type Decoder struct {
 	dict      *dictionary.Dictionary
+	user      *dictionary.UserDictionary
 	segmenter *Segmenter
 	limit     int
 }
@@ -36,6 +37,43 @@ func NewDecoder(dict *dictionary.Dictionary, limit int) *Decoder {
 		segmenter: NewSegmenter(nil),
 		limit:     limit,
 	}
+}
+
+func (d *Decoder) SetUserDictionary(user *dictionary.UserDictionary) {
+	if d == nil {
+		return
+	}
+	d.user = user
+}
+
+func (d *Decoder) lookupExact(syllables []string) []dictionary.Entry {
+	if d == nil {
+		return nil
+	}
+	var system []dictionary.Entry
+	if d.dict != nil {
+		system = d.dict.Lookup(syllables)
+	}
+	var user []dictionary.Entry
+	if d.user != nil {
+		user = d.user.Lookup(syllables)
+	}
+	return dictionary.MergeEntries(system, user)
+}
+
+func (d *Decoder) lookupPrefix(syllables []string, incomplete string) []dictionary.Entry {
+	if d == nil {
+		return nil
+	}
+	var system []dictionary.Entry
+	if d.dict != nil {
+		system = d.dict.LookupPrefix(syllables, incomplete)
+	}
+	var user []dictionary.Entry
+	if d.user != nil {
+		user = d.user.LookupPrefix(syllables, incomplete)
+	}
+	return dictionary.MergeEntries(system, user)
 }
 
 func (d *Decoder) Decode(input string) []Candidate {
@@ -323,7 +361,7 @@ func (d *Decoder) collectExact(syllables []string, seen map[string]Candidate) {
 	if len(syllables) == 0 {
 		return
 	}
-	for _, entry := range d.dict.Lookup(syllables) {
+	for _, entry := range d.lookupExact(syllables) {
 		addCandidate(seen, Candidate{
 			Text:      entry.Text,
 			Comment:   joinComment(syllables),
@@ -334,7 +372,7 @@ func (d *Decoder) collectExact(syllables []string, seen map[string]Candidate) {
 }
 
 func (d *Decoder) collectPrefix(seg Segmentation, seen map[string]Candidate) {
-	entries := d.dict.LookupPrefix(seg.Syllables, seg.Remainder)
+	entries := d.lookupPrefix(seg.Syllables, seg.Remainder)
 	for i, entry := range entries {
 		if i >= d.limit {
 			break
@@ -356,7 +394,7 @@ func (d *Decoder) collectPartialWords(syllables []string, seen map[string]Candid
 	}
 	for end := n - 1; end >= 1; end-- {
 		piece := syllables[:end]
-		entries := d.dict.Lookup(piece)
+		entries := d.lookupExact(piece)
 		limitEntries := entries
 		if len(limitEntries) > exactLookupCap(end) {
 			limitEntries = limitEntries[:exactLookupCap(end)]
@@ -387,16 +425,16 @@ func (d *Decoder) collectLattice(syllables []string, seen map[string]Candidate) 
 	if n <= 1 {
 		return
 	}
-	hasExact := len(d.dict.Lookup(syllables)) > 0
-	best := make([][]latticeCell, n+1)
-	best[0] = []latticeCell{{"", 0, 0}}
-	for start := 0; start < n; start++ {
-		if len(best[start]) == 0 {
-			continue
-		}
-		for end := start + 1; end <= n; end++ {
-			piece := syllables[start:end]
-			entries := d.dict.Lookup(piece)
+hasExact := len(d.lookupExact(syllables)) > 0
+		best := make([][]latticeCell, n+1)
+		best[0] = []latticeCell{{"", 0, 0}}
+		for start := 0; start < n; start++ {
+			if len(best[start]) == 0 {
+				continue
+			}
+			for end := start + 1; end <= n; end++ {
+				piece := syllables[start:end]
+				entries := d.lookupExact(piece)
 			if len(entries) == 0 {
 				continue
 			}

@@ -30,25 +30,43 @@ const (
 )
 
 type confirmedSegment struct {
-	Text string
-	Keys string
+	Text      string
+	Keys      string
+	Syllables []string
+}
+
+type PhraseObserver interface {
+	ObserveCommittedPhrase(text string, syllables []string) error
+}
+
+type FeedbackSink interface {
+	AcceptFeedbackEvents([]FeedbackEvent)
 }
 
 type Session struct {
-	mu            sync.Mutex
-	id            string
-	mode          imev1.InputMode
-	preedit       []rune
-	cursor        int
-	confirmed     []confirmedSegment
-	generation    uint64
-	page          uint32
-	pageSize      uint32
-	selectedIndex uint32
-	literal       bool
-	quoteOpen    bool
-	singleOpen   bool
-	engine        engine.Engine
+	mu               sync.Mutex
+	id               string
+	mode             imev1.InputMode
+	preedit          []rune
+	cursor           int
+	confirmed        []confirmedSegment
+	committedContext []rune
+	contextWindow    int
+	generation       uint64
+	page             uint32
+	pageSize         uint32
+	selectedIndex    uint32
+	literal          bool
+	quoteOpen        bool
+	singleOpen       bool
+	engine           engine.Engine
+	snapshot         *candidateSnapshot
+	pendingFeedback  []pendingFeedback
+	acceptedFeedback []FeedbackEvent
+	rankingVersion   uint64
+	userDictVersion  uint64
+	phraseObserver   PhraseObserver
+	feedbackSink     FeedbackSink
 }
 
 type KeyResult struct {
@@ -66,11 +84,39 @@ func newSession(id string, mode imev1.InputMode, eng engine.Engine) *Session {
 		eng = engine.NewStubEngine()
 	}
 	return &Session{
-		id:       id,
-		mode:     mode,
-		engine:   eng,
-		pageSize: defaultPageSize,
+		id:            id,
+		mode:          mode,
+		engine:        eng,
+		pageSize:      defaultPageSize,
+		contextWindow: defaultContextWindow,
 	}
+}
+
+func (s *Session) SetPhraseObserver(observer PhraseObserver) {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.phraseObserver = observer
+}
+
+func (s *Session) SetUserDictVersion(version uint64) {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.userDictVersion = version
+}
+
+func (s *Session) SetFeedbackSink(sink FeedbackSink) {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.feedbackSink = sink
 }
 
 func (s *Session) ID() string {
@@ -83,6 +129,94 @@ func (s *Session) Mode() imev1.InputMode {
 	return s.mode
 }
 
+func (s *Session) CommittedContext() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return string(s.committedContext)
+}
+
+func (s *Session) ConfirmedComposition() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.confirmedTextLocked()
+}
+
+func (s *Session) EffectiveContext() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.effectiveContextLocked()
+}
+
+func (s *Session) ClearLearningContext() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.committedContext = nil
+	s.pendingFeedback = nil
+}
+
+func (s *Session) TakeAcceptedFeedback() []FeedbackEvent {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if len(s.acceptedFeedback) == 0 {
+		return nil
+	}
+	out := append([]FeedbackEvent(nil), s.acceptedFeedback...)
+	s.acceptedFeedback = nil
+	return out
+}
+
+func (s *Session) PendingFeedbackCount() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return len(s.pendingFeedback)
+}
+
+func (s *Session) SnapshotGeneration() uint64 {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.snapshot == nil {
+		return 0
+	}
+	return s.snapshot.Generation
+}
+
+func (s *Session) SnapshotCandidateTexts() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.snapshot == nil {
+		return nil
+	}
+	out := make([]string, len(s.snapshot.Candidates))
+	for i, cand := range s.snapshot.Candidates {
+		out[i] = cand.Text
+	}
+	return out
+}
+
+func (s *Session) InvalidateLearningContext() {
+	s.ClearLearningContext()
+}
+
+func (s *Session) SetContextWindow(window int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.contextWindow = clampContextWindow(window)
+	if len(s.committedContext) > contextMax {
+		s.committedContext = append([]rune(nil), s.committedContext[len(s.committedContext)-contextMax:]...)
+	}
+}
+
+func (s *Session) effectiveContextLocked() string {
+	return unicodeTail(joinCommittedAndConfirmed(s.committedContext, s.confirmedTextLocked()), s.contextWindow)
+}
+
+func (s *Session) appendCommittedLocked(text string) {
+	if text == "" {
+		return
+	}
+	s.committedContext = appendCommittedRunes(s.committedContext, text, contextMax)
+}
+
 func (s *Session) SetMode(mode imev1.InputMode) *KeyResult {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -92,6 +226,8 @@ func (s *Session) SetMode(mode imev1.InputMode) *KeyResult {
 	}
 	s.mode = mode
 	s.clearCompositionLocked()
+	s.committedContext = nil
+	s.pendingFeedback = nil
 	if commit == nil {
 		return &KeyResult{Consumed: false}
 	}
@@ -344,6 +480,7 @@ func (s *Session) backspaceLocked() *KeyResult {
 		s.page = 0
 		s.selectedIndex = 0
 		s.literal = false
+		s.dropLastPendingLocked()
 		return s.refreshLocked()
 	}
 	if len(s.preedit) > 0 && s.cursor > 0 {
@@ -366,6 +503,7 @@ func (s *Session) cancelLocked() *KeyResult {
 	if len(s.preedit) == 0 && len(s.confirmed) == 0 {
 		return &KeyResult{Consumed: false}
 	}
+	s.pendingFeedback = nil
 	s.clearCompositionLocked()
 	return s.refreshLocked()
 }
@@ -380,7 +518,7 @@ func (s *Session) commitSelectedCandidateLocked() *KeyResult {
 	if s.literal {
 		return s.commitCompositionLocked()
 	}
-	candidates := s.decodeLocked()
+	candidates := s.snapshotCandidatesLocked()
 	if len(candidates) == 0 {
 		return s.commitCompositionLocked()
 	}
@@ -391,7 +529,7 @@ func (s *Session) commitSelectedCandidateLocked() *KeyResult {
 	if abs < 0 || abs >= len(candidates) {
 		return s.commitCompositionLocked()
 	}
-	return s.commitCandidateLocked(candidates[abs])
+	return s.commitCandidateAtLocked(abs)
 }
 
 func (s *Session) commitTopCandidateLocked() *KeyResult {
@@ -407,6 +545,7 @@ func (s *Session) commitTextLocked(text string) *KeyResult {
 		return &KeyResult{Consumed: false}
 	}
 	s.clearCompositionLocked()
+	s.appendCommittedLocked(text)
 	s.generation++
 	return &KeyResult{
 		Composition: s.compositionLocked(),
@@ -421,11 +560,18 @@ func (s *Session) commitTextLocked(text string) *KeyResult {
 }
 
 func (s *Session) commitCompositionLocked() *KeyResult {
-	text := s.confirmedTextLocked() + string(s.preedit)
+	confirmedText := s.confirmedTextLocked()
+	syllables := s.confirmedSyllablesLocked()
+	text := confirmedText + string(s.preedit)
 	if text == "" {
 		return &KeyResult{Consumed: false}
 	}
+	s.acceptPendingFeedbackLocked()
 	s.clearCompositionLocked()
+	s.appendCommittedLocked(text)
+	if confirmedText != "" && len(syllables) > 0 && text == confirmedText {
+		s.observeCommittedLocked(text, syllables)
+	}
 	s.generation++
 	return &KeyResult{
 		Composition: s.compositionLocked(),
@@ -441,11 +587,16 @@ func (s *Session) commitCompositionLocked() *KeyResult {
 
 func (s *Session) flushConfirmedLocked() *KeyResult {
 	text := s.confirmedTextLocked()
+	syllables := s.confirmedSyllablesLocked()
 	if text == "" {
 		return &KeyResult{Consumed: false}
 	}
 	s.confirmed = nil
 	s.selectedIndex = 0
+	s.acceptPendingFeedbackLocked()
+	s.appendCommittedLocked(text)
+	s.observeCommittedLocked(text, syllables)
+	s.snapshot = nil
 	s.generation++
 	return &KeyResult{
 		Composition: s.compositionLocked(),
@@ -471,7 +622,7 @@ func (s *Session) confirmedTextLocked() string {
 }
 
 func (s *Session) selectByDigitLocked(digit rune) *KeyResult {
-	candidates := s.currentCandidatesLocked()
+	candidates := s.snapshotCandidatesLocked()
 	if len(candidates) == 0 {
 		if !s.hasCompositionLocked() {
 			return s.commitTextLocked(string(digit))
@@ -498,7 +649,7 @@ func (s *Session) selectByDigitLocked(digit rune) *KeyResult {
 		}
 		return s.refreshLocked()
 	}
-	return s.commitCandidateLocked(candidates[abs])
+	return s.commitCandidateAtLocked(abs)
 }
 
 func (s *Session) pageIfComposingLocked(delta int) *KeyResult {
@@ -509,7 +660,7 @@ func (s *Session) pageIfComposingLocked(delta int) *KeyResult {
 }
 
 func (s *Session) pageLocked(delta int) *KeyResult {
-	list := s.currentCandidatesLocked()
+	list := s.snapshotCandidatesLocked()
 	pageSize := int(s.pageSizeLocked())
 	if pageSize <= 0 {
 		pageSize = defaultPageSize
@@ -525,16 +676,16 @@ func (s *Session) pageLocked(delta int) *KeyResult {
 	if next > maxPage {
 		next = maxPage
 	}
-	s.page = uint32(next)
+s.page = uint32(next)
 	s.selectedIndex = 0
-	return s.refreshLocked()
+	return s.bumpSnapshotPresentationLocked()
 }
 
 func (s *Session) moveSelectionLocked(delta int) *KeyResult {
 	if !s.hasCompositionLocked() {
 		return &KeyResult{Consumed: false}
 	}
-	list := s.currentCandidatesLocked()
+	list := s.snapshotCandidatesLocked()
 	pageSize := int(s.pageSizeLocked())
 	start := int(s.page) * pageSize
 	if start >= len(list) {
@@ -557,12 +708,26 @@ func (s *Session) moveSelectionLocked(delta int) *KeyResult {
 		next = count - 1
 	}
 	s.selectedIndex = uint32(next)
-	return s.refreshLocked()
+	return s.bumpSnapshotPresentationLocked()
 }
 
 func (s *Session) refreshLocked() *KeyResult {
 	s.generation++
-	list := s.currentCandidatesLocked()
+	list := s.decodeCandidatesLocked()
+	s.storeSnapshotLocked(list)
+	return &KeyResult{
+		Composition: s.compositionLocked(),
+		Candidates:  s.candidateListLocked(list),
+		Consumed:    true,
+	}
+}
+
+func (s *Session) bumpSnapshotPresentationLocked() *KeyResult {
+	list := s.snapshotCandidatesLocked()
+	s.generation++
+	if s.snapshot != nil {
+		s.snapshot.Generation = s.generation
+	}
 	return &KeyResult{
 		Composition: s.compositionLocked(),
 		Candidates:  s.candidateListLocked(list),
@@ -571,6 +736,10 @@ func (s *Session) refreshLocked() *KeyResult {
 }
 
 func (s *Session) currentCandidatesLocked() []engine.Candidate {
+	return s.snapshotCandidatesLocked()
+}
+
+func (s *Session) decodeCandidatesLocked() []engine.Candidate {
 	if s.literal {
 		text := string(s.preedit)
 		if text == "" {
@@ -584,10 +753,38 @@ func (s *Session) currentCandidatesLocked() []engine.Candidate {
 	return s.decodeLocked()
 }
 
+func (s *Session) snapshotCandidatesLocked() []engine.Candidate {
+	if s.snapshot != nil && s.snapshot.Generation == s.generation && s.snapshot.Preedit == string(s.preedit) {
+		return s.snapshot.Candidates
+	}
+	list := s.decodeCandidatesLocked()
+	s.storeSnapshotLocked(list)
+	return list
+}
+
+func (s *Session) storeSnapshotLocked(list []engine.Candidate) {
+	s.snapshot = &candidateSnapshot{
+		Preedit:          string(s.preedit),
+		EffectiveContext: s.effectiveContextLocked(),
+		Generation:       s.generation,
+		Candidates:       cloneCandidates(list),
+		RankingVersion:   s.rankingVersion,
+		UserDictVersion:  s.userDictVersion,
+	}
+}
+
 func (s *Session) decodeLocked() []engine.Candidate {
 	pinyin := string(s.preedit)
 	if pinyin == "" {
 		return nil
+	}
+	ctx := s.effectiveContextLocked()
+	if withCtx, ok := s.engine.(engine.ContextDecoder); ok {
+		decoded, err := withCtx.DecodeWithContext(pinyin, ctx)
+		if err != nil {
+			return nil
+		}
+		return decoded
 	}
 	decoded, err := s.engine.Decode(pinyin)
 	if err != nil {
@@ -666,6 +863,7 @@ func (s *Session) clearCompositionLocked() {
 	s.selectedIndex = 0
 	s.confirmed = nil
 	s.literal = false
+	s.snapshot = nil
 }
 
 func (s *Session) SelectCandidate(generation uint64, index uint32) (*KeyResult, bool) {
@@ -674,7 +872,7 @@ func (s *Session) SelectCandidate(generation uint64, index uint32) (*KeyResult, 
 	if generation != 0 && generation != s.generation {
 		return nil, false
 	}
-	candidates := s.currentCandidatesLocked()
+	candidates := s.snapshotCandidatesLocked()
 	abs := int(s.page)*int(s.pageSizeLocked()) + int(index)
 	if abs < 0 || abs >= len(candidates) {
 		return s.refreshLocked(), true
@@ -683,7 +881,74 @@ func (s *Session) SelectCandidate(generation uint64, index uint32) (*KeyResult, 
 	if s.literal {
 		return s.commitCompositionLocked(), true
 	}
-	return s.commitCandidateLocked(candidates[abs]), true
+	return s.commitCandidateAtLocked(abs), true
+}
+
+func (s *Session) commitCandidateAtLocked(index int) *KeyResult {
+	candidates := s.snapshotCandidatesLocked()
+	if index < 0 || index >= len(candidates) {
+		return s.refreshLocked()
+	}
+	s.recordPendingFromSnapshotLocked(index)
+	return s.commitCandidateLocked(candidates[index])
+}
+
+func (s *Session) recordPendingFromSnapshotLocked(selectedIndex int) {
+	if s.snapshot == nil || selectedIndex <= 0 || selectedIndex >= len(s.snapshot.Candidates) {
+		return
+	}
+	if len(s.snapshot.Candidates) < 2 {
+		return
+	}
+	top := s.snapshot.Candidates[0]
+	selected := s.snapshot.Candidates[selectedIndex]
+	if !compatibleFeedbackPair(top, selected) {
+		return
+	}
+	s.pendingFeedback = append(s.pendingFeedback, pendingFeedback{
+		SnapshotGeneration: s.snapshot.Generation,
+		Preedit:            s.snapshot.Preedit,
+		EffectiveContext:   s.snapshot.EffectiveContext,
+		InputCode:          s.snapshot.Preedit,
+		SelectedIndex:      selectedIndex,
+		Selected:           selected,
+		Top:                top,
+		RankingVersion:     s.snapshot.RankingVersion,
+		UserDictVersion:    s.snapshot.UserDictVersion,
+	})
+}
+
+func (s *Session) dropLastPendingLocked() {
+	if len(s.pendingFeedback) == 0 {
+		return
+	}
+	s.pendingFeedback = s.pendingFeedback[:len(s.pendingFeedback)-1]
+}
+
+func (s *Session) acceptPendingFeedbackLocked() {
+	if len(s.pendingFeedback) == 0 {
+		return
+	}
+	batch := make([]FeedbackEvent, 0, len(s.pendingFeedback))
+	for _, pending := range s.pendingFeedback {
+		evt := FeedbackEvent{
+			Preedit:          pending.Preedit,
+			EffectiveContext: pending.EffectiveContext,
+			InputCode:        pending.InputCode,
+			SelectedIndex:    pending.SelectedIndex,
+			Selected:         pending.Selected,
+			Top:              pending.Top,
+			Generation:       pending.SnapshotGeneration,
+			RankingVersion:   pending.RankingVersion,
+			UserDictVersion:  pending.UserDictVersion,
+		}
+		s.acceptedFeedback = append(s.acceptedFeedback, evt)
+		batch = append(batch, evt)
+	}
+	s.pendingFeedback = nil
+	if s.feedbackSink != nil && len(batch) > 0 {
+		s.feedbackSink.AcceptFeedbackEvents(batch)
+	}
 }
 
 func (s *Session) commitCandidateLocked(cand engine.Candidate) *KeyResult {
@@ -699,37 +964,65 @@ func (s *Session) commitCandidateLocked(cand engine.Candidate) *KeyResult {
 		return s.refreshLocked()
 	}
 	covered := string(s.preedit[:consumedKeys])
-	remainder := ""
-	if consumedKeys < len(s.preedit) {
-		remainder = string(s.preedit[consumedKeys:])
-	}
-	s.confirmed = append(s.confirmed, confirmedSegment{Text: cand.Text, Keys: covered})
-	s.preedit = []rune(remainder)
-	s.cursor = len(s.preedit)
-	s.page = 0
-	s.selectedIndex = 0
-	s.literal = false
-	s.generation++
-	if remainder != "" {
-		list := s.currentCandidatesLocked()
+		remainder := ""
+		if consumedKeys < len(s.preedit) {
+			remainder = string(s.preedit[consumedKeys:])
+		}
+		s.confirmed = append(s.confirmed, confirmedSegment{
+			Text:      cand.Text,
+			Keys:      covered,
+			Syllables: append([]string(nil), cand.Syllables...),
+		})
+		s.preedit = []rune(remainder)
+		s.cursor = len(s.preedit)
+		s.page = 0
+		s.selectedIndex = 0
+		s.literal = false
+		s.generation++
+		if remainder != "" {
+			list := s.decodeCandidatesLocked()
+			s.storeSnapshotLocked(list)
+			return &KeyResult{
+				Composition: s.compositionLocked(),
+				Candidates:  s.candidateListLocked(list),
+				Consumed:    true,
+			}
+		}
+		text := s.confirmedTextLocked()
+		syllables := s.confirmedSyllablesLocked()
+		s.confirmed = nil
+		s.acceptPendingFeedbackLocked()
+		s.appendCommittedLocked(text)
+		s.observeCommittedLocked(text, syllables)
+		s.snapshot = nil
 		return &KeyResult{
 			Composition: s.compositionLocked(),
-			Candidates:  s.candidateListLocked(list),
-			Consumed:    true,
+			Candidates:  s.candidateListLocked(nil),
+			Commit: &imev1.CommitText{
+				SessionId:  s.id,
+				Text:       text,
+				Generation: s.generation,
+			},
+			Consumed: true,
 		}
 	}
-	text := s.confirmedTextLocked()
-	s.confirmed = nil
-	return &KeyResult{
-		Composition: s.compositionLocked(),
-		Candidates:  s.candidateListLocked(nil),
-		Commit: &imev1.CommitText{
-			SessionId:  s.id,
-			Text:       text,
-			Generation: s.generation,
-		},
-		Consumed: true,
+
+func (s *Session) confirmedSyllablesLocked() []string {
+	if len(s.confirmed) == 0 {
+		return nil
 	}
+	var out []string
+	for _, seg := range s.confirmed {
+		out = append(out, seg.Syllables...)
+	}
+	return out
+}
+
+func (s *Session) observeCommittedLocked(text string, syllables []string) {
+	if s.phraseObserver == nil || text == "" || len(syllables) == 0 {
+		return
+	}
+	_ = s.phraseObserver.ObserveCommittedPhrase(text, syllables)
 }
 
 func IsLetterInput(characters string) bool {

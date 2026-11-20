@@ -63,13 +63,20 @@ var chineseMode: Bool {
         return true
     }
 
-    func setChineseMode(_ enabled: Bool) {
+func setChineseMode(_ enabled: Bool) {
         Self.sharedChineseMode = enabled
         guard let client, !sessionId.isEmpty else {
             return
         }
         let mode = Int32(enabled ? TSIME_MODE_CHINESE : TSIME_MODE_ENGLISH)
         _ = tsime_client_set_mode(client, sessionId, mode)
+    }
+
+    func invalidateLearningContext() {
+        guard let client, !sessionId.isEmpty else {
+            return
+        }
+        _ = tsime_client_invalidate_learning_context(client, sessionId)
     }
 
     func handleKey(keyCode: UInt32, modifiers: UInt32, characters: String, keyDown: Bool) -> KeyOutcome? {

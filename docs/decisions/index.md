@@ -7,3 +7,4 @@
 | [0003](0003-custom-candidate-panel.md) | macOS owns a custom NSPanel candidate UI instead of IMKCandidates | Accepted |
 | [0004](0004-macos-settings-xdg-config.md) | macOS Settings NSWindow + XDG `settings.json` persistence | Accepted |
 | [0005](0005-macos-daemon-login-lifecycle.md) | macOS daemon login-time lifecycle and soft ensure | Accepted |
+| [0006](0006-online-sgd-personalization.md) | Online SGD personalization + local user dictionary | Accepted |

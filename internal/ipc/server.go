@@ -107,12 +107,17 @@ func (s *Server) dispatch(req *imev1.Envelope, negotiated *bool) *imev1.Envelope
 			return errorEnvelope(1, "hello required")
 		}
 		return s.handleOpenSession(payload.OpenSession)
-	case *imev1.Envelope_CloseSession:
-		if !*negotiated {
-			return errorEnvelope(1, "hello required")
-		}
-		return s.handleCloseSession(payload.CloseSession)
-	case *imev1.Envelope_KeyEvent:
+case *imev1.Envelope_CloseSession:
+			if !*negotiated {
+				return errorEnvelope(1, "hello required")
+			}
+			return s.handleCloseSession(payload.CloseSession)
+		case *imev1.Envelope_InvalidateLearningContext:
+			if !*negotiated {
+				return errorEnvelope(1, "hello required")
+			}
+			return s.handleInvalidateLearningContext(payload.InvalidateLearningContext)
+		case *imev1.Envelope_KeyEvent:
 		if !*negotiated {
 			return errorEnvelope(1, "hello required")
 		}
@@ -175,6 +180,23 @@ func (s *Server) handleCloseSession(req *imev1.CloseSession) *imev1.Envelope {
 	return &imev1.Envelope{
 		Payload: &imev1.Envelope_Status{
 			Status: &imev1.Status{Ok: ok, Message: ternary(ok, "closed", "session not found")},
+		},
+	}
+}
+
+func (s *Server) handleInvalidateLearningContext(req *imev1.InvalidateLearningContext) *imev1.Envelope {
+	sess, ok := s.manager.Get(req.GetSessionId())
+	if !ok {
+		return &imev1.Envelope{
+			Payload: &imev1.Envelope_Status{
+				Status: &imev1.Status{Ok: false, Message: "session not found"},
+			},
+		}
+	}
+	sess.InvalidateLearningContext()
+	return &imev1.Envelope{
+		Payload: &imev1.Envelope_Status{
+			Status: &imev1.Status{Ok: true, Message: "learning context invalidated"},
 		},
 	}
 }

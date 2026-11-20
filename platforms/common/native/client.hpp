@@ -38,7 +38,8 @@ public:
 
   bool hello(const std::string &clientName);
   bool openSession(int mode, std::string *sessionIdOut);
-  bool closeSession(const std::string &sessionId);
+bool closeSession(const std::string &sessionId);
+  bool invalidateLearningContext(const std::string &sessionId);
   bool setMode(const std::string &sessionId, int mode);
   KeyOutcome handleKey(const std::string &sessionId, std::uint32_t keyCode, std::uint32_t modifiers,
                        const std::string &characters, bool keyDown, bool isRepeat,

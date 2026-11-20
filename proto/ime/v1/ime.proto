@@ -40,6 +40,10 @@ message CloseSession {
   string session_id = 1;
 }
 
+message InvalidateLearningContext {
+  string session_id = 1;
+}
+
 message KeyEvent {
   string session_id = 1;
   uint32 key_code = 2;
@@ -123,7 +127,8 @@ message Envelope {
     HelloAck hello_ack = 11;
     OpenSession open_session = 12;
     OpenSessionAck open_session_ack = 13;
-    CloseSession close_session = 14;
+CloseSession close_session = 14;
+    InvalidateLearningContext invalidate_learning_context = 26;
     KeyEvent key_event = 15;
     KeyEventResult key_event_result = 16;
     SetInputMode set_input_mode = 17;

@@ -83,8 +83,9 @@ settingsObserver = NotificationCenter.default.addObserver(
         return outcome.consumed
     }
 
-    override func deactivateServer(_ sender: Any!) {
+override func deactivateServer(_ sender: Any!) {
         finishCompositionOnDeactivate(client: sender ?? client())
+        daemon.invalidateLearningContext()
         super.deactivateServer(sender)
     }
 

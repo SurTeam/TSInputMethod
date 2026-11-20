@@ -28,7 +28,8 @@ Do not promote a status without evidence. This foundation turn marks documentati
 - [engine](modules/engine/index.md) — conversion / candidate engine
 - [dictionary](modules/dictionary/index.md) — compiled rime-ice index load/lookup
 - [pinyin](modules/pinyin/index.md) — continuous syllable segmentation and lattice decode
-- [ranking](modules/ranking/index.md) — FastRanker + injectable coordinator
+- [ranking](modules/ranking/index.md) — FastRanker + injectable coordinator + online SGD fusion
+- [personal](modules/personal/index.md) — Defaults-on personalization settings / PrivacyMode
 - [inference](modules/inference/index.md) — Backend interface and no-model stubs
 
 ## Platforms
@@ -63,6 +64,7 @@ Do not promote a status without evidence. This foundation turn marks documentati
 - [0003-custom-candidate-panel.md](decisions/0003-custom-candidate-panel.md)
 - [0004-macos-settings-xdg-config.md](decisions/0004-macos-settings-xdg-config.md)
 - [0005-macos-daemon-login-lifecycle.md](decisions/0005-macos-daemon-login-lifecycle.md)
+- [0006-online-sgd-personalization.md](decisions/0006-online-sgd-personalization.md)
 
 ## Validation
 
@@ -76,6 +78,10 @@ Do not promote a status without evidence. This foundation turn marks documentati
 | Path | Role |
 | --- | --- |
 | `cmd/tsimed` | Daemon entrypoint |
+| `cmd/tsime-userdict` | User dictionary management CLI |
+| `cmd/tsime-personal` | Personal model path/status/clear CLI |
+| `cmd/tsime-personal-eval` | Deterministic personalization replay metrics |
+| `internal/personal` | Defaults-on personalization settings (no env vars) |
 | `internal/ipc` | IPC server/client, framing |
 | `internal/session` | Session manager |
 | `internal/engine` | Input engine core |

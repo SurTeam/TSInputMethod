@@ -1,9 +1,12 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/SurTeam/TSInputMethod/internal/dictionary"
 	"github.com/SurTeam/TSInputMethod/internal/emoji"
 	"github.com/SurTeam/TSInputMethod/internal/inference"
+	"github.com/SurTeam/TSInputMethod/internal/personal"
 	"github.com/SurTeam/TSInputMethod/internal/pinyin"
 	"github.com/SurTeam/TSInputMethod/internal/ranking"
 )
@@ -21,6 +24,10 @@ type Engine interface {
 	Decode(pinyinInput string) ([]Candidate, error)
 }
 
+type ContextDecoder interface {
+	DecodeWithContext(pinyinInput string, effectiveContext string) ([]Candidate, error)
+}
+
 type StubEngine struct{}
 
 func NewStubEngine() *StubEngine {
@@ -28,6 +35,10 @@ func NewStubEngine() *StubEngine {
 }
 
 func (e *StubEngine) Decode(pinyinInput string) ([]Candidate, error) {
+	return e.DecodeWithContext(pinyinInput, "")
+}
+
+func (e *StubEngine) DecodeWithContext(pinyinInput string, _ string) ([]Candidate, error) {
 	if pinyinInput == "" {
 		return nil, nil
 	}
@@ -43,21 +54,223 @@ type PinyinEngine struct {
 	coordinator *ranking.Coordinator
 	scheme      pinyin.Scheme
 	emoji       *emoji.Table
+	user        *dictionary.UserDictionary
+	settings    *personal.Settings
+	model       *ranking.PersonalModel
+	queue       *ranking.UpdateQueue
+	fused       *ranking.FusedRanker
 }
 
 func NewPinyinEngine(dict *dictionary.Dictionary) *PinyinEngine {
-	return NewPinyinEngineWithRanking(dict, ranking.NewCoordinator(ranking.NewFastRanker(), nil))
+	settings := personal.DefaultSettings()
+	model := ranking.NewPersonalModel(ranking.DefaultSGDConfig())
+	fused := ranking.NewFusedRanker(ranking.NewFastRanker(), model, nil, ranking.FusionConfig{
+		Enabled:             settings.PersonalizationEnabled,
+		SGDWeight:           settings.SGDWeight,
+		UserFrequencyWeight: settings.UserFrequencyWeight,
+	})
+	coord := ranking.NewCoordinator(fused, nil)
+	dictionary.SetValidSyllableFunc(pinyin.IsValidSyllable)
+	eng := &PinyinEngine{
+		decoder:     pinyin.NewDecoder(dict, 96),
+		coordinator: coord,
+		scheme:      pinyin.SchemeFromEnv(),
+		settings:    settings,
+		model:       model,
+		fused:       fused,
+		queue:       ranking.NewUpdateQueue(model, 128),
+	}
+	eng.queue.Start()
+	return eng
 }
 
 func NewPinyinEngineWithRanking(dict *dictionary.Dictionary, coordinator *ranking.Coordinator) *PinyinEngine {
 	if coordinator == nil {
 		coordinator = ranking.NewCoordinator(ranking.NewFastRanker(), nil)
 	}
+	dictionary.SetValidSyllableFunc(pinyin.IsValidSyllable)
 	return &PinyinEngine{
 		decoder:     pinyin.NewDecoder(dict, 96),
 		coordinator: coordinator,
 		scheme:      pinyin.SchemeFromEnv(),
+		settings:    personal.DefaultSettings(),
 	}
+}
+
+func (e *PinyinEngine) SetUserDictionary(user *dictionary.UserDictionary) {
+	if e == nil {
+		return
+	}
+	e.user = user
+	if e.decoder != nil {
+		if e.settings == nil || e.settings.Snapshot().UserDictionaryEnabled {
+			e.decoder.SetUserDictionary(user)
+		} else {
+			e.decoder.SetUserDictionary(nil)
+		}
+	}
+	if e.fused != nil {
+		if user == nil {
+			e.fused.SetUsageLookup(nil)
+		} else {
+			e.fused.SetUsageLookup(user.UsageCountForText)
+		}
+	}
+}
+
+func (e *PinyinEngine) UserDictionary() *dictionary.UserDictionary {
+	if e == nil {
+		return nil
+	}
+	return e.user
+}
+
+func (e *PinyinEngine) Settings() *personal.Settings {
+	if e == nil {
+		return nil
+	}
+	return e.settings
+}
+
+func (e *PinyinEngine) PersonalModel() *ranking.PersonalModel {
+	if e == nil {
+		return nil
+	}
+	return e.model
+}
+
+func (e *PinyinEngine) UpdateQueue() *ranking.UpdateQueue {
+	if e == nil {
+		return nil
+	}
+	return e.queue
+}
+
+func (e *PinyinEngine) ApplySettings() {
+	if e == nil || e.settings == nil {
+		return
+	}
+	snap := e.settings.Snapshot()
+	if e.model != nil {
+		e.model.SetEnabled(snap.PersonalizationEnabled && !snap.PrivacyMode)
+	}
+	if e.fused != nil {
+		e.fused.SetConfig(ranking.FusionConfig{
+			Enabled:             snap.PersonalizationEnabled && !snap.PrivacyMode,
+			SGDWeight:           snap.SGDWeight,
+			UserFrequencyWeight: snap.UserFrequencyWeight,
+		})
+	}
+	if e.decoder != nil {
+		if snap.UserDictionaryEnabled {
+			e.decoder.SetUserDictionary(e.user)
+		} else {
+			e.decoder.SetUserDictionary(nil)
+		}
+	}
+}
+
+func (e *PinyinEngine) EnqueueFeedback(context, code, selected, top string) bool {
+	if e == nil || e.queue == nil {
+		return false
+	}
+	if e.settings != nil {
+		snap := e.settings.Snapshot()
+		if !snap.PersonalizationEnabled || snap.PrivacyMode {
+			return false
+		}
+	}
+	return e.queue.Enqueue(ranking.PairwiseFeedback{
+		Context:  context,
+		Code:     code,
+		Selected: selected,
+		Top:      top,
+	})
+}
+
+func (e *PinyinEngine) RecordSelectedUsage(text string) {
+	if e == nil || e.user == nil || text == "" {
+		return
+	}
+	if e.settings != nil {
+		snap := e.settings.Snapshot()
+		if !snap.UserDictionaryEnabled || snap.PrivacyMode {
+			return
+		}
+	}
+	e.user.RecordUsageText(text)
+}
+
+func (e *PinyinEngine) ClearPersonalWeights() error {
+	if e == nil || e.model == nil {
+		return nil
+	}
+	e.model.ResetPersonalization()
+	if e.model.Path() == "" {
+		return nil
+	}
+	return e.model.SaveIfDirty()
+}
+
+func (e *PinyinEngine) ClearUserDictionary(mode string) error {
+	if e == nil || e.user == nil {
+		return nil
+	}
+	switch mode {
+	case "learned":
+		_ = e.user.ClearLearnedEntries()
+	case "all":
+		_ = e.user.ClearAllEntries()
+	default:
+		return fmt.Errorf("engine: clear user dictionary expects learned|all")
+	}
+	if e.user.Path() == "" {
+		return nil
+	}
+	return e.user.Save()
+}
+
+func (e *PinyinEngine) ClearPersonalData(clearWeights, clearUserDictLearned, clearUserDictAll bool) error {
+	if e == nil {
+		return nil
+	}
+	var first error
+	if clearWeights {
+		if err := e.ClearPersonalWeights(); err != nil && first == nil {
+			first = err
+		}
+	}
+	if clearUserDictAll {
+		if err := e.ClearUserDictionary("all"); err != nil && first == nil {
+			first = err
+		}
+	} else if clearUserDictLearned {
+		if err := e.ClearUserDictionary("learned"); err != nil && first == nil {
+			first = err
+		}
+	}
+	return first
+}
+
+func (e *PinyinEngine) Close() error {
+	if e == nil {
+		return nil
+	}
+	if e.queue != nil {
+		e.queue.Close()
+	}
+	var first error
+	if e.model != nil {
+		if err := e.model.SaveIfDirty(); err != nil {
+			first = err
+		}
+	}
+	if e.user != nil && e.user.Path() != "" {
+		if err := e.user.Save(); err != nil && first == nil {
+			first = err
+		}
+	}
+	return first
 }
 
 func (e *PinyinEngine) SetEmojiTable(table *emoji.Table) {
@@ -96,6 +309,10 @@ func (e *PinyinEngine) Coordinator() *ranking.Coordinator {
 }
 
 func (e *PinyinEngine) Decode(pinyinInput string) ([]Candidate, error) {
+	return e.DecodeWithContext(pinyinInput, "")
+}
+
+func (e *PinyinEngine) DecodeWithContext(pinyinInput string, effectiveContext string) ([]Candidate, error) {
 	if e == nil || e.decoder == nil {
 		return nil, nil
 	}
@@ -104,7 +321,7 @@ func (e *PinyinEngine) Decode(pinyinInput string) ([]Candidate, error) {
 		lists := make([][]Candidate, 0, len(analyzed.SyllableAlts))
 		for _, path := range analyzed.SyllableAlts {
 			raw := e.decoder.DecodeSyllables(path, analyzed.Remainder)
-			lists = append(lists, e.expandEmoji(e.rankRaw(analyzed, raw)))
+			lists = append(lists, e.expandEmoji(e.rankRaw(analyzed, raw, effectiveContext)))
 		}
 		return interleaveEngineCandidates(lists, 96), nil
 	}
@@ -118,7 +335,7 @@ func (e *PinyinEngine) Decode(pinyinInput string) ([]Candidate, error) {
 	} else {
 		raw = e.decoder.Decode(analyzed.Joined)
 	}
-	return e.expandEmoji(e.rankRaw(analyzed, raw)), nil
+	return e.expandEmoji(e.rankRaw(analyzed, raw, effectiveContext)), nil
 }
 
 func (e *PinyinEngine) expandEmoji(cands []Candidate) []Candidate {
@@ -151,10 +368,11 @@ func (e *PinyinEngine) expandEmoji(cands []Candidate) []Candidate {
 	return out
 }
 
-func (e *PinyinEngine) rankRaw(analyzed pinyin.NormalizedInput, raw []pinyin.Candidate) []Candidate {
+func (e *PinyinEngine) rankRaw(analyzed pinyin.NormalizedInput, raw []pinyin.Candidate, effectiveContext string) []Candidate {
 	req := ranking.Request{
 		Pinyin:     analyzed.Joined,
 		Candidates: make([]ranking.Candidate, 0, len(raw)),
+		Context:    effectiveContext,
 	}
 	meta := make([]pinyin.Candidate, len(raw))
 	copy(meta, raw)

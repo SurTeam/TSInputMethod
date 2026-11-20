@@ -10,6 +10,7 @@ import (
 	"github.com/SurTeam/TSInputMethod/internal/dictionary"
 	"github.com/SurTeam/TSInputMethod/internal/emoji"
 	"github.com/SurTeam/TSInputMethod/internal/engine"
+	"github.com/SurTeam/TSInputMethod/internal/ranking"
 	"github.com/SurTeam/TSInputMethod/internal/session"
 )
 
@@ -26,6 +27,24 @@ func run() error {
 		return err
 	}
 	manager := session.NewManager(eng)
+	if pe, ok := eng.(*engine.PinyinEngine); ok {
+		if pe.UserDictionary() != nil {
+			observer := dictionary.NewLearningObserver(pe.UserDictionary(), 0, true)
+			manager.SetPhraseObserver(observer)
+			manager.SetUserDictVersion(pe.UserDictionary().Version())
+		}
+		manager.SetFeedbackSink(session.EngineFeedbackSink{Target: pe})
+		if model := pe.PersonalModel(); model != nil {
+			if path, err := ranking.DefaultPersonalModelPath(); err == nil {
+				if err := model.LoadFile(path); err != nil {
+					fmt.Fprintf(os.Stderr, "tsimed: personal model: %v\n", err)
+				} else {
+					fmt.Printf("tsimed loaded personal model %s updates=%d\n", path, model.UpdateCount())
+				}
+			}
+		}
+		pe.ApplySettings()
+	}
 	server, addr, err := listenIPC(manager)
 	if err != nil {
 		return err
@@ -60,6 +79,12 @@ func loadEngine() (engine.Engine, error) {
 		return nil, fmt.Errorf("load dictionary %s: %w", path, err)
 	}
 	eng := engine.NewPinyinEngine(dict)
+	if user, err := dictionary.OpenUserDictionary(""); err == nil {
+		eng.SetUserDictionary(user)
+		fmt.Printf("tsimed loaded user dictionary %s entries=%d\n", user.Path(), user.EntryCount())
+	} else {
+		fmt.Fprintf(os.Stderr, "tsimed: user dictionary: %v\n", err)
+	}
 	if emojiPath := resolveEmojiPath(path); emojiPath != "" {
 		if table, err := emoji.LoadFile(emojiPath); err == nil {
 			eng.SetEmojiTable(table)
