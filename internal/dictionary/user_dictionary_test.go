@@ -121,6 +121,27 @@ func TestUserDictionaryConcurrency(t *testing.T) {
 	wg.Wait()
 }
 
+func TestUserDictionaryMaxEntriesDefaultUnlimited(t *testing.T) {
+	u := NewUserDictionary()
+	if u.MaxEntries() != -1 {
+		t.Fatalf("default max entries want -1, got %d", u.MaxEntries())
+	}
+	for i := 0; i < 3; i++ {
+		text := "词" + string(rune('甲'+i))
+		if _, err := u.AddEntry(text, []string{"ni", "hao"}, UserSourceManual, 0); err != nil {
+			t.Fatalf("unlimited add %d: %v", i, err)
+		}
+	}
+	u.SetMaxEntries(3)
+	if _, err := u.AddEntry("超额", []string{"ni", "hao"}, UserSourceManual, 0); err != ErrUserDictFull {
+		t.Fatalf("expected full at limit 3, got %v", err)
+	}
+	u.SetMaxEntries(-1)
+	if _, err := u.AddEntry("恢复", []string{"ni", "hao"}, UserSourceManual, 0); err != nil {
+		t.Fatalf("unlimited after reset: %v", err)
+	}
+}
+
 func TestPhraseLearnerAutoLearnAndExclusions(t *testing.T) {
 	u := NewUserDictionary()
 	l := NewPhraseLearner(u, 2)

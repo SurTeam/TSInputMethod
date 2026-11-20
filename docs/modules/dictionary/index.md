@@ -21,6 +21,7 @@
 
 - Syllables are scheme-independent quanpin sequences validated via `SetValidSyllableFunc` (wired to `pinyin.IsValidSyllable` by the engine/CLI).
 - APIs: Add/Remove/Update/Lookup/List/ClearLearned/ClearAll, exact + prefix lookup, MergeEntries for system dedupe/frequency fusion.
+- Entry capacity: `MaxEntries` defaults to `-1` (unlimited). Only a positive limit enforces `ErrUserDictFull`; there is no fixed 20000 hard cap.
 - Persistence: versioned JSON at `UserConfigDir/TSInputMethod/user_dictionary.json` (0600, temp+rename); CLI uses flock coordination + reload.
 - Auto-learn: `PhraseLearner` promotes reliable repeated Han phrases with recoverable syllables after a configurable min-repeat threshold.
 - Management CLI: `cmd/tsime-userdict` (`add|remove|update|lookup|list|clear|reload|path`).

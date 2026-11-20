@@ -30,13 +30,13 @@ func SetValidSyllableFunc(fn func(string) bool) {
 }
 
 const (
-	UserSourceManual  = "manual"
-	UserSourceLearned = "learned"
-	defaultUserWeight = uint32(1000)
-	maxUserTextRunes  = 16
-	maxUserSyllables  = 12
-	maxUserEntries    = 20000
-	maxUsageCount     = uint32(100000)
+	UserSourceManual       = "manual"
+	UserSourceLearned      = "learned"
+	defaultUserWeight      = uint32(1000)
+	maxUserTextRunes       = 16
+	maxUserSyllables       = 12
+	defaultMaxUserEntries  = -1
+	maxUsageCount          = uint32(100000)
 )
 
 var (
@@ -58,19 +58,42 @@ type UserEntry struct {
 }
 
 type UserDictionary struct {
-	mu      sync.RWMutex
-	entries []UserEntry
-	byKey   map[string][]int
-	byText  map[string][]int
-	version uint64
-	path    string
+	mu         sync.RWMutex
+	entries    []UserEntry
+	byKey      map[string][]int
+	byText     map[string][]int
+	version    uint64
+	path       string
+	maxEntries int
 }
 
 func NewUserDictionary() *UserDictionary {
 	return &UserDictionary{
-		byKey:  make(map[string][]int),
-		byText: make(map[string][]int),
+		byKey:      make(map[string][]int),
+		byText:     make(map[string][]int),
+		maxEntries: defaultMaxUserEntries,
 	}
+}
+
+func (u *UserDictionary) MaxEntries() int {
+	if u == nil {
+		return defaultMaxUserEntries
+	}
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	return u.maxEntries
+}
+
+func (u *UserDictionary) SetMaxEntries(limit int) {
+	if u == nil {
+		return
+	}
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	if limit == 0 {
+		limit = defaultMaxUserEntries
+	}
+	u.maxEntries = limit
 }
 
 func (u *UserDictionary) Version() uint64 {
@@ -177,7 +200,7 @@ func (u *UserDictionary) AddEntry(text string, syllables []string, source string
 			return UserEntry{}, ErrUserEntryExists
 		}
 	}
-	if len(u.entries) >= maxUserEntries {
+	if u.maxEntries > 0 && len(u.entries) >= u.maxEntries {
 		return UserEntry{}, ErrUserDictFull
 	}
 	entry := UserEntry{
