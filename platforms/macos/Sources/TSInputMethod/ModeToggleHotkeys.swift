@@ -31,11 +31,11 @@ struct ModeToggleBinding: Equatable {
 final class ModeToggleHotkeys {
     private static let trackedFlags: NSEvent.ModifierFlags = [.shift, .control, .option, .command]
     private static let modifierKeyCodes: Set<UInt16> = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+    private static var aloneDown: [UInt16: Bool] = [:]
+    private static var aloneUsedAsModifier: [UInt16: Bool] = [:]
+    private static var lastModifiers: NSEvent.ModifierFlags = []
 
     private var bindings: [ModeToggleBinding]
-    private var aloneDown: [UInt16: Bool] = [:]
-    private var aloneUsedAsModifier: [UInt16: Bool] = [:]
-    private var lastModifiers: NSEvent.ModifierFlags = []
 
     init(bindings: [ModeToggleBinding] = ModeToggleBinding.defaults) {
         self.bindings = bindings
@@ -47,14 +47,14 @@ final class ModeToggleHotkeys {
 
     func setBindings(_ bindings: [ModeToggleBinding]) {
         self.bindings = bindings
-        aloneDown.removeAll(keepingCapacity: true)
-        aloneUsedAsModifier.removeAll(keepingCapacity: true)
-        lastModifiers = []
+        Self.aloneDown.removeAll(keepingCapacity: true)
+        Self.aloneUsedAsModifier.removeAll(keepingCapacity: true)
+        Self.lastModifiers = []
     }
 
     func handleKeyDown(_ event: NSEvent, toggle: () -> Void) -> Bool {
-        for (code, isDown) in aloneDown where isDown {
-            aloneUsedAsModifier[code] = true
+        for (code, isDown) in Self.aloneDown where isDown {
+            Self.aloneUsedAsModifier[code] = true
         }
         for binding in bindings where binding.enabled {
             guard case .keyDown = binding.trigger else {
@@ -75,10 +75,10 @@ final class ModeToggleHotkeys {
 
     func handleFlagsChanged(_ event: NSEvent, toggle: () -> Void) -> Bool {
         let modifiers = event.modifierFlags.intersection(Self.trackedFlags.union(.capsLock))
-        if modifiers == lastModifiers {
+        if modifiers == Self.lastModifiers {
             return false
         }
-        lastModifiers = modifiers
+        Self.lastModifiers = modifiers
 
         var didToggle = false
         for binding in bindings where binding.enabled {
@@ -87,23 +87,23 @@ final class ModeToggleHotkeys {
             }
             let flagDown = modifiers.contains(flag)
             if event.keyCode != binding.keyCode {
-                if aloneDown[binding.keyCode] == true && flagDown {
-                    aloneUsedAsModifier[binding.keyCode] = true
+                if Self.aloneDown[binding.keyCode] == true && flagDown {
+                    Self.aloneUsedAsModifier[binding.keyCode] = true
                 }
                 continue
             }
             if !Self.modifierKeyCodes.contains(event.keyCode) {
                 continue
             }
-            let wasDown = aloneDown[binding.keyCode] == true
+            let wasDown = Self.aloneDown[binding.keyCode] == true
             if flagDown && !wasDown {
-                aloneDown[binding.keyCode] = true
-                aloneUsedAsModifier[binding.keyCode] = false
+                Self.aloneDown[binding.keyCode] = true
+                Self.aloneUsedAsModifier[binding.keyCode] = false
                 continue
             }
             if !flagDown && wasDown {
-                aloneDown[binding.keyCode] = false
-                if aloneUsedAsModifier[binding.keyCode] != true {
+                Self.aloneDown[binding.keyCode] = false
+                if Self.aloneUsedAsModifier[binding.keyCode] != true {
                     toggle()
                     didToggle = true
                 }

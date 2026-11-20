@@ -122,8 +122,8 @@ settingsObserver = NotificationCenter.default.addObserver(
     }
 
     @objc private func enableEnglish() {
-        commitCompositionLocally(client: client())
         daemon.setChineseMode(false)
+        commitCompositionLocally(client: client())
     }
 
     @objc private func restartInputMethod() {
@@ -153,6 +153,9 @@ settingsObserver = NotificationCenter.default.addObserver(
     }
 
     private func toggleChineseEnglish() {
+        guard daemon.consumeModeToggleOpportunity() else {
+            return
+        }
         if daemon.chineseMode {
             enableEnglish()
         } else {

@@ -27,6 +27,22 @@ func TestSingleKeyHPrefersShortPrefixHits(t *testing.T) {
 	}
 }
 
+func TestSingleKeyMappedInitialsSurfaceCandidates(t *testing.T) {
+	eng := engine.NewPinyinEngine(loadIceDict(t))
+	eng.SetScheme(pinyin.SchemeXiaohe)
+	for _, key := range []string{"i", "u", "v"} {
+		s := NewManager(eng).Open(imev1.InputMode_INPUT_MODE_CHINESE)
+		res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: key})
+		texts := candidateTexts(res)
+		if len(texts) == 0 {
+			t.Fatalf("%s produced no candidates", key)
+		}
+		if res.Composition == nil || res.Composition.Preedit != key {
+			t.Fatalf("%s preedit = %#v", key, res.Composition)
+		}
+	}
+}
+
 func TestOddNihSurfacesNihao(t *testing.T) {
 	eng := engine.NewPinyinEngine(loadIceDict(t))
 	eng.SetScheme(pinyin.SchemeXiaohe)
