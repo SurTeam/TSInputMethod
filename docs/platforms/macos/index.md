@@ -74,7 +74,7 @@ Override with `TSIME_SIGN_IDENTITY` if needed.
 - **Local notifications** (`AppNotifier`): IMKit `main` probes hello-only reachability; if `tsimed` is already up it notifies ready without an initializing banner, otherwise soft-ensures the agent and notifies ready when IPC becomes reachable. Notification authorization failure is a silent degrade (IME continues without prompts).
 - Expected Settings/lifecycle sources under `platforms/macos/Sources/TSInputMethod/`: `ConfigStore.swift`, `SettingsWindowController.swift`, `AppNotifier.swift`, `DaemonAgent.swift`, wired from `InputController.swift`, `CandidatePanel.swift`, `main.swift`, and the macOS `Makefile`.
 - `KeyEvent.key_code` is the raw macOS CG virtual key from `NSEvent.keyCode` (Karabiner-Elements table: `delete_or_backspace=0x33`, `escape=0x35`, `spacebar=0x31`, `return_or_enter=0x24`, `keypad_enter=0x4c`, `delete_forward=0x75`, letters such as `c=0x08`). No ASCII 8/27/32 remap. Printable compose/paging still uses `characters` ([ADR 0002](../../decisions/0002-semantic-edit-keycodes.md)).
-- Menu/palette icon is a rounded blue PDF with white `TS` at **21.75×15.75 pt** (same MediaBox as Fcitx5’s macOS menu icon; landscape, not the 128 pt app mark). Source SVG: `platforms/macos/Resources/menu_icon.svg`. App/installer bundles share `AppIcon.icns`.
+- Menu/palette icon is a black rounded-rectangle PDF silhouette with hollow/cut-out `TS` letterforms (even-odd path) at **21.75×15.75 pt** (same MediaBox as Fcitx5’s macOS menu icon; landscape, not the 128 pt app mark), so menu-bar template rendering shows the letters instead of a blank pill. Source SVG: `platforms/macos/Resources/menu_icon.svg`. App/installer bundles share `AppIcon.icns`.
 
 ## Verification
 
