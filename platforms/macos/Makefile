@@ -30,14 +30,15 @@ app: common
 $(PROTO_LIBS) \
 			-framework Cocoa -framework InputMethodKit -framework UserNotifications \
 			-o $(OUT)/MacOS/TSInputMethod \
-				Sources/TSInputMethod/main.swift \
-				Sources/TSInputMethod/DaemonClient.swift \
-				Sources/TSInputMethod/CandidatePanel.swift \
-				Sources/TSInputMethod/ModeToggleHotkeys.swift \
-				Sources/TSInputMethod/ConfigStore.swift \
-				Sources/TSInputMethod/AppNotifier.swift \
-				Sources/TSInputMethod/SettingsWindowController.swift \
-				Sources/TSInputMethod/InputController.swift
+Sources/TSInputMethod/main.swift \
+					Sources/TSInputMethod/DaemonClient.swift \
+					Sources/TSInputMethod/DaemonAgent.swift \
+					Sources/TSInputMethod/CandidatePanel.swift \
+					Sources/TSInputMethod/ModeToggleHotkeys.swift \
+					Sources/TSInputMethod/ConfigStore.swift \
+					Sources/TSInputMethod/AppNotifier.swift \
+					Sources/TSInputMethod/SettingsWindowController.swift \
+					Sources/TSInputMethod/InputController.swift
 
 install: app
 	./scripts/install.sh

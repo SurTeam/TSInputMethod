@@ -62,6 +62,7 @@ Do not promote a status without evidence. This foundation turn marks documentati
 - [0002-semantic-edit-keycodes.md](decisions/0002-semantic-edit-keycodes.md)
 - [0003-custom-candidate-panel.md](decisions/0003-custom-candidate-panel.md)
 - [0004-macos-settings-xdg-config.md](decisions/0004-macos-settings-xdg-config.md)
+- [0005-macos-daemon-login-lifecycle.md](decisions/0005-macos-daemon-login-lifecycle.md)
 
 ## Validation
 

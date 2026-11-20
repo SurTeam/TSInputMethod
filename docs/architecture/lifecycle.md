@@ -1,6 +1,6 @@
 # Daemon, session, and adapter lifecycle
 
-**Status:** designed / documented — runtime **not yet implemented**.
+**Status:** designed / documented — macOS LaunchAgent early-start and soft-ensure are implemented in source; host IME real-env login/switch cycle not claimed here.
 
 ## Daemon
 
@@ -8,6 +8,8 @@
 2. **Run** — multiplex client connections; maintain session table; serve IPC.
 3. **Reload** — optional config/dict reload without tearing down all sessions when safe.
 4. **Stop** — reject new accepts, notify clients, drain or abort sessions, close transport.
+
+On macOS, `tsimed` is owned by LaunchAgent `com.surteam.tsimed` with `RunAtLoad` and `KeepAlive`, so dictionary/engine warm happens at login/session load rather than at first keystroke. Switching away from the IMKit adapter must leave this process alive and already initialized.
 
 ## Adapter
 
@@ -17,6 +19,12 @@
 4. **Detach / unload** — close sessions, disconnect, release host resources.
 
 If the daemon is down at attach time, the adapter should fail soft (disable input method UI) and may retry connect with backoff.
+
+macOS specifics:
+
+- Soft ensure (`bootstrap`/`enable` when unloaded, then `kickstart` without `-k`) plus hello-only reachability probing run from IMKit `main` as a safety net and notification path.
+- Force restart (`kickstart -k`) is reserved for menu **Restart** recovery.
+- Deactivate / switch-away tears down only the adapter client/session; it does not stop the LaunchAgent-managed daemon.
 
 ## Session
 

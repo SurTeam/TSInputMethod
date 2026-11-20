@@ -11,7 +11,6 @@ class TSInputController: IMKInputController {
     private var comments: [String] = []
     private var selectedIndex: Int = 0
     private var settingsObserver: NSObjectProtocol?
-    private var didNotifyReady = false
 
     private let keyUpArrow: UInt32 = 126
     private let keyDownArrow: UInt32 = 125
@@ -31,15 +30,12 @@ class TSInputController: IMKInputController {
             self?.selectDisplayedCandidate(index: index)
         }
         applySettings(ConfigStore.load())
-        settingsObserver = NotificationCenter.default.addObserver(
+settingsObserver = NotificationCenter.default.addObserver(
             forName: ConfigStore.didChangeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             self?.applySettings(ConfigStore.load())
-        }
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            self?.probeDaemonReady()
         }
     }
 
@@ -134,40 +130,9 @@ class TSInputController: IMKInputController {
         commitCompositionLocally(client: client())
         candidatePanel.hide()
         daemon.teardown()
-        Self.ensureDaemonAgentRunning()
+        DaemonAgent.forceRestart()
         DispatchQueue.main.async {
             NSApp.terminate(nil)
-        }
-    }
-
-    private static func ensureDaemonAgentRunning() {
-        let uid = getuid()
-        let label = "com.surteam.tsimed"
-        let domain = "gui/\(uid)"
-        let target = "\(domain)/\(label)"
-        if runLaunchctl(["kickstart", "-k", target]) == 0 {
-            return
-        }
-        let plist = NSHomeDirectory() + "/Library/LaunchAgents/\(label).plist"
-        _ = runLaunchctl(["bootout", target])
-        _ = runLaunchctl(["bootstrap", domain, plist])
-        _ = runLaunchctl(["enable", target])
-        _ = runLaunchctl(["kickstart", "-k", target])
-    }
-
-    @discardableResult
-    private static func runLaunchctl(_ arguments: [String]) -> Int32 {
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-        task.arguments = arguments
-        task.standardOutput = FileHandle.nullDevice
-        task.standardError = FileHandle.nullDevice
-        do {
-            try task.run()
-            task.waitUntilExit()
-            return task.terminationStatus
-        } catch {
-            return -1
         }
     }
 
@@ -184,22 +149,6 @@ class TSInputController: IMKInputController {
         candidatePanel.applyAppearance(settings)
         if !candidates.isEmpty {
             updateCandidatePanel(client: client())
-        }
-    }
-
-    private func probeDaemonReady() {
-        for _ in 0..<40 {
-            if daemon.ensureConnected() {
-                DispatchQueue.main.async { [weak self] in
-                    guard let self, !self.didNotifyReady else {
-                        return
-                    }
-                    self.didNotifyReady = true
-                    AppNotifier.notifyReady()
-                }
-                return
-            }
-            Thread.sleep(forTimeInterval: 0.5)
         }
     }
 

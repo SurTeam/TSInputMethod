@@ -3,7 +3,7 @@ import InputMethodKit
 
 @main
 struct TSInputMethodMain {
-static let bundleID = "com.surteam.inputmethod.TSInputMethod"
+    static let bundleID = "com.surteam.inputmethod.TSInputMethod"
     static let hansModeID = "com.surteam.inputmethod.TSInputMethod.Hans"
 
     static func main() {
@@ -27,7 +27,27 @@ static let bundleID = "com.surteam.inputmethod.TSInputMethod"
         }
         _ = ConfigStore.load()
         AppNotifier.prepare()
-        AppNotifier.notifyInitializing()
+        DispatchQueue.global(qos: .utility).async {
+            if DaemonClient.isReachable() {
+                DispatchQueue.main.async {
+                    AppNotifier.notifyReady()
+                }
+                return
+            }
+            DispatchQueue.main.async {
+                AppNotifier.notifyInitializing()
+            }
+            DaemonAgent.softEnsureRunning()
+            for _ in 0..<40 {
+                if DaemonClient.isReachable() {
+                    DispatchQueue.main.async {
+                        AppNotifier.notifyReady()
+                    }
+                    return
+                }
+                Thread.sleep(forTimeInterval: 0.5)
+            }
+        }
         _ = IMKServer(name: connectionName, bundleIdentifier: bundleIdentifier)
 
         let app = NSApplication.shared

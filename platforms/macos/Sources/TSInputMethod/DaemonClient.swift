@@ -15,8 +15,25 @@ final class DaemonClient {
     private var client: OpaquePointer?
     private(set) var sessionId: String = ""
 
-    var chineseMode: Bool {
+var chineseMode: Bool {
         Self.sharedChineseMode
+    }
+
+    static func isReachable() -> Bool {
+        let path = resolveSocketPath()
+        guard let created = tsime_client_create() else {
+            return false
+        }
+        defer {
+            tsime_client_destroy(created)
+        }
+        guard tsime_client_connect(created, path) != 0 else {
+            return false
+        }
+        defer {
+            tsime_client_disconnect(created)
+        }
+        return tsime_client_hello(created, "macos-imkit-probe") != 0
     }
 
     func ensureConnected() -> Bool {
