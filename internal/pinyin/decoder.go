@@ -215,9 +215,6 @@ func (d *Decoder) finish(seen map[string]Candidate) []Candidate {
 			}
 			exact = append(exact, cand)
 		}
-		if n > 1 {
-			exact = keepCompetitive(exact)
-		}
 		filtered[n] = exact
 		incompleteByLen[n] = incomplete
 	}
@@ -241,7 +238,7 @@ func (d *Decoder) finish(seen map[string]Candidate) []Candidate {
 		for n := 1; n <= maxLen && len(out) < d.limit; n++ {
 			appendUnique(shortIncomplete(incompleteByLen[n]), d.limit-len(out))
 		}
-		for n := 1; n <= maxLen && len(out) < d.limit; n++ {
+		for n := maxLen; n >= 1 && len(out) < d.limit; n-- {
 			appendUnique(filtered[n], d.limit-len(out))
 		}
 		for n := 1; n <= maxLen && len(out) < d.limit; n++ {
@@ -277,32 +274,12 @@ func shortIncompleteQuota(n int) int {
 	return 2
 }
 
-func keepCompetitive(cands []Candidate) []Candidate {
-	if len(cands) <= 1 {
-		return cands
-	}
-	best := cands[0].Score
-	if best <= 0 {
-		return cands
-	}
-	out := cands[:0]
-	for _, cand := range cands {
-		if cand.Score*20 >= best {
-			out = append(out, cand)
-		}
-	}
-	if len(out) == 0 {
-		return cands[:1]
-	}
-	return out
-}
-
 func exactQuota(n, maxLen int) int {
 	if n <= 1 {
 		return 12
 	}
 	if n == maxLen {
-		return 2
+		return 1
 	}
 	if n == 2 {
 		return 2
@@ -425,16 +402,16 @@ func (d *Decoder) collectLattice(syllables []string, seen map[string]Candidate) 
 	if n <= 1 {
 		return
 	}
-hasExact := len(d.lookupExact(syllables)) > 0
-		best := make([][]latticeCell, n+1)
-		best[0] = []latticeCell{{"", 0, 0}}
-		for start := 0; start < n; start++ {
-			if len(best[start]) == 0 {
-				continue
-			}
-			for end := start + 1; end <= n; end++ {
-				piece := syllables[start:end]
-				entries := d.lookupExact(piece)
+	hasExact := len(d.lookupExact(syllables)) > 0
+	best := make([][]latticeCell, n+1)
+	best[0] = []latticeCell{{"", 0, 0}}
+	for start := 0; start < n; start++ {
+		if len(best[start]) == 0 {
+			continue
+		}
+		for end := start + 1; end <= n; end++ {
+			piece := syllables[start:end]
+			entries := d.lookupExact(piece)
 			if len(entries) == 0 {
 				continue
 			}

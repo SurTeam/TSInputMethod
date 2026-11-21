@@ -36,7 +36,7 @@
 
 ## Design notes
 
-1. Decode always produces base candidates via FastRanker (`Rank` / `RankSync`) without waiting on models. FastRanker keeps coverage (syllable-prefix length) ahead of raw score so progressive shorter prefixes stay visible.
+1. Decode always produces base candidates via FastRanker (`Rank` / `RankSync`) without waiting on models. FastRanker keeps coverage (syllable-prefix length) ahead of raw score so progressive shorter prefixes stay visible, and keeps same-coverage exact candidates contiguous so FusedRanker / context personalization can reorder inside that group.
 2. When a backend and update handler are set, `Rank` may start async inference; callers apply updates only through `ApplyUpdate(currentGeneration, update)`.
 3. `RankWithContext` is the synchronous injection path used by tests and future blocking backends; failures fall back to the base list.
 4. `PersonalModel` uses the same `ExtractFeatures` for Score and PairwiseUpdate (FNV-1a, dim 2^18). Updates apply LR/L2/grad-clip/weight-cap. Short-term cache boosts recent corrections with TTL decay. `UpdateQueue.Enqueue` never blocks; full queues drop. Persistence stores weights only (no raw context history) at `UserConfigDir/TSInputMethod/personal_model.json`; incompatible dimension/schema/hash loads are rejected. `ResetPersonalization` clears weights and cache.

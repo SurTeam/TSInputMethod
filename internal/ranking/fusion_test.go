@@ -80,3 +80,53 @@ func TestUserFrequencyContributesInsideGroup(t *testing.T) {
 		t.Fatalf("user frequency should lift 北京, got %#v", out)
 	}
 }
+
+func TestFastRankerKeepsSameCoverageExactContiguous(t *testing.T) {
+	out := NewFastRanker().Rank(Request{
+		Candidates: []Candidate{
+			{Text: "同意", Score: 500560, Coverage: 2},
+			{Text: "同", Score: 2614683, Coverage: 1},
+			{Text: "统一", Score: 5006, Coverage: 2},
+			{Text: "通", Score: 1186869, Coverage: 1},
+			{Text: "同一", Score: 5003, Coverage: 2},
+		},
+	})
+	seenLower := false
+	for _, cand := range out {
+		if cand.Coverage == 2 {
+			if seenLower {
+				t.Fatalf("coverage-2 exacts split by singles: %#v", out)
+			}
+			continue
+		}
+		if cand.Coverage < 2 {
+			seenLower = true
+		}
+	}
+	if out[0].Text != "同意" || out[1].Text != "统一" || out[2].Text != "同一" {
+		t.Fatalf("expected contiguous exacts by score then singles, got %#v", out)
+	}
+}
+
+func TestFusedRankerCanPromoteWeakerExactInsideContiguousGroup(t *testing.T) {
+	model := NewPersonalModel(DefaultSGDConfig())
+	for i := 0; i < 40; i++ {
+		model.PairwiseUpdate("国家", "tsyi", "统一", "同意")
+	}
+	fused := NewFusedRanker(NewFastRanker(), model, nil, DefaultFusionConfig())
+	out := fused.Rank(Request{
+		Pinyin:  "tsyi",
+		Context: "国家",
+		Candidates: []Candidate{
+			{Text: "同意", Score: 500560, Coverage: 2},
+			{Text: "统一", Score: 5006, Coverage: 2},
+			{Text: "同", Score: 2614683, Coverage: 1},
+		},
+	})
+	if out[0].Text != "统一" {
+		t.Fatalf("context fusion should promote 统一 inside coverage-2 group, got %#v", out)
+	}
+	if out[2].Coverage != 1 {
+		t.Fatalf("single should remain after exact group: %#v", out)
+	}
+}
