@@ -53,21 +53,25 @@ final class DaemonClient {
         }
         let path = Self.resolveSocketPath()
         guard let created = tsime_client_create() else {
+            DaemonWatchdog.requestRecovery()
             return false
         }
         client = created
         guard tsime_client_connect(created, path) != 0 else {
             teardown()
+            DaemonWatchdog.requestRecovery()
             return false
         }
         guard tsime_client_hello(created, "macos-imkit") != 0 else {
             teardown()
+            DaemonWatchdog.requestRecovery()
             return false
         }
         var buffer = [CChar](repeating: 0, count: 128)
         let mode = Int32(chineseMode ? TSIME_MODE_CHINESE : TSIME_MODE_ENGLISH)
         guard tsime_client_open_session(created, mode, &buffer, buffer.count) != 0 else {
             teardown()
+            DaemonWatchdog.requestRecovery()
             return false
         }
         sessionId = String(cString: buffer)
@@ -96,7 +100,12 @@ func setChineseMode(_ enabled: Bool) {
         }
         var result = tsime_client_handle_key(client, sessionId, keyCode, modifiers, characters, keyDown ? 1 : 0, 0, 0)
         defer { tsime_key_result_free(&result) }
-        return Self.outcome(from: result)
+        if let outcome = Self.outcome(from: result) {
+            return outcome
+        }
+        teardown()
+        DaemonWatchdog.requestRecovery()
+        return nil
     }
 
     func selectCandidate(index: UInt32) -> KeyOutcome? {
@@ -105,7 +114,12 @@ func setChineseMode(_ enabled: Bool) {
         }
         var result = tsime_client_select_candidate(client, sessionId, 0, index)
         defer { tsime_key_result_free(&result) }
-        return Self.outcome(from: result)
+        if let outcome = Self.outcome(from: result) {
+            return outcome
+        }
+        teardown()
+        DaemonWatchdog.requestRecovery()
+        return nil
     }
 
     func teardown() {

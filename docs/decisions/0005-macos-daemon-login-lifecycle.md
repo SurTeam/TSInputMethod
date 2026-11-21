@@ -13,11 +13,12 @@
 2. Adapter-side LaunchAgent management splits into:
    - soft ensure: bootstrap/enable if unloaded, then `kickstart` without `-k` only when IPC is unreachable
    - force restart: `kickstart -k` (with bootstrap fallback) only for menu **Restart** recovery
-3. Soft ensure and hello-only reachability probing run from IMKit `main` as a safety net/notification path. Controller activation no longer owns first init.
-4. Switching away from TSInputMethod tears down only adapter client/session state. The LaunchAgent-managed daemon and its loaded dictionary/engine stay alive.
+3. Soft ensure and hello-only reachability probing run from IMKit `DaemonWatchdog` (started in `main`) as a continuous safety net/notification path. Controller activation no longer owns first init; connect/handle failures request the same recovery.
+4. Menu **Restart** resets lifecycle notifications, shows initializing immediately, force-restarts, notifies ready when reachable, then terminates IMKit.
+5. Switching away from TSInputMethod tears down only adapter client/session state. The LaunchAgent-managed daemon and its loaded dictionary/engine stay alive.
 
 ## Consequences
 
 - Healthy daemons are no longer force-killed by ordinary ensure.
-- Ready notifications can fire without opening a typing session.
+- Ready/initializing notifications can fire without opening a typing session, including on Restart and mid-session daemon death.
 - Login readiness still depends on the LaunchAgent remaining loaded after install; IMKit itself still launches when the input source is used.

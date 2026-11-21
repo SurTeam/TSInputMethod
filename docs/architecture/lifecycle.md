@@ -22,8 +22,9 @@ If the daemon is down at attach time, the adapter should fail soft (disable inpu
 
 macOS specifics:
 
-- Soft ensure (`bootstrap`/`enable` when unloaded, then `kickstart` without `-k`) plus hello-only reachability probing run from IMKit `main` as a safety net and notification path.
-- Force restart (`kickstart -k`) is reserved for menu **Restart** recovery.
+- Soft ensure (`bootstrap`/`enable` when unloaded, then `kickstart` without `-k`) plus hello-only reachability probing run from IMKit `DaemonWatchdog` as a continuous safety net and notification path (not keystroke-gated).
+- After repeated soft failures the watchdog escalates to force restart; Chinese-mode IPC connect/handle failures also request recovery.
+- Force restart (`kickstart -k`) is also used for menu **Restart** recovery, which shows initializing immediately and ready once IPC returns before terminating IMKit.
 - Deactivate / switch-away tears down only the adapter client/session; it does not stop the LaunchAgent-managed daemon.
 
 ## Session

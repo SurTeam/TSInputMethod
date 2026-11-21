@@ -131,9 +131,23 @@ override func deactivateServer(_ sender: Any!) {
         commitCompositionLocally(client: client())
         candidatePanel.hide()
         daemon.teardown()
-        DaemonAgent.forceRestart()
-        DispatchQueue.main.async {
-            NSApp.terminate(nil)
+        AppNotifier.resetLifecycleNotifications()
+        AppNotifier.notifyInitializing()
+        DispatchQueue.global(qos: .userInitiated).async {
+            DaemonAgent.forceRestart()
+            for _ in 0..<40 {
+                if DaemonClient.isReachable() {
+                    DispatchQueue.main.async {
+                        AppNotifier.notifyReady()
+                        NSApp.terminate(nil)
+                    }
+                    return
+                }
+                Thread.sleep(forTimeInterval: 0.5)
+            }
+            DispatchQueue.main.async {
+                NSApp.terminate(nil)
+            }
         }
     }
 

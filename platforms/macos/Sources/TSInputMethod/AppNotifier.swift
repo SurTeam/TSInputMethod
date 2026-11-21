@@ -19,6 +19,11 @@ enum AppNotifier {
         }
     }
 
+    static func resetLifecycleNotifications() {
+        didNotifyInitializing = false
+        didNotifyReady = false
+    }
+
     static func notifyInitializing() {
         prepare()
         guard !didNotifyInitializing else {

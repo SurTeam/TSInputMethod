@@ -27,27 +27,7 @@ struct TSInputMethodMain {
         }
         _ = ConfigStore.load()
         AppNotifier.prepare()
-        DispatchQueue.global(qos: .utility).async {
-            if DaemonClient.isReachable() {
-                DispatchQueue.main.async {
-                    AppNotifier.notifyReady()
-                }
-                return
-            }
-            DispatchQueue.main.async {
-                AppNotifier.notifyInitializing()
-            }
-            DaemonAgent.softEnsureRunning()
-            for _ in 0..<40 {
-                if DaemonClient.isReachable() {
-                    DispatchQueue.main.async {
-                        AppNotifier.notifyReady()
-                    }
-                    return
-                }
-                Thread.sleep(forTimeInterval: 0.5)
-            }
-        }
+        DaemonWatchdog.start(withInitialEnsure: true)
         _ = IMKServer(name: connectionName, bundleIdentifier: bundleIdentifier)
 
         let app = NSApplication.shared
@@ -56,9 +36,9 @@ struct TSInputMethodMain {
     }
 
     static func registerInputSource() {
-        let appURL = Bundle.main.bundleURL
-        let status = TISRegisterInputSource(appURL as CFURL)
-        fputs("TISRegisterInputSource \(appURL.path) status=\(status)\n", stderr)
+        let url = Bundle.main.bundleURL as CFURL
+        let status = TISRegisterInputSource(url)
+        fputs("TISRegisterInputSource status=\(status)\n", stderr)
     }
 
     static func enableInputSources() {
