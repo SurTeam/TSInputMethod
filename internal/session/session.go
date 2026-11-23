@@ -56,10 +56,12 @@ type Session struct {
 	page             uint32
 	pageSize         uint32
 	selectedIndex    uint32
-	literal          bool
-	quoteOpen        bool
-	singleOpen       bool
-	engine           engine.Engine
+	literal                 bool
+	quoteOpen               bool
+	singleOpen              bool
+	afterDigitPunct         bool
+	tempAsciiPunctCommitted bool
+	engine                  engine.Engine
 	snapshot         *candidateSnapshot
 	pendingFeedback  []pendingFeedback
 	acceptedFeedback []FeedbackEvent
@@ -226,6 +228,7 @@ func (s *Session) SetMode(mode imev1.InputMode) *KeyResult {
 	}
 	s.mode = mode
 	s.clearCompositionLocked()
+	s.clearTempAsciiPunctLocked()
 	s.committedContext = nil
 	s.pendingFeedback = nil
 	if commit == nil {
@@ -319,6 +322,7 @@ func (s *Session) handleShiftInputLocked(characters string) *KeyResult {
 		}
 	}
 	if len(letters) > 0 {
+		s.clearTempAsciiPunctLocked()
 		for _, r := range letters {
 			s.preedit = append(s.preedit[:s.cursor], append([]rune{r}, s.preedit[s.cursor:]...)...)
 			s.cursor++
@@ -337,9 +341,10 @@ func (s *Session) handleShiftInputLocked(characters string) *KeyResult {
 	var mapped []rune
 	for _, r := range symbols {
 		if isPunctuationOrSymbol(r) {
-			mapped = append(mapped, []rune(s.mapChinesePunctuationLocked(r))...)
+			mapped = append(mapped, []rune(s.mapPunctuationLocked(r))...)
 			continue
 		}
+		s.clearTempAsciiPunctLocked()
 		mapped = append(mapped, r)
 	}
 	return s.commitTextLocked(string(mapped))
@@ -352,11 +357,16 @@ func (s *Session) composeCharactersLocked(characters string) *KeyResult {
 	for _, r := range characters {
 		if unicode.IsDigit(r) {
 			if !s.hasCompositionLocked() {
-				return s.commitTextLocked(string(r))
+				res := s.commitTextLocked(string(r))
+				s.afterDigitPunct = true
+				s.tempAsciiPunctCommitted = false
+				return res
 			}
+			s.clearTempAsciiPunctLocked()
 			return s.selectByDigitLocked(r)
 		}
 		if r >= 'a' && r <= 'z' {
+			s.clearTempAsciiPunctLocked()
 			s.preedit = append(s.preedit[:s.cursor], append([]rune{r}, s.preedit[s.cursor:]...)...)
 			s.cursor++
 			s.page = 0
@@ -364,6 +374,7 @@ func (s *Session) composeCharactersLocked(characters string) *KeyResult {
 			continue
 		}
 		if r >= 'A' && r <= 'Z' {
+			s.clearTempAsciiPunctLocked()
 			letter := r
 			if !s.literal {
 				letter = unicode.ToLower(r)
@@ -374,12 +385,14 @@ func (s *Session) composeCharactersLocked(characters string) *KeyResult {
 			s.selectedIndex = 0
 			continue
 		}
-			if isPunctuationOrSymbol(r) {
-				if s.hasCompositionLocked() {
-					return &KeyResult{Consumed: true, Composition: s.compositionLocked(), Candidates: s.candidateListLocked(s.currentCandidatesLocked())}
-				}
-				return s.commitTextLocked(s.mapChinesePunctuationLocked(r))
+		if isPunctuationOrSymbol(r) {
+			if s.hasCompositionLocked() {
+				s.clearTempAsciiPunctLocked()
+				return &KeyResult{Consumed: true, Composition: s.compositionLocked(), Candidates: s.candidateListLocked(s.currentCandidatesLocked())}
 			}
+			return s.commitTextLocked(s.mapPunctuationLocked(r))
+		}
+		s.clearTempAsciiPunctLocked()
 		return &KeyResult{Consumed: false}
 	}
 	return s.refreshLocked()
@@ -399,16 +412,36 @@ func isPunctuationOrSymbol(r rune) bool {
 	return unicode.IsPunct(r) || unicode.IsSymbol(r) || (r >= 0x21 && r <= 0x2F) || (r >= 0x3A && r <= 0x40) || (r >= 0x5B && r <= 0x60) || (r >= 0x7B && r <= 0x7E)
 }
 
+func (s *Session) mapPunctuationLocked(r rune) string {
+	if s.afterDigitPunct {
+		s.afterDigitPunct = false
+		s.tempAsciiPunctCommitted = true
+		return mapAsciiPunctuation(r)
+	}
+	s.tempAsciiPunctCommitted = false
+	return s.mapChinesePunctuationLocked(r)
+}
+
+func mapAsciiPunctuation(r rune) string {
+	switch r {
+	case '“', '”':
+		return "\""
+	case '‘', '’':
+		return "'"
+	}
+	return string(r)
+}
+
 func (s *Session) mapChinesePunctuationLocked(r rune) string {
 	switch r {
-	case '"':
+	case '"', '“', '”':
 		if !s.quoteOpen {
 			s.quoteOpen = true
 			return "“"
 		}
 		s.quoteOpen = false
 		return "”"
-	case '\'':
+	case '\'', '‘', '’':
 		if !s.singleOpen {
 			s.singleOpen = true
 			return "‘"
@@ -420,6 +453,11 @@ func (s *Session) mapChinesePunctuationLocked(r rune) string {
 		return mapped
 	}
 	return string(r)
+}
+
+func (s *Session) clearTempAsciiPunctLocked() {
+	s.afterDigitPunct = false
+	s.tempAsciiPunctCommitted = false
 }
 
 var halfShapePunctuation = map[rune]string{
@@ -457,6 +495,7 @@ var halfShapePunctuation = map[rune]string{
 
 func (s *Session) backspaceLocked() *KeyResult {
 	if len(s.confirmed) > 0 {
+		s.clearTempAsciiPunctLocked()
 		last := s.confirmed[len(s.confirmed)-1]
 		s.confirmed = s.confirmed[:len(s.confirmed)-1]
 		s.preedit = append([]rune(last.Keys), s.preedit...)
@@ -468,6 +507,7 @@ func (s *Session) backspaceLocked() *KeyResult {
 		return s.refreshLocked()
 	}
 	if len(s.preedit) > 0 && s.cursor > 0 {
+		s.clearTempAsciiPunctLocked()
 		s.preedit = append(s.preedit[:s.cursor-1], s.preedit[s.cursor:]...)
 		s.cursor--
 		s.page = 0
@@ -478,6 +518,7 @@ func (s *Session) backspaceLocked() *KeyResult {
 		return s.refreshLocked()
 	}
 	if len(s.preedit) == 0 {
+		s.clearTempAsciiPunctLocked()
 		return &KeyResult{Consumed: false}
 	}
 	return s.refreshLocked()
@@ -485,20 +526,25 @@ func (s *Session) backspaceLocked() *KeyResult {
 
 func (s *Session) cancelLocked() *KeyResult {
 	if len(s.preedit) == 0 && len(s.confirmed) == 0 {
+		s.clearTempAsciiPunctLocked()
 		return &KeyResult{Consumed: false}
 	}
 	s.pendingFeedback = nil
 	s.clearCompositionLocked()
+	s.clearTempAsciiPunctLocked()
 	return s.refreshLocked()
 }
 
 func (s *Session) commitSelectedCandidateLocked() *KeyResult {
 	if len(s.preedit) == 0 {
 		if len(s.confirmed) == 0 {
+			s.clearTempAsciiPunctLocked()
 			return &KeyResult{Consumed: false}
 		}
+		s.clearTempAsciiPunctLocked()
 		return s.flushConfirmedLocked()
 	}
+	s.clearTempAsciiPunctLocked()
 	if s.literal {
 		return s.commitCompositionLocked()
 	}
@@ -521,6 +567,7 @@ func (s *Session) commitTopCandidateLocked() *KeyResult {
 }
 
 func (s *Session) commitRawPreeditLocked() *KeyResult {
+	s.clearTempAsciiPunctLocked()
 	return s.commitCompositionLocked()
 }
 

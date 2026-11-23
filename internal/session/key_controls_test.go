@@ -44,6 +44,10 @@ func TestChineseDigitsAndPunctuationWithoutPreedit(t *testing.T) {
 		t.Fatalf("digit commit = %#v", res)
 	}
 	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: ","})
+	if res.Commit == nil || res.Commit.Text != "," {
+		t.Fatalf("comma after digit stays ascii = %#v", res)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: ","})
 	if res.Commit == nil || res.Commit.Text != "，" {
 		t.Fatalf("comma commit = %#v", res)
 	}
@@ -66,6 +70,78 @@ func TestChineseDigitsAndPunctuationWithoutPreedit(t *testing.T) {
 	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "\""})
 	if res.Commit == nil || res.Commit.Text != "”" {
 		t.Fatalf("closing quote = %#v", res)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "'"})
+	if res.Commit == nil || res.Commit.Text != "‘" {
+		t.Fatalf("opening single quote = %#v", res)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "'"})
+	if res.Commit == nil || res.Commit.Text != "’" {
+		t.Fatalf("closing single quote = %#v", res)
+	}
+}
+
+func TestCurlyQuotesAlternateEvenWhenSystemRepeatsOpening(t *testing.T) {
+	m := NewManager(testEngine())
+	s := m.Open(imev1.InputMode_INPUT_MODE_CHINESE)
+	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "“"})
+	if res.Commit == nil || res.Commit.Text != "“" {
+		t.Fatalf("opening double from curly = %#v", res)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "“"})
+	if res.Commit == nil || res.Commit.Text != "”" {
+		t.Fatalf("closing double from repeated curly = %#v", res)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "‘"})
+	if res.Commit == nil || res.Commit.Text != "‘" {
+		t.Fatalf("opening single from curly = %#v", res)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "‘"})
+	if res.Commit == nil || res.Commit.Text != "’" {
+		t.Fatalf("closing single from repeated curly = %#v", res)
+	}
+}
+
+func TestDigitFollowedByPunctuationUsesAscii(t *testing.T) {
+	m := NewManager(testEngine())
+	s := m.Open(imev1.InputMode_INPUT_MODE_CHINESE)
+	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "1"})
+	if res.Commit == nil || res.Commit.Text != "1" {
+		t.Fatalf("digit commit = %#v", res)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "."})
+	if res.Commit == nil || res.Commit.Text != "." {
+		t.Fatalf("period after digit should stay ascii = %#v", res)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "2"})
+	if res.Commit == nil || res.Commit.Text != "2" {
+		t.Fatalf("second digit = %#v", res)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: ","})
+	if res.Commit == nil || res.Commit.Text != "," {
+		t.Fatalf("comma after digit should stay ascii = %#v", res)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "."})
+	if res.Commit == nil || res.Commit.Text != "。" {
+		t.Fatalf("period without digit should use chinese = %#v", res)
+	}
+}
+
+func TestBackspaceAfterTempAsciiPunctRestoresChinese(t *testing.T) {
+	m := NewManager(testEngine())
+	s := m.Open(imev1.InputMode_INPUT_MODE_CHINESE)
+	_ = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "1"})
+	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "."})
+	if res.Commit == nil || res.Commit.Text != "." {
+		t.Fatalf("temp ascii period = %#v", res)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, KeyCode: keyDelete})
+	if res.Consumed {
+		t.Fatalf("backspace without composition must passthrough = %#v", res)
+	}
+	res = s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "."})
+	if res.Commit == nil || res.Commit.Text != "。" {
+		t.Fatalf("period after backspace should use chinese = %#v", res)
 	}
 }
 
