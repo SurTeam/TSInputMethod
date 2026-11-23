@@ -94,17 +94,17 @@ override func deactivateServer(_ sender: Any!) {
         super.commitComposition(sender)
     }
 
-    override func menu() -> NSMenu! {
-        let menu = NSMenu(title: "TSInputMethod")
-        let chinese = NSMenuItem(title: "Chinese", action: #selector(enableChinese), keyEquivalent: "")
+override func menu() -> NSMenu! {
+        let menu = NSMenu(title: "TS输入法")
+        let chinese = NSMenuItem(title: "中文模式", action: #selector(enableChinese), keyEquivalent: "")
         chinese.target = self
         chinese.state = daemon.chineseMode ? .on : .off
-        let english = NSMenuItem(title: "English", action: #selector(enableEnglish), keyEquivalent: "")
+        let english = NSMenuItem(title: "英文模式", action: #selector(enableEnglish), keyEquivalent: "")
         english.target = self
         english.state = daemon.chineseMode ? .off : .on
-        let settings = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: "")
+        let settings = NSMenuItem(title: "设置…", action: #selector(openSettings), keyEquivalent: "")
         settings.target = self
-        let restart = NSMenuItem(title: "Restart", action: #selector(restartInputMethod), keyEquivalent: "")
+        let restart = NSMenuItem(title: "重启", action: #selector(restartInputMethod), keyEquivalent: "")
         restart.target = self
         menu.addItem(chinese)
         menu.addItem(english)

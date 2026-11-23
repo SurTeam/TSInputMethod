@@ -190,9 +190,11 @@ if [[ ! -f "$DICT" ]]; then
 fi
 
 killall TSInputMethod >/dev/null 2>&1 || true
+killall TextInputMenuAgent TextInputSwitcher >/dev/null 2>&1 || true
 if [[ -x "$IME_BIN" ]]; then
   "$IME_BIN" --register-input-source >/tmp/tsime-register.log 2>&1 || true
 fi
+killall TextInputMenuAgent TextInputSwitcher >/dev/null 2>&1 || true
 
 UID_NUM="$(id -u)"
 OLD_AGENT_LABELS=("com.surteam.tsime.imed")
@@ -244,7 +246,7 @@ Primary install: open the DMG and double-click **Install TSInputMethod**.
 That installer:
 
 1. Copies `TSInputMethod.app` into `/Library/Input Methods` (admin prompt)
-2. Registers and enables the Hans input mode (`TISRegisterInputSource` + enable parent/Hans)
+2. Registers and enables the Hans input mode (`TISRegisterInputSource` only when missing + enable parent/Hans + `AppleEnabledThirdPartyInputSources` record; refreshes TextInput agents)
 3. Installs a LaunchAgent that auto-starts embedded `tsimed` from `/Library`
 4. Defaults `TSIME_SCHEME=xiaohe`
 5. Refreshes the running IMKit process (`killall TSInputMethod`) so updates do not require a logout

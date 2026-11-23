@@ -64,9 +64,9 @@
   <key>InputMethodConnectionName</key>
   <string>TSInputMethod_1_Connection</string>
   <key>InputMethodServerControllerClass</key>
-  <string>TSInputMethod.TSInputController</string>
+  <string>TSInputController</string>
   <key>InputMethodServerDelegateClass</key>
-  <string>TSInputMethod.TSInputController</string>
+  <string>TSInputController</string>
 <key>LSBackgroundOnly</key>
   <true/>
   <key>LSUIElement</key>

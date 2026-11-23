@@ -11,20 +11,21 @@
 
 ## Input-source registration
 
-`platforms/macos/Info.plist` declares a mode-enabled IMKit source:
+`platforms/macos/Info.plist` declares a mode-enabled IMKit source. `InputMethodServerControllerClass` / `InputMethodServerDelegateClass` must be the ObjC runtime name `TSInputController` (from `@objc(TSInputController)`), not the Swift-qualified `TSInputMethod.TSInputController`; a mismatch prevents IMKit from creating the controller, so the menu-bar menu (including Settings) is empty and key handling never runs.
 
 - Bundle ID / `TISInputSourceID`: `com.surteam.inputmethod.TSInputMethod`
 - Visible Hans mode: `com.surteam.inputmethod.TSInputMethod.Hans` with `TISIntendedLanguage=zh-Hans`
 - `ComponentInputModeDict` + `tsInputMethodCharacterRepertoireKey` + custom SurTeam/TS menu/app icons
 
-Installer copies the app into `/Library/Input Methods` (admin prompt) and runs `TSInputMethod --register-input-source` (`TISRegisterInputSource` + `TISEnableInputSource` for Hans + `AppleEnabledThirdPartyInputSources` record).
+Installer copies a SurTeam-signed app into `/Library/Input Methods` (admin/root), strips quarantine (`xattr`), and runs `TSInputMethod --register-input-source` / `--enable-input-source` as the console GUI user (Fcitx5-style `su -m <user>` when the installer itself is root). Enabling as root leaves `parent enabled=false` and `TISSelectInputSource(Hans)=-50`; enabling as the real user sets non-selectable parent + Hans enabled and selects Hans. Register still skips `TISRegisterInputSource` when parent+Hans already exist; records parent+Hans under `AppleEnabledThirdPartyInputSources`; refreshes `TextInputMenuAgent`/`TextInputSwitcher` when duplicate TIS IDs are detected. Install/register does not modify `com.apple.HIToolbox.plist` and does not restore ABC.
 
 Observed after install/register on this host:
 
 - `TISCreateInputSourceList` returns parent `com.surteam.inputmethod.TSInputMethod` and Hans mode `com.surteam.inputmethod.TSInputMethod.Hans`
-- Parent + Hans are both TIS-enabled; Hans is selectable (`langs=zh-Hans`); parent stays non-selectable
-- Installer records both under `com.apple.inputsources` `AppleEnabledThirdPartyInputSources`
-- After enable, Hans appears in the enabled-only TIS list and `TISSelectInputSource` can make it current
+- Parent is TIS-enabled but non-selectable; Hans is enabled, selectable (`langs=zh-Hans`), and selected by the installer so it can appear in the menu/enabled list without a second selectable same-name row
+- Installer records parent `Keyboard Input Method` + Hans `Input Mode` under `com.apple.inputsources` `AppleEnabledThirdPartyInputSources` only
+- After enable/select, Hans appears in the enabled-only TIS list and can be current
+- Repeated unconditional `TISRegisterInputSource` can leave Settings showing many same-name「TS输入法」rows even while prefs stay short; register is now idempotent and TextInput agents are refreshed on duplicate detection
 
 System Settings → Add Input Source → 简体中文 browser was not agent-confirmed (already-enabled sources may be absent from the Add browser and appear in the enabled list / menu bar instead). TextEdit typing remains pending. After install/update the installer refreshes the IMKit process; if the menu bar is still stale, use the IME menu **Restart** item or reopen Keyboard settings, and log out/in only as a last resort.
 

@@ -20,6 +20,8 @@ app: common
 	cp Resources/AppIcon.icns $(OUT)/Resources/
 	cp -R Resources/en.lproj $(OUT)/Resources/
 	cp -R Resources/zh-Hans.lproj $(OUT)/Resources/
+	(cd $(ROOT) && go build -o $(abspath $(OUT)/MacOS/tsimed) ./cmd/tsimed)
+	chmod +x $(OUT)/MacOS/tsimed
 	$(SWIFTC) \
 		-parse-as-library \
 		-module-name TSInputMethod \
