@@ -22,8 +22,8 @@
 - Syllables are scheme-independent quanpin sequences validated via `SetValidSyllableFunc` (wired to `pinyin.IsValidSyllable` by the engine/CLI).
 - APIs: Add/Remove/Update/Lookup/List/ClearLearned/ClearAll, exact + prefix lookup, MergeEntries for system dedupe/frequency fusion.
 - Entry capacity: `MaxEntries` defaults to `-1` (unlimited). Only a positive limit enforces `ErrUserDictFull`; there is no fixed 20000 hard cap.
-- Persistence: versioned JSON at `UserConfigDir/TSInputMethod/user_dictionary.json` (0600, temp+rename); CLI uses flock coordination + reload.
-- Auto-learn: `PhraseLearner` promotes reliable repeated Han phrases with recoverable syllables after a configurable min-repeat threshold.
+- Persistence: versioned JSON at `UserConfigDir/TSInputMethod/user_dictionary.json` (0600, temp+rename); CLI uses flock coordination + reload. `Dirty`/`SaveIfDirty` compare the in-memory version with the last loaded/saved version; `ReloadIfChangedOnDisk` reloads when the file's mtime/size differ from the last load/save (external edits win over unsaved daemon-side usage counts).
+- Auto-learn: `PhraseLearner` promotes reliable repeated Han phrases with recoverable syllables after a configurable min-repeat threshold. At most 4096 phrases are tracked as candidates (the set resets when full), a phrase leaves the set once promoted, and `Reset` clears it.
 - Management CLI: `cmd/tsime-userdict` (`add|remove|update|lookup|list|clear|reload|path`).
 
 ## Source locations
@@ -34,7 +34,8 @@
 | `internal/dictionary/mmap_unix.go` / `mmap_stub.go` | Prefer `mmap` for `.tsdict`; non-unix falls back to `ReadFile` |
 | `internal/dictionary/user_dictionary.go` | User overlay CRUD + merge |
 | `internal/dictionary/user_storage.go` | Atomic JSON persistence |
-| `internal/dictionary/user_learning.go` | Phrase auto-learn |
+| `internal/dictionary/user_learning.go` | Phrase auto-learn (bounded pending counts) |
+| `internal/dictionary/user_sync_test.go` | Dirty tracking, external-change reload, learner bounds |
 | `cmd/tsime-userdict` | Manual management CLI |
 | `tools/dictBuilder/build_dict.py` | Offline YAML → `.tsdict` |
 | `data/dicts/rime-ice.tsdict` | Built 8105+41448+base+ext+tencent+others index |

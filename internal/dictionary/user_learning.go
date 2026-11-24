@@ -9,6 +9,7 @@ import (
 const (
 	defaultLearnMinRepeats = 2
 	maxLearnTextRunes      = 12
+	maxLearnPending        = 4096
 )
 
 type PhraseLearner struct {
@@ -59,9 +60,15 @@ func (l *PhraseLearner) ObserveCommittedPhrase(text string, syllables []string) 
 	}
 	key := text + "\x00" + joinKey(syllables)
 	l.mu.Lock()
+	if _, ok := l.counts[key]; !ok && len(l.counts) >= maxLearnPending {
+		l.counts = make(map[string]int)
+	}
 	l.counts[key]++
 	count := l.counts[key]
 	need := l.minRepeats
+	if count >= need {
+		delete(l.counts, key)
+	}
 	l.mu.Unlock()
 	if count < need {
 		return UserEntry{}, false, nil
@@ -75,6 +82,24 @@ func (l *PhraseLearner) ObserveCommittedPhrase(text string, syllables []string) 
 		return UserEntry{}, false, err
 	}
 	return entry, true, nil
+}
+
+func (l *PhraseLearner) PendingCount() int {
+	if l == nil {
+		return 0
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return len(l.counts)
+}
+
+func (l *PhraseLearner) Reset() {
+	if l == nil {
+		return
+	}
+	l.mu.Lock()
+	l.counts = make(map[string]int)
+	l.mu.Unlock()
 }
 
 func IsAutoLearnablePhrase(text string, syllables []string) bool {

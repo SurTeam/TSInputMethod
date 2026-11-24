@@ -74,8 +74,6 @@ func (c *ShortTermCache) LookupLocked(context, code, candidate string, now time.
 	}
 	entry := el.Value.(*cacheEntry)
 	if now.After(entry.expiresAt) {
-		delete(c.items, key)
-		c.order.Remove(el)
 		return 0
 	}
 	remaining := entry.expiresAt.Sub(now).Seconds() / c.ttl.Seconds()

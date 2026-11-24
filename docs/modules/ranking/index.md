@@ -30,6 +30,7 @@
 | `internal/ranking/coordinator_test.go` | Inject / degrade / stale-update tests |
 | `internal/ranking/fusion.go` | FusedRanker: Base+UserFreq+SGD within Coverage/Incomplete groups |
 | `internal/ranking/personal_test.go` | Hash stability, pairwise lift, caps, cache, queue, persist |
+| `internal/ranking/lifecycle_test.go` | Queue drain on close, trim headroom, concurrent score/update/save |
 | `internal/personal/settings.go` | Defaults-on personalization toggles (no env vars) |
 | `internal/engine` | `PinyinEngine` wires fused coordinator + feedback queue; ClearPersonalWeights / ClearPersonalData / Close |
 | `cmd/tsime-personal` | Personal model path / status / clear-weights CLI |
@@ -41,9 +42,10 @@
 3. `RankWithContext` is the synchronous injection path used by tests and future blocking backends; failures fall back to the base list.
 4. `PersonalModel` uses the same `ExtractFeatures` for Score and PairwiseUpdate (FNV-1a, dim 2^18). Updates apply LR/L2/grad-clip/weight-cap. Short-term cache boosts recent corrections with TTL decay. `UpdateQueue.Enqueue` never blocks; full queues drop. Persistence stores weights only (no raw context history) at `UserConfigDir/TSInputMethod/personal_model.json`; incompatible dimension/schema/hash loads are rejected. `ResetPersonalization` clears weights and cache.
 5. `FusedRanker` runs FastRanker first, then reorders only inside same Coverage/Incomplete/Composed groups using `log1p(base) + userFreqWeight*log1p(usage) + sgdWeight*PersonalScore`. Disabling personalization restores FastRanker-only order. Session accepted feedback drains into `UpdateQueue` via `FeedbackSink`.
-6. **Capacity / eviction:** sparse weights trimmed to `MaxWeights` (default 50000) by smallest absolute magnitude; short-term cache capacity 256 with TTL decay and LRU eviction; update queue capacity 128 with non-blocking drop. Persistence never stores raw context strings.
-7. **Eval:** `go run ./cmd/tsime-personal-eval` replays deterministic fixtures predict→observe→train for Fast / UserFreq / SGD combinations and reports Top-1/5, MRR, rank deltas, false promotions, `est_model_bytes` (weights×16 + cache×64 + usage map), `heap_alloc_b` (`runtime.MemStats`), and latency (fixture metrics only).
-8. **Clear:** `ResetPersonalization` + `cmd/tsime-personal clear-weights`; PrivacyMode disables scoring/enqueue (see security principles).
+6. **Capacity / eviction:** when weights exceed `MaxWeights` (default 50000), the smallest-magnitude ones are dropped down to 90% of the cap (sort-based, so the cost is amortized instead of paid on every update); short-term cache capacity 256 with TTL decay and LRU eviction (expired entries are evicted on write, not under the read lock); update queue capacity 128 with non-blocking drop. `UpdateQueue.Close` rejects new feedback, drains what is already queued, and waits for the worker. `Save` clears the model's unsaved-changes flag only if no update arrived during the write. Persistence never stores raw context strings.
+7. **Code key:** `PinyinEngine.EnqueueFeedback` normalizes the raw double-pinyin code with the active scheme (`pinyin.NormalizeInput`) so training features use the same `code_candidate` key that `FusedRanker` scores with (`analyzed.Joined`).
+8. **Eval:** `go run ./cmd/tsime-personal-eval` replays deterministic fixtures predict→observe→train for Fast / UserFreq / SGD combinations and reports Top-1/5, MRR, rank deltas, false promotions, `est_model_bytes` (weights×16 + cache×64 + usage map), `heap_alloc_b` (`runtime.MemStats`), and latency (fixture metrics only).
+9. **Clear:** `ResetPersonalization` + `cmd/tsime-personal clear-weights`; PrivacyMode disables scoring/enqueue (see security principles).
 
 ## Related
 

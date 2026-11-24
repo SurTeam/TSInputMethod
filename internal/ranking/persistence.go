@@ -65,6 +65,7 @@ func (m *PersonalModel) Save() error {
 	}
 	m.mu.RLock()
 	path := m.path
+	seq := m.changeSeq
 	file := personalModelFile{
 		FormatVersion:        personalModelFormatVersion,
 		HashDimension:        m.cfg.Dimension,
@@ -91,9 +92,20 @@ func (m *PersonalModel) Save() error {
 		return err
 	}
 	m.mu.Lock()
-	m.dirty = false
+	if m.changeSeq == seq {
+		m.dirty = false
+	}
 	m.mu.Unlock()
 	return nil
+}
+
+func (m *PersonalModel) Dirty() bool {
+	if m == nil {
+		return false
+	}
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.dirty
 }
 
 func (m *PersonalModel) SaveIfDirty() error {

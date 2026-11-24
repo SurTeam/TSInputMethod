@@ -9,6 +9,11 @@
 3. **Reload** — optional config/dict reload without tearing down all sessions when safe.
 4. **Stop** — reject new accepts, notify clients, drain or abort sessions, close transport.
 
+`tsimed` (`cmd/tsimed/main.go`) implements this as follows:
+
+- **Run:** every 30 s, `PinyinEngine.SyncPersonalData` reloads `user_dictionary.json` if its mtime/size changed (for example after a `tsime-userdict` edit), then saves the personal model and user dictionary if they have unsaved changes. Learned usage and SGD updates therefore survive a crash or a `KeepAlive` relaunch, losing at most one interval.
+- **Stop (SIGINT/SIGTERM or Serve error):** `ipc.Server.Close` closes the listener and every tracked connection (an idle adapter cannot block shutdown), waits for the connection goroutines, and closes each connection's sessions. `PinyinEngine.Close` then drains the SGD `UpdateQueue` and saves the model and user dictionary if they have unsaved changes.
+
 On macOS, `tsimed` is owned by LaunchAgent `com.surteam.tsimed` with `RunAtLoad` and `KeepAlive`, so dictionary/engine warm happens at login/session load rather than at first keystroke. Switching away from the IMKit adapter must leave this process alive and already initialized.
 
 ## Adapter
@@ -36,7 +41,7 @@ A session is the daemon-side state for one input context (typically one text fie
 3. **Idle** — context deactivated; may retain short-lived compose state per policy.
 4. **Destroy** — context closed, client disconnect, or daemon shutdown.
 
-Sessions must not leak across unrelated clients. Adapter process death destroys its sessions.
+Sessions must not leak across unrelated clients. Adapter process death destroys its sessions: the IPC server records the sessions opened on each connection and closes any still open when that connection ends (EOF, read error, or server shutdown).
 
 ## Ordering constraints
 

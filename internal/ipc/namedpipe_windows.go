@@ -119,11 +119,7 @@ func ListenNamedPipe(pipePath string, manager *session.Manager) (*Server, error)
 		pipePath = DefaultNamedPipePath()
 	}
 	ln := &pipeListener{path: pipePath, closed: make(chan struct{})}
-	return &Server{
-		listener: ln,
-		manager:  manager,
-		quit:     make(chan struct{}),
-	}, nil
+	return newServer(ln, manager), nil
 }
 
 func DialNamedPipe(pipePath string) (*Client, error) {

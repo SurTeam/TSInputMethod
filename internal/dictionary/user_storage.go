@@ -17,6 +17,19 @@ type userDictFile struct {
 	Entries       []userDictJSON  `json:"entries"`
 }
 
+type fileStamp struct {
+	modTime time.Time
+	size    int64
+}
+
+func statFileStamp(path string) fileStamp {
+	st, err := os.Stat(path)
+	if err != nil {
+		return fileStamp{}
+	}
+	return fileStamp{modTime: st.ModTime(), size: st.Size()}
+}
+
 type userDictJSON struct {
 	Text       string    `json:"text"`
 	Syllables  []string  `json:"syllables"`
@@ -47,22 +60,17 @@ func (u *UserDictionary) LoadFile(path string) error {
 	if u == nil {
 		return ErrInvalidUserEntry
 	}
+	stamp := statFileStamp(path)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			u.mu.Lock()
-			u.path = path
-			u.replaceAllLocked(nil)
-			u.mu.Unlock()
+			u.resetLoadedLocked(path, stamp)
 			return nil
 		}
 		return err
 	}
 	if len(data) == 0 {
-		u.mu.Lock()
-		u.path = path
-		u.replaceAllLocked(nil)
-		u.mu.Unlock()
+		u.resetLoadedLocked(path, stamp)
 		return nil
 	}
 	var file userDictFile
@@ -109,7 +117,45 @@ func (u *UserDictionary) LoadFile(path string) error {
 	u.path = path
 	u.replaceAllLocked(entries)
 	u.version++
+	u.savedVer = u.version
+	u.diskStamp = stamp
 	return nil
+}
+
+func (u *UserDictionary) resetLoadedLocked(path string, stamp fileStamp) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	u.path = path
+	if len(u.entries) > 0 {
+		u.version++
+	}
+	u.replaceAllLocked(nil)
+	u.savedVer = u.version
+	u.diskStamp = stamp
+}
+
+func (u *UserDictionary) ChangedOnDisk() bool {
+	if u == nil {
+		return false
+	}
+	path := u.Path()
+	if path == "" {
+		return false
+	}
+	stamp := statFileStamp(path)
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	return !stamp.modTime.Equal(u.diskStamp.modTime) || stamp.size != u.diskStamp.size
+}
+
+func (u *UserDictionary) ReloadIfChangedOnDisk() (bool, error) {
+	if u == nil || !u.ChangedOnDisk() {
+		return false, nil
+	}
+	if err := u.ReloadLocked(); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (u *UserDictionary) Save() error {
@@ -118,6 +164,7 @@ func (u *UserDictionary) Save() error {
 	}
 	u.mu.RLock()
 	path := u.path
+	ver := u.version
 	entries := make([]UserEntry, len(u.entries))
 	copy(entries, u.entries)
 	for i := range entries {
@@ -132,7 +179,33 @@ func (u *UserDictionary) Save() error {
 		}
 		u.SetPath(path)
 	}
-	return saveUserDictFile(path, entries)
+	if err := saveUserDictFile(path, entries); err != nil {
+		return err
+	}
+	stamp := statFileStamp(path)
+	u.mu.Lock()
+	if ver > u.savedVer {
+		u.savedVer = ver
+	}
+	u.diskStamp = stamp
+	u.mu.Unlock()
+	return nil
+}
+
+func (u *UserDictionary) Dirty() bool {
+	if u == nil {
+		return false
+	}
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	return u.version != u.savedVer
+}
+
+func (u *UserDictionary) SaveIfDirty() error {
+	if !u.Dirty() || u.Path() == "" {
+		return nil
+	}
+	return u.SaveLocked()
 }
 
 func saveUserDictFile(path string, entries []UserEntry) error {

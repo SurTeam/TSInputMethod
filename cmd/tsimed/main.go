@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	"github.com/SurTeam/TSInputMethod/internal/dictionary"
 	"github.com/SurTeam/TSInputMethod/internal/emoji"
@@ -13,6 +14,8 @@ import (
 	"github.com/SurTeam/TSInputMethod/internal/ranking"
 	"github.com/SurTeam/TSInputMethod/internal/session"
 )
+
+const personalSyncInterval = 30 * time.Second
 
 func main() {
 	if err := run(); err != nil {
@@ -27,10 +30,10 @@ func run() error {
 		return err
 	}
 	manager := session.NewManager(eng)
-	if pe, ok := eng.(*engine.PinyinEngine); ok {
+	pe, _ := eng.(*engine.PinyinEngine)
+	if pe != nil {
 		if pe.UserDictionary() != nil {
-			observer := dictionary.NewLearningObserver(pe.UserDictionary(), 0, true)
-			manager.SetPhraseObserver(observer)
+			manager.SetPhraseObserver(pe)
 			manager.SetUserDictVersion(pe.UserDictionary().Version())
 		}
 		manager.SetFeedbackSink(session.EngineFeedbackSink{Target: pe})
@@ -57,15 +60,44 @@ func run() error {
 	go func() {
 		errCh <- server.Serve()
 	}()
+	ticker := time.NewTicker(personalSyncInterval)
+	defer ticker.Stop()
 
-	select {
-	case sig := <-sigCh:
-		fmt.Printf("tsimed shutting down on %s\n", sig)
-		_ = server.Close()
-		return nil
-	case err := <-errCh:
-		return err
+	for {
+		select {
+		case <-ticker.C:
+			syncPersonal(pe, manager)
+		case sig := <-sigCh:
+			fmt.Printf("tsimed shutting down on %s\n", sig)
+			_ = server.Close()
+			return shutdownEngine(pe)
+		case err := <-errCh:
+			_ = server.Close()
+			if closeErr := shutdownEngine(pe); closeErr != nil {
+				fmt.Fprintf(os.Stderr, "tsimed: personal data: %v\n", closeErr)
+			}
+			return err
+		}
 	}
+}
+
+func syncPersonal(pe *engine.PinyinEngine, manager *session.Manager) {
+	if pe == nil {
+		return
+	}
+	if err := pe.SyncPersonalData(); err != nil {
+		fmt.Fprintf(os.Stderr, "tsimed: personal data sync: %v\n", err)
+	}
+	if user := pe.UserDictionary(); user != nil {
+		manager.SetUserDictVersion(user.Version())
+	}
+}
+
+func shutdownEngine(pe *engine.PinyinEngine) error {
+	if pe == nil {
+		return nil
+	}
+	return pe.Close()
 }
 
 func loadEngine() (engine.Engine, error) {

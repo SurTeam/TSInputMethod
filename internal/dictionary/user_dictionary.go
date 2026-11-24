@@ -63,6 +63,8 @@ type UserDictionary struct {
 	byKey      map[string][]int
 	byText     map[string][]int
 	version    uint64
+	savedVer   uint64
+	diskStamp  fileStamp
 	path       string
 	maxEntries int
 }

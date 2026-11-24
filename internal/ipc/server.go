@@ -19,10 +19,18 @@ const (
 )
 
 type Server struct {
-	listener net.Listener
-	manager  *session.Manager
-	wg       sync.WaitGroup
-	quit     chan struct{}
+	listener  net.Listener
+	manager   *session.Manager
+	wg        sync.WaitGroup
+	quit      chan struct{}
+	closeOnce sync.Once
+	connMu    sync.Mutex
+	conns     map[*Conn]struct{}
+}
+
+type connState struct {
+	negotiated bool
+	sessions   map[string]struct{}
 }
 
 func ListenUnix(socketPath string, manager *session.Manager) (*Server, error) {
@@ -38,11 +46,16 @@ func ListenUnix(socketPath string, manager *session.Manager) (*Server, error) {
 		_ = ln.Close()
 		return nil, err
 	}
+	return newServer(ln, manager), nil
+}
+
+func newServer(ln net.Listener, manager *session.Manager) *Server {
 	return &Server{
 		listener: ln,
 		manager:  manager,
 		quit:     make(chan struct{}),
-	}, nil
+		conns:    make(map[*Conn]struct{}),
+	}
 }
 
 func (s *Server) Addr() net.Addr {
@@ -60,24 +73,71 @@ func (s *Server) Serve() error {
 				return err
 			}
 		}
+		conn := NewConn(raw)
+		if !s.trackConn(conn) {
+			_ = conn.Close()
+			continue
+		}
 		s.wg.Add(1)
-		go func(c net.Conn) {
+		go func() {
 			defer s.wg.Done()
-			s.handleConn(NewConn(c))
-		}(raw)
+			defer s.untrackConn(conn)
+			s.handleConn(conn)
+		}()
 	}
 }
 
 func (s *Server) Close() error {
-	close(s.quit)
-	err := s.listener.Close()
-	s.wg.Wait()
+	var err error
+	s.closeOnce.Do(func() {
+		s.connMu.Lock()
+		close(s.quit)
+		conns := make([]*Conn, 0, len(s.conns))
+		for c := range s.conns {
+			conns = append(conns, c)
+		}
+		s.connMu.Unlock()
+		err = s.listener.Close()
+		for _, c := range conns {
+			_ = c.Close()
+		}
+		s.wg.Wait()
+	})
 	return err
 }
 
+func (s *Server) ConnCount() int {
+	s.connMu.Lock()
+	defer s.connMu.Unlock()
+	return len(s.conns)
+}
+
+func (s *Server) trackConn(conn *Conn) bool {
+	s.connMu.Lock()
+	defer s.connMu.Unlock()
+	select {
+	case <-s.quit:
+		return false
+	default:
+	}
+	s.conns[conn] = struct{}{}
+	return true
+}
+
+func (s *Server) untrackConn(conn *Conn) {
+	s.connMu.Lock()
+	delete(s.conns, conn)
+	s.connMu.Unlock()
+}
+
 func (s *Server) handleConn(conn *Conn) {
-	defer conn.Close()
-	negotiated := false
+	state := &connState{sessions: make(map[string]struct{})}
+	defer func() {
+		for id := range state.sessions {
+			s.manager.Close(id)
+		}
+		_ = conn.Close()
+	}()
 	for {
 		req, err := conn.Recv()
 		if err != nil {
@@ -86,7 +146,7 @@ func (s *Server) handleConn(conn *Conn) {
 			}
 			return
 		}
-		resp := s.dispatch(req, &negotiated)
+		resp := s.dispatch(req, state)
 		if resp == nil {
 			continue
 		}
@@ -98,44 +158,32 @@ func (s *Server) handleConn(conn *Conn) {
 	}
 }
 
-func (s *Server) dispatch(req *imev1.Envelope, negotiated *bool) *imev1.Envelope {
+func (s *Server) dispatch(req *imev1.Envelope, state *connState) *imev1.Envelope {
+	if hello, ok := req.Payload.(*imev1.Envelope_Hello); ok {
+		return s.handleHello(hello.Hello, &state.negotiated)
+	}
+	if !state.negotiated {
+		return errorEnvelope(1, "hello required")
+	}
 	switch payload := req.Payload.(type) {
-	case *imev1.Envelope_Hello:
-		return s.handleHello(payload.Hello, negotiated)
 	case *imev1.Envelope_OpenSession:
-		if !*negotiated {
-			return errorEnvelope(1, "hello required")
+		resp := s.handleOpenSession(payload.OpenSession)
+		if id := resp.GetOpenSessionAck().GetSessionId(); id != "" {
+			state.sessions[id] = struct{}{}
 		}
-		return s.handleOpenSession(payload.OpenSession)
-case *imev1.Envelope_CloseSession:
-			if !*negotiated {
-				return errorEnvelope(1, "hello required")
-			}
-			return s.handleCloseSession(payload.CloseSession)
-		case *imev1.Envelope_InvalidateLearningContext:
-			if !*negotiated {
-				return errorEnvelope(1, "hello required")
-			}
-			return s.handleInvalidateLearningContext(payload.InvalidateLearningContext)
-		case *imev1.Envelope_KeyEvent:
-		if !*negotiated {
-			return errorEnvelope(1, "hello required")
-		}
+		return resp
+	case *imev1.Envelope_CloseSession:
+		delete(state.sessions, payload.CloseSession.GetSessionId())
+		return s.handleCloseSession(payload.CloseSession)
+	case *imev1.Envelope_InvalidateLearningContext:
+		return s.handleInvalidateLearningContext(payload.InvalidateLearningContext)
+	case *imev1.Envelope_KeyEvent:
 		return s.handleKeyEvent(payload.KeyEvent, req.Generation)
 	case *imev1.Envelope_SetInputMode:
-		if !*negotiated {
-			return errorEnvelope(1, "hello required")
-		}
 		return s.handleSetInputMode(payload.SetInputMode)
 	case *imev1.Envelope_GetInputMode:
-		if !*negotiated {
-			return errorEnvelope(1, "hello required")
-		}
 		return s.handleGetInputMode(payload.GetInputMode)
 	case *imev1.Envelope_SelectCandidate:
-		if !*negotiated {
-			return errorEnvelope(1, "hello required")
-		}
 		return s.handleSelectCandidate(payload.SelectCandidate)
 	default:
 		return errorEnvelope(2, fmt.Sprintf("unsupported payload %T", req.Payload))

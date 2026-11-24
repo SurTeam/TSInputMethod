@@ -22,8 +22,9 @@
 ## Operator notes
 
 - Defaults: personalization, user dictionary, and auto-learn **on**; PrivacyMode **off**.
-- PrivacyMode disables fused personalization scoring and feedback/usage recording when applied via the engine.
-- Tuning: `SGDWeight` (default 40), `UserFrequencyWeight` (default 8), `LearnMinRepeats` (default 2) via `Settings` setters—not env vars.
+- PrivacyMode disables fused personalization scoring, feedback/usage recording, and phrase auto-learn when applied via the engine; it also discards pending auto-learn counts.
+- `AutoLearnEnabled=false` (or `UserDictionaryEnabled=false`) stops `PinyinEngine.ObserveCommittedPhrase` from promoting phrases; `tsimed` routes the session `PhraseObserver` through the engine so these toggles apply.
+- Tuning: `SGDWeight` (default 40), `UserFrequencyWeight` (default 8), `LearnMinRepeats` (default 2, applied to the engine learner by `ApplySettings`) via `Settings` setters—not env vars.
 - Clear weights: `go run ./cmd/tsime-personal clear-weights`
 - Clear user dict: `go run ./cmd/tsime-userdict clear learned|all`
 - Clear short context: `Manager.ClearAllLearningContext` / `Session.ClearLearningContext`

@@ -23,6 +23,7 @@ See [../index.md](../index.md) for implemented / compiled / auto-tested / real-e
 | Linux Fcitx5 adapter | yes (source + scripts) | **no** (needs Fcitx5) | no | **no** |
 | Ranking / Inference | yes (API + FastRanker + stubs) | yes | yes (unit) | no |
 | Online SGD personalization + user dict | yes | yes | yes (`go test ./...`; `-race` on personal/ranking/engine/session/dictionary/pinyin) | no |
+| Daemon lifecycle (per-connection session cleanup, shutdown flush, periodic sync) | yes | yes (darwin; `GOOS=windows`/`linux` cross-build) | yes (`go test -race ./internal/ipc ./internal/engine ./internal/ranking ./internal/dictionary`) | no |
 | `cmd/tsime-personal-eval` | yes | yes | fixture replay smoke | no |
 | Xiaohe / flypy shuangpin | yes | yes | yes (unit) | no |
 | macOS trial package (`scripts/package_macos.sh`) | yes (DMG OOBE + SurTeam codesign + TIS register/enable) | yes when packaged | codesign verify + TIS Hans-only enable + select | Settings Add browser / typing **no** |

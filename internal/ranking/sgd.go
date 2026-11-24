@@ -2,6 +2,7 @@ package ranking
 
 import (
 	"math"
+	"sort"
 	"sync"
 	"time"
 )
@@ -12,6 +13,7 @@ const (
 	defaultGradClip     = 1.0
 	defaultWeightCap    = 5.0
 	defaultMaxWeights   = 50000
+	trimKeepRatio       = 0.9
 )
 
 type SGDConfig struct {
@@ -43,6 +45,7 @@ type PersonalModel struct {
 	cache       *ShortTermCache
 	enabled     bool
 	dirty       bool
+	changeSeq   uint64
 	path        string
 }
 
@@ -105,11 +108,14 @@ func (m *PersonalModel) Version() uint64 {
 }
 
 func (m *PersonalModel) Score(context, code, candidate string) float64 {
-	if m == nil || !m.Enabled() {
+	if m == nil {
 		return 0
 	}
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+	if !m.enabled {
+		return 0
+	}
 	feats := ExtractFeatures(context, code, candidate, m.cfg.Dimension)
 	sgd := dotSparse(m.weights, feats)
 	bias := 0.0
@@ -120,11 +126,14 @@ func (m *PersonalModel) Score(context, code, candidate string) float64 {
 }
 
 func (m *PersonalModel) PairwiseUpdate(context, code, selected, top string) float64 {
-	if m == nil || !m.Enabled() || selected == "" || top == "" || selected == top {
+	if m == nil || selected == "" || top == "" || selected == top {
 		return 0
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if !m.enabled {
+		return 0
+	}
 	pos := ExtractFeatures(context, code, selected, m.cfg.Dimension)
 	neg := ExtractFeatures(context, code, top, m.cfg.Dimension)
 	margin := dotSparse(m.weights, pos) - dotSparse(m.weights, neg)
@@ -149,7 +158,7 @@ func (m *PersonalModel) PairwiseUpdate(context, code, selected, top string) floa
 	m.trimWeightsLocked()
 	m.updateCount++
 	m.updatedAt = time.Now().UTC()
-	m.dirty = true
+	m.markDirtyLocked()
 	if m.cache != nil {
 		m.cache.RememberLocked(context, code, selected, 0.5, time.Now())
 	}
@@ -169,7 +178,7 @@ func (m *PersonalModel) ResetPersonalization() {
 	m.weights = make(map[uint32]float64)
 	m.updateCount = 0
 	m.updatedAt = time.Now().UTC()
-	m.dirty = true
+	m.markDirtyLocked()
 	if m.cache != nil {
 		m.cache.ClearLocked()
 	}
@@ -196,6 +205,11 @@ func (m *PersonalModel) CacheLen() int {
 	return m.cache.Len()
 }
 
+func (m *PersonalModel) markDirtyLocked() {
+	m.dirty = true
+	m.changeSeq++
+}
+
 func (m *PersonalModel) trimWeightsLocked() {
 	if len(m.weights) <= m.cfg.MaxWeights {
 		return
@@ -208,14 +222,17 @@ func (m *PersonalModel) trimWeightsLocked() {
 	for idx, w := range m.weights {
 		items = append(items, pair{idx: idx, abs: math.Abs(w)})
 	}
-	for i := 0; i < len(items); i++ {
-		for j := i + 1; j < len(items); j++ {
-			if items[j].abs < items[i].abs {
-				items[i], items[j] = items[j], items[i]
-			}
+	sort.Slice(items, func(i, j int) bool {
+		if items[i].abs == items[j].abs {
+			return items[i].idx < items[j].idx
 		}
+		return items[i].abs < items[j].abs
+	})
+	keep := int(float64(m.cfg.MaxWeights) * trimKeepRatio)
+	if keep < 1 {
+		keep = 1
 	}
-	drop := len(items) - m.cfg.MaxWeights
+	drop := len(items) - keep
 	for i := 0; i < drop; i++ {
 		delete(m.weights, items[i].idx)
 	}

@@ -59,6 +59,7 @@ type PinyinEngine struct {
 	model       *ranking.PersonalModel
 	queue       *ranking.UpdateQueue
 	fused       *ranking.FusedRanker
+	learner     *dictionary.PhraseLearner
 }
 
 func NewPinyinEngine(dict *dictionary.Dictionary) *PinyinEngine {
@@ -102,6 +103,15 @@ func (e *PinyinEngine) SetUserDictionary(user *dictionary.UserDictionary) {
 		return
 	}
 	e.user = user
+	if user == nil {
+		e.learner = nil
+	} else {
+		minRepeats := 0
+		if e.settings != nil {
+			minRepeats = e.settings.Snapshot().LearnMinRepeats
+		}
+		e.learner = dictionary.NewPhraseLearner(user, minRepeats)
+	}
 	if e.decoder != nil {
 		if e.settings == nil || e.settings.Snapshot().UserDictionaryEnabled {
 			e.decoder.SetUserDictionary(user)
@@ -168,6 +178,26 @@ func (e *PinyinEngine) ApplySettings() {
 			e.decoder.SetUserDictionary(nil)
 		}
 	}
+	if e.learner != nil {
+		e.learner.SetMinRepeats(snap.LearnMinRepeats)
+		if snap.PrivacyMode || !snap.AutoLearnEnabled {
+			e.learner.Reset()
+		}
+	}
+}
+
+func (e *PinyinEngine) ObserveCommittedPhrase(text string, syllables []string) error {
+	if e == nil || e.learner == nil {
+		return nil
+	}
+	if e.settings != nil {
+		snap := e.settings.Snapshot()
+		if snap.PrivacyMode || !snap.AutoLearnEnabled || !snap.UserDictionaryEnabled {
+			return nil
+		}
+	}
+	_, _, err := e.learner.ObserveCommittedPhrase(text, syllables)
+	return err
 }
 
 func (e *PinyinEngine) EnqueueFeedback(context, code, selected, top string) bool {
@@ -182,7 +212,7 @@ func (e *PinyinEngine) EnqueueFeedback(context, code, selected, top string) bool
 	}
 	return e.queue.Enqueue(ranking.PairwiseFeedback{
 		Context:  context,
-		Code:     code,
+		Code:     pinyin.NormalizeInput(e.scheme, code),
 		Selected: selected,
 		Top:      top,
 	})
@@ -224,6 +254,7 @@ func (e *PinyinEngine) ClearUserDictionary(mode string) error {
 	default:
 		return fmt.Errorf("engine: clear user dictionary expects learned|all")
 	}
+	e.learner.Reset()
 	if e.user.Path() == "" {
 		return nil
 	}
@@ -252,6 +283,40 @@ func (e *PinyinEngine) ClearPersonalData(clearWeights, clearUserDictLearned, cle
 	return first
 }
 
+func (e *PinyinEngine) Flush() error {
+	if e == nil {
+		return nil
+	}
+	var first error
+	if e.model != nil && e.model.Path() != "" {
+		if err := e.model.SaveIfDirty(); err != nil {
+			first = err
+		}
+	}
+	if e.user != nil {
+		if err := e.user.SaveIfDirty(); err != nil && first == nil {
+			first = err
+		}
+	}
+	return first
+}
+
+func (e *PinyinEngine) SyncPersonalData() error {
+	if e == nil {
+		return nil
+	}
+	if e.user != nil {
+		reloaded, err := e.user.ReloadIfChangedOnDisk()
+		if err != nil {
+			return err
+		}
+		if reloaded {
+			e.learner.Reset()
+		}
+	}
+	return e.Flush()
+}
+
 func (e *PinyinEngine) Close() error {
 	if e == nil {
 		return nil
@@ -259,18 +324,7 @@ func (e *PinyinEngine) Close() error {
 	if e.queue != nil {
 		e.queue.Close()
 	}
-	var first error
-	if e.model != nil {
-		if err := e.model.SaveIfDirty(); err != nil {
-			first = err
-		}
-	}
-	if e.user != nil && e.user.Path() != "" {
-		if err := e.user.Save(); err != nil && first == nil {
-			first = err
-		}
-	}
-	return first
+	return e.Flush()
 }
 
 func (e *PinyinEngine) SetEmojiTable(table *emoji.Table) {
