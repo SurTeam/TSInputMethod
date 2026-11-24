@@ -3,7 +3,7 @@ package personal
 import "sync"
 
 type Settings struct {
-	mu                   sync.RWMutex
+	mu                     sync.RWMutex
 	PersonalizationEnabled bool
 	UserDictionaryEnabled  bool
 	AutoLearnEnabled       bool

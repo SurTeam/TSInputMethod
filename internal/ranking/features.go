@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	DefaultHashDimension   = 1 << 18
-	FeatureSchemaVersion   = 1
-	HashAlgorithmFNV1a64   = "fnv1a64"
+	DefaultHashDimension = 1 << 18
+	FeatureSchemaVersion = 1
+	HashAlgorithmFNV1a64 = "fnv1a64"
 )
 
 type FeatureVector []uint32

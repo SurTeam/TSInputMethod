@@ -22,10 +22,10 @@ func DefaultFusionConfig() FusionConfig {
 }
 
 type FusedRanker struct {
-	base   Ranker
-	model  *PersonalModel
-	usage  UsageLookup
-	cfg    FusionConfig
+	base  Ranker
+	model *PersonalModel
+	usage UsageLookup
+	cfg   FusionConfig
 }
 
 func NewFusedRanker(base Ranker, model *PersonalModel, usage UsageLookup, cfg FusionConfig) *FusedRanker {

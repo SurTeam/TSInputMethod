@@ -178,7 +178,7 @@ func TestStaleCandidateGeneration(t *testing.T) {
 			KeyEvent: &imev1.KeyEvent{SessionId: sessionID, Characters: "wo", KeyDown: true},
 		},
 	})
-gen := key.GetKeyEventResult().GetComposition().GetGeneration()
+	gen := key.GetKeyEventResult().GetComposition().GetGeneration()
 	if gen < 2 {
 		key, _ = client.RoundTrip(&imev1.Envelope{
 			RequestId: 4,

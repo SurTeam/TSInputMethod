@@ -24,7 +24,7 @@ func TestAnPrefersAnFamilyNotA(t *testing.T) {
 	if !containsText(texts, "安") && !containsText(texts, "按") {
 		t.Fatalf("an missing 安/按: %#v", texts)
 	}
-space := s.HandleKey(&imev1.KeyEvent{KeyDown: true, KeyCode: keySpace, Characters: " "})
+	space := s.HandleKey(&imev1.KeyEvent{KeyDown: true, KeyCode: keySpace, Characters: " "})
 	if space.Commit == nil || space.Commit.Text == "" || space.Commit.Text == "啊" {
 		t.Fatalf("an Space commit=%#v candidates were %#v", space.Commit, texts)
 	}

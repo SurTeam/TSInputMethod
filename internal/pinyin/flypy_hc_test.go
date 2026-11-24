@@ -15,13 +15,13 @@ func TestFlypyHCIsHao(t *testing.T) {
 func TestFlypyKeymapCoreMappings(t *testing.T) {
 	// from https://github.com/boomker/rime-fast-xhup/blob/main/flypy_keymap.txt finals
 	cases := map[string]string{
-		"hc": "hao",
+		"hc":   "hao",
 		"nihc": "nihao",
-		"go": "gou", // o => uo after g? wait g+o => guo in flypy
-		"bo": "bo",
-		"vh": "zhang",
-		"ul": "shuang",
-		"jx": "jia",
+		"go":   "gou", // o => uo after g? wait g+o => guo in flypy
+		"bo":   "bo",
+		"vh":   "zhang",
+		"ul":   "shuang",
+		"jx":   "jia",
 	}
 	// fix go expectation: g+o => guo
 	cases["go"] = "guo"

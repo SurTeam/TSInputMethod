@@ -105,7 +105,7 @@ func TestFlypyPartialCommitContinuesMatching(t *testing.T) {
 
 func TestCandidatePageSizeAlwaysNine(t *testing.T) {
 	s := openProgressiveSession(t)
-res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "vsgorfmb"})
+	res := s.HandleKey(&imev1.KeyEvent{KeyDown: true, Characters: "vsgorfmb"})
 	if res.Candidates == nil {
 		t.Fatal("nil candidates")
 	}

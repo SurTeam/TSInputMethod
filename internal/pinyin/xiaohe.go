@@ -21,14 +21,14 @@ var xiaoheFinals = map[byte]string{
 }
 
 var xiaoheZeroSyllables = map[string]string{
-		"aa": "a", "oo": "o", "ee": "e",
-		"ah": "ang", "ag": "eng", "as": "ong",
-		"aj": "an", "ac": "ao", "ad": "ai",
-		"ew": "ei", "ef": "en", "eg": "eng", "er": "er", "ez": "ou",
-		"oz": "ou",
-		"ai": "ai", "ei": "ei", "ao": "ao", "ou": "ou",
-		"an": "an", "en": "en",
-	}
+	"aa": "a", "oo": "o", "ee": "e",
+	"ah": "ang", "ag": "eng", "as": "ong",
+	"aj": "an", "ac": "ao", "ad": "ai",
+	"ew": "ei", "ef": "en", "eg": "eng", "er": "er", "ez": "ou",
+	"oz": "ou",
+	"ai": "ai", "ei": "ei", "ao": "ao", "ou": "ou",
+	"an": "an", "en": "en",
+}
 
 func ExpandXiaohe(input string) (syllables []string, remainder string, ok bool) {
 	paths, rem, ok := ExpandXiaohePaths(input)

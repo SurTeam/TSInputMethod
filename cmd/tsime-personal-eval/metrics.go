@@ -18,17 +18,17 @@ const (
 )
 
 type ModeResult struct {
-	Mode               ModeName
-	Samples            int
-	Top1               float64
-	Top5               float64
-	MRR                float64
-	AvgRankDelta       float64
-	FalsePromotions    int
-	WeightCount        int
-	EstModelBytes      int64
-	RuntimeHeapAllocB  uint64
-	AvgLatencyNS       float64
+	Mode              ModeName
+	Samples           int
+	Top1              float64
+	Top5              float64
+	MRR               float64
+	AvgRankDelta      float64
+	FalsePromotions   int
+	WeightCount       int
+	EstModelBytes     int64
+	RuntimeHeapAllocB uint64
+	AvgLatencyNS      float64
 }
 
 func rankOf(cands []ranking.Candidate, text string) int {
@@ -146,7 +146,7 @@ func runMode(name ModeName, samples []Sample, useSGD, useFreq bool) ModeResult {
 		}
 	}
 
-n := float64(len(samples))
+	n := float64(len(samples))
 	if n == 0 {
 		n = 1
 	}

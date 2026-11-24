@@ -93,7 +93,7 @@ func loadCompact(data []byte, closer func() error) (*Dictionary, error) {
 			maxLen = len(s)
 		}
 	}
-entryOff := make([]uint32, entryCount)
+	entryOff := make([]uint32, entryCount)
 	byKey := make(map[string][]uint32, entryCount/2+1)
 	for i := 0; i < entryCount; i++ {
 		if offset+6 > len(data) {
@@ -202,7 +202,7 @@ func (d *Dictionary) entryAt(idx uint32) Entry {
 	syl := make([]string, nSyl)
 	for j := 0; j < nSyl; j++ {
 		sIdx := int(binary.LittleEndian.Uint16(data[o:]))
-	o += 2
+		o += 2
 		syl[j] = d.syllableList[sIdx]
 	}
 	return Entry{Text: text, Syllables: syl, Weight: weight}
@@ -299,7 +299,7 @@ func (d *Dictionary) Lookup(syllables []string) []Entry {
 		}
 		return out
 	}
-keyIdx := d.findExactKey(joinKey(syllables))
+	keyIdx := d.findExactKey(joinKey(syllables))
 	if keyIdx < 0 {
 		return nil
 	}

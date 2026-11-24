@@ -44,31 +44,31 @@ type FeedbackSink interface {
 }
 
 type Session struct {
-	mu               sync.Mutex
-	id               string
-	mode             imev1.InputMode
-	preedit          []rune
-	cursor           int
-	confirmed        []confirmedSegment
-	committedContext []rune
-	contextWindow    int
-	generation       uint64
-	page             uint32
-	pageSize         uint32
-	selectedIndex    uint32
+	mu                      sync.Mutex
+	id                      string
+	mode                    imev1.InputMode
+	preedit                 []rune
+	cursor                  int
+	confirmed               []confirmedSegment
+	committedContext        []rune
+	contextWindow           int
+	generation              uint64
+	page                    uint32
+	pageSize                uint32
+	selectedIndex           uint32
 	literal                 bool
 	quoteOpen               bool
 	singleOpen              bool
 	afterDigitPunct         bool
 	tempAsciiPunctCommitted bool
 	engine                  engine.Engine
-	snapshot         *candidateSnapshot
-	pendingFeedback  []pendingFeedback
-	acceptedFeedback []FeedbackEvent
-	rankingVersion   uint64
-	userDictVersion  uint64
-	phraseObserver   PhraseObserver
-	feedbackSink     FeedbackSink
+	snapshot                *candidateSnapshot
+	pendingFeedback         []pendingFeedback
+	acceptedFeedback        []FeedbackEvent
+	rankingVersion          uint64
+	userDictVersion         uint64
+	phraseObserver          PhraseObserver
+	feedbackSink            FeedbackSink
 }
 
 type KeyResult struct {
@@ -707,7 +707,7 @@ func (s *Session) pageLocked(delta int) *KeyResult {
 	if next > maxPage {
 		next = maxPage
 	}
-s.page = uint32(next)
+	s.page = uint32(next)
 	s.selectedIndex = 0
 	return s.bumpSnapshotPresentationLocked()
 }
@@ -995,48 +995,48 @@ func (s *Session) commitCandidateLocked(cand engine.Candidate) *KeyResult {
 		return s.refreshLocked()
 	}
 	covered := string(s.preedit[:consumedKeys])
-		remainder := ""
-		if consumedKeys < len(s.preedit) {
-			remainder = string(s.preedit[consumedKeys:])
-		}
-		s.confirmed = append(s.confirmed, confirmedSegment{
-			Text:      cand.Text,
-			Keys:      covered,
-			Syllables: append([]string(nil), cand.Syllables...),
-		})
-		s.preedit = []rune(remainder)
-		s.cursor = len(s.preedit)
-		s.page = 0
-		s.selectedIndex = 0
-		s.literal = false
-		s.generation++
-		if remainder != "" {
-			list := s.decodeCandidatesLocked()
-			s.storeSnapshotLocked(list)
-			return &KeyResult{
-				Composition: s.compositionLocked(),
-				Candidates:  s.candidateListLocked(list),
-				Consumed:    true,
-			}
-		}
-		text := s.confirmedTextLocked()
-		syllables := s.confirmedSyllablesLocked()
-		s.confirmed = nil
-		s.acceptPendingFeedbackLocked()
-		s.appendCommittedLocked(text)
-		s.observeCommittedLocked(text, syllables)
-		s.snapshot = nil
+	remainder := ""
+	if consumedKeys < len(s.preedit) {
+		remainder = string(s.preedit[consumedKeys:])
+	}
+	s.confirmed = append(s.confirmed, confirmedSegment{
+		Text:      cand.Text,
+		Keys:      covered,
+		Syllables: append([]string(nil), cand.Syllables...),
+	})
+	s.preedit = []rune(remainder)
+	s.cursor = len(s.preedit)
+	s.page = 0
+	s.selectedIndex = 0
+	s.literal = false
+	s.generation++
+	if remainder != "" {
+		list := s.decodeCandidatesLocked()
+		s.storeSnapshotLocked(list)
 		return &KeyResult{
 			Composition: s.compositionLocked(),
-			Candidates:  s.candidateListLocked(nil),
-			Commit: &imev1.CommitText{
-				SessionId:  s.id,
-				Text:       text,
-				Generation: s.generation,
-			},
-			Consumed: true,
+			Candidates:  s.candidateListLocked(list),
+			Consumed:    true,
 		}
 	}
+	text := s.confirmedTextLocked()
+	syllables := s.confirmedSyllablesLocked()
+	s.confirmed = nil
+	s.acceptPendingFeedbackLocked()
+	s.appendCommittedLocked(text)
+	s.observeCommittedLocked(text, syllables)
+	s.snapshot = nil
+	return &KeyResult{
+		Composition: s.compositionLocked(),
+		Candidates:  s.candidateListLocked(nil),
+		Commit: &imev1.CommitText{
+			SessionId:  s.id,
+			Text:       text,
+			Generation: s.generation,
+		},
+		Consumed: true,
+	}
+}
 
 func (s *Session) confirmedSyllablesLocked() []string {
 	if len(s.confirmed) == 0 {

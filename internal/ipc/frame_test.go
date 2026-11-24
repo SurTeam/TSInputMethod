@@ -22,7 +22,7 @@ func TestWriteReadFrameRoundTrip(t *testing.T) {
 }
 
 func TestReadFrameTooLarge(t *testing.T) {
-var buf bytes.Buffer
+	var buf bytes.Buffer
 	if _, err := buf.Write([]byte{0xff, 0xff, 0xff, 0xff}); err != nil {
 		t.Fatalf("Write: %v", err)
 	}

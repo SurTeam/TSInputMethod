@@ -24,7 +24,7 @@ func TestManagerClearAllLearningContext(t *testing.T) {
 	if a.CommittedContext() != "" {
 		t.Fatalf("session a still has context=%q", a.CommittedContext())
 	}
-if b.CommittedContext() != "" {
+	if b.CommittedContext() != "" {
 		t.Fatalf("session b still has context=%q", b.CommittedContext())
 	}
 }

@@ -38,7 +38,7 @@ func hasText(cands []Candidate, want string) bool {
 
 func TestDecodeSyllablesProgressivePrefixes(t *testing.T) {
 	dec := NewDecoder(progressiveDict(), 32)
-analyzed := AnalyzeInput(SchemeXiaohe, "vsgorfmb")
+	analyzed := AnalyzeInput(SchemeXiaohe, "vsgorfmb")
 	if len(analyzed.Syllables) != 4 || analyzed.Remainder != "" {
 		t.Fatalf("analyze = %#v", analyzed)
 	}
@@ -56,7 +56,7 @@ analyzed := AnalyzeInput(SchemeXiaohe, "vsgorfmb")
 
 func TestDecodeSyllablesOddLengthKeepsCompletePrefixes(t *testing.T) {
 	dec := NewDecoder(progressiveDict(), 32)
-analyzed := AnalyzeInput(SchemeXiaohe, "vsgorfm")
+	analyzed := AnalyzeInput(SchemeXiaohe, "vsgorfm")
 	if len(analyzed.Syllables) != 3 || analyzed.Remainder != "m" {
 		t.Fatalf("analyze odd = %#v", analyzed)
 	}

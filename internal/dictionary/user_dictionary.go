@@ -30,13 +30,13 @@ func SetValidSyllableFunc(fn func(string) bool) {
 }
 
 const (
-	UserSourceManual       = "manual"
-	UserSourceLearned      = "learned"
-	defaultUserWeight      = uint32(1000)
-	maxUserTextRunes       = 16
-	maxUserSyllables       = 12
-	defaultMaxUserEntries  = -1
-	maxUsageCount          = uint32(100000)
+	UserSourceManual      = "manual"
+	UserSourceLearned     = "learned"
+	defaultUserWeight     = uint32(1000)
+	maxUserTextRunes      = 16
+	maxUserSyllables      = 12
+	defaultMaxUserEntries = -1
+	maxUsageCount         = uint32(100000)
 )
 
 var (

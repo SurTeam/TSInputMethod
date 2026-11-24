@@ -86,7 +86,7 @@ func TestApplyUpdateDropsStaleGeneration(t *testing.T) {
 
 func TestAsyncRerankDropsStaleUpdate(t *testing.T) {
 	var (
-		mu      sync.Mutex
+		mu       sync.Mutex
 		releases []Update
 	)
 	started := make(chan struct{})

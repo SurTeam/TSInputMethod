@@ -12,9 +12,9 @@ import (
 const userDictFormatVersion = 1
 
 type userDictFile struct {
-	FormatVersion int             `json:"format_version"`
-	UpdatedAt     time.Time       `json:"updated_at"`
-	Entries       []userDictJSON  `json:"entries"`
+	FormatVersion int            `json:"format_version"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	Entries       []userDictJSON `json:"entries"`
 }
 
 type fileStamp struct {
