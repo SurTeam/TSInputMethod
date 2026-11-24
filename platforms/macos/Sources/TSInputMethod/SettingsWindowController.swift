@@ -392,14 +392,17 @@ final class SettingsWindowController: NSWindowController, NSTableViewDataSource,
     }
 
     @objc private func chooseFont() {
-        let panel = NSFontPanel.shared
-        panel.setPanelFont(draft.candidateFont, isMultiple: false)
-        panel.makeKeyAndOrderFront(self)
+        let fontPanel = NSFontPanel.shared
+        fontPanel.setPanelFont(draft.candidateFont, isMultiple: false)
+        fontPanel.makeKeyAndOrderFront(self)
         NSFontManager.shared.target = self
         NSFontManager.shared.action = #selector(changeFont(_:))
     }
 
     @objc func changeFont(_ sender: Any?) {
+        guard sender is NSFontManager else {
+            return
+        }
         let manager = NSFontManager.shared
         let current = draft.candidateFont
         let next = manager.convert(current)

@@ -4,8 +4,9 @@ final class CandidatePanel {
     var onPage: ((Int) -> Void)?
     var onSelect: ((Int) -> Void)?
 
-    private let panel: NSPanel
+    private var panel: NSPanel?
     private let content: CandidatePanelView
+    private var destroyed = false
     private var pageSize = 9
     private let minColumnWidth: CGFloat = 28
     private let horizontalPadding: CGFloat = 6
@@ -20,21 +21,22 @@ final class CandidatePanel {
 
     init() {
         content = CandidatePanelView(frame: .zero)
-        panel = NSPanel(
+        let created = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 200, height: 40),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: true
         )
-        panel.level = .popUpMenu
-        panel.isOpaque = false
-        panel.backgroundColor = .clear
-        panel.hasShadow = true
-        panel.hidesOnDeactivate = false
-        panel.becomesKeyOnlyIfNeeded = true
-        panel.acceptsMouseMovedEvents = true
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-        panel.contentView = content
+        created.level = .popUpMenu
+        created.isOpaque = false
+        created.backgroundColor = .clear
+        created.hasShadow = true
+        created.hidesOnDeactivate = false
+        created.becomesKeyOnlyIfNeeded = true
+        created.acceptsMouseMovedEvents = true
+        created.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        created.contentView = content
+        panel = created
         content.onPage = { [weak self] delta in
             self?.onPage?(delta)
         }
@@ -53,7 +55,25 @@ final class CandidatePanel {
         content.bodyFontName = bodyFontName
     }
 
+    func destroy() {
+        guard !destroyed else {
+            return
+        }
+        destroyed = true
+        content.onPage = nil
+        content.onSelect = nil
+        onPage = nil
+        onSelect = nil
+        panel?.orderOut(nil)
+        panel?.contentView = nil
+        panel?.close()
+        panel = nil
+    }
+
     func hide() {
+        guard let panel else {
+            return
+        }
         panel.orderOut(nil)
         content.update(
             candidates: [],
@@ -69,6 +89,9 @@ final class CandidatePanel {
     }
 
     func update(candidates: [String], selectedIndex: Int, anchor: NSRect) {
+        guard !destroyed, let panel else {
+            return
+        }
         let texts = candidates.map(Self.bareText)
         if texts.isEmpty {
             hide()
@@ -99,6 +122,9 @@ final class CandidatePanel {
 
     private func position(anchor: NSRect, size: NSSize) {
         var screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1280, height: 800)
+        guard let panel else {
+            return
+        }
         for candidate in NSScreen.screens {
             if candidate.frame.contains(NSPoint(x: anchor.midX, y: anchor.midY)) {
                 screen = candidate.visibleFrame
@@ -148,7 +174,7 @@ final class CandidatePanel {
 }
 
 private final class CandidatePanelView: NSView {
-    var onPage: ((Int) -> Void)?
+var onPage: ((Int) -> Void)?
     var onSelect: ((Int) -> Void)?
     var highlightColor: NSColor = .controlAccentColor
     var bodyFontName: String = NSFont.systemFont(ofSize: 16).fontName

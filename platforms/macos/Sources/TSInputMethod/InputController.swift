@@ -43,6 +43,7 @@ settingsObserver = NotificationCenter.default.addObserver(
         if let settingsObserver {
             NotificationCenter.default.removeObserver(settingsObserver)
         }
+        candidatePanel.destroy()
     }
 
     override func recognizedEvents(_ sender: Any!) -> Int {
